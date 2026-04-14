@@ -26,8 +26,7 @@ void push_key_pressed(vne::events::KeyCode key, uint8_t modifiers) {
 }
 
 void push_key_repeat(vne::events::KeyCode key, uint8_t modifiers) {
-    vne::events::EventManager::instance().pushEvent(
-        std::make_unique<vne::events::KeyRepeatEvent>(key, 1U));
+    vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::KeyRepeatEvent>(key, 1U));
     (void)modifiers;
 }
 
@@ -118,7 +117,8 @@ void xwin_vne_bridge_mouse_move(Window_I* window,
         vne::events::Input::updateMousePosition(static_cast<int>(x), static_cast<int>(y));
     }
     if (desc.enable_events) {
-        vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::MouseMovedEvent>(x, y, modifiers));
+        vne::events::EventManager::instance().pushEvent(
+            std::make_unique<vne::events::MouseMovedEvent>(x, y, modifiers));
     }
     if (callbacks.on_mouse_move) {
         callbacks.on_mouse_move(window, x, y, modifiers);
@@ -136,7 +136,7 @@ void xwin_vne_bridge_mouse_scroll(Window_I* window,
     if (desc.enable_events) {
         vne::events::EventManager::instance().pushEvent(
             std::make_unique<vne::events::MouseScrolledEvent>(static_cast<double>(x_offset),
-                                                             static_cast<double>(y_offset)));
+                                                              static_cast<double>(y_offset)));
     }
     if (callbacks.on_mouse_scroll) {
         callbacks.on_mouse_scroll(window, x_offset, y_offset);

@@ -84,8 +84,8 @@ void X11Window_C::Initialize(const WindowDescriptor_C& descriptor) {
     }
     XSelectInput(_display,
                  _window,
-                 ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
-                     | PointerMotionMask | StructureNotifyMask | FocusChangeMask);
+                 ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
+                     | StructureNotifyMask | FocusChangeMask);
     _wm_delete = XInternAtom(_display, "WM_DELETE_WINDOW", False);
     Atom protocols[] = {_wm_delete};
     XSetWMProtocols(_display, _window, protocols, 1);
@@ -163,13 +163,13 @@ void X11Window_C::PollEvents() {
                 const std::uint8_t mods = xwin_map_x11_modifiers(ev.xbutton.state);
                 const vne::events::MouseButton mb = x11_button_to_mouse_button(b);
                 xwin_vne_bridge_mouse_button(this,
-                                            _desc,
-                                            cb,
-                                            mb,
-                                            true,
-                                            static_cast<double>(ev.xbutton.x),
-                                            static_cast<double>(ev.xbutton.y),
-                                            mods);
+                                             _desc,
+                                             cb,
+                                             mb,
+                                             true,
+                                             static_cast<double>(ev.xbutton.x),
+                                             static_cast<double>(ev.xbutton.y),
+                                             mods);
             }
         } else if (ev.type == ButtonRelease) {
             const unsigned int b = static_cast<unsigned int>(ev.xbutton.button);
@@ -179,21 +179,21 @@ void X11Window_C::PollEvents() {
             const std::uint8_t mods = xwin_map_x11_modifiers(ev.xbutton.state);
             const vne::events::MouseButton mb = x11_button_to_mouse_button(b);
             xwin_vne_bridge_mouse_button(this,
-                                        _desc,
-                                        cb,
-                                        mb,
-                                        false,
-                                        static_cast<double>(ev.xbutton.x),
-                                        static_cast<double>(ev.xbutton.y),
-                                        mods);
+                                         _desc,
+                                         cb,
+                                         mb,
+                                         false,
+                                         static_cast<double>(ev.xbutton.x),
+                                         static_cast<double>(ev.xbutton.y),
+                                         mods);
         } else if (ev.type == MotionNotify) {
             const std::uint8_t mods = xwin_map_x11_modifiers(ev.xmotion.state);
             xwin_vne_bridge_mouse_move(this,
-                                      _desc,
-                                      cb,
-                                      static_cast<double>(ev.xmotion.x),
-                                      static_cast<double>(ev.xmotion.y),
-                                      mods);
+                                       _desc,
+                                       cb,
+                                       static_cast<double>(ev.xmotion.x),
+                                       static_cast<double>(ev.xmotion.y),
+                                       mods);
         } else if (ev.type == FocusIn) {
             xwin_vne_bridge_window_focus(this, _desc, cb, true);
             if (_owner) {

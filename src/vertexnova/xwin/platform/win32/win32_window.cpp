@@ -213,23 +213,27 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         case WM_MBUTTONUP:
         case WM_XBUTTONDOWN:
         case WM_XBUTTONUP: {
-            const bool want_vne =
-                _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_button);
+            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_button);
             if (want_vne) {
                 const int x = GET_X_LPARAM(lParam);
                 const int y = GET_Y_LPARAM(lParam);
                 const std::uint8_t mods = xwin_map_win32_modifier_flags();
                 const vne::events::MouseButton btn = xwin_map_win32_mouse_button_from_message(msg, wParam);
-                const bool down = (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN
-                                     || msg == WM_XBUTTONDOWN);
-                xwin_vne_bridge_mouse_button(this, _desc, cb, btn, down, static_cast<double>(x),
-                                            static_cast<double>(y), mods);
+                const bool down =
+                    (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
+                xwin_vne_bridge_mouse_button(this,
+                                             _desc,
+                                             cb,
+                                             btn,
+                                             down,
+                                             static_cast<double>(x),
+                                             static_cast<double>(y),
+                                             mods);
             }
             return 0;
         }
         case WM_MOUSEMOVE: {
-            const bool want_vne =
-                _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_move);
+            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_move);
             if (want_vne) {
                 const int x = GET_X_LPARAM(lParam);
                 const int y = GET_Y_LPARAM(lParam);
@@ -239,8 +243,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             return 0;
         }
         case WM_MOUSEWHEEL: {
-            const bool want_vne =
-                _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_scroll);
+            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_scroll);
             if (want_vne) {
                 const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
                 const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
@@ -249,8 +252,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             return 0;
         }
         case WM_MOUSEHWHEEL: {
-            const bool want_vne =
-                _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_scroll);
+            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_scroll);
             if (want_vne) {
                 const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
                 const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
