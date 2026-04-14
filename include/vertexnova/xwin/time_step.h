@@ -30,53 +30,27 @@ class TimeStep_C {
     [[nodiscard]] bool Update() noexcept;
     void Reset() noexcept;
 
-    [[nodiscard]] double GetDeltaTime() const noexcept {
-        return _delta_time;
-    }
-    [[nodiscard]] double GetDeltaTimeMs() const noexcept {
-        return _delta_time * 1000.0;
-    }
+    [[nodiscard]] double GetDeltaTime() const noexcept { return _delta_time; }
+    [[nodiscard]] double GetDeltaTimeMs() const noexcept { return _delta_time * 1000.0; }
     [[nodiscard]] double GetElapsedTime() const noexcept;
     [[nodiscard]] double GetFrameRate() const noexcept;
     [[nodiscard]] double GetAverageFrameRate(uint32_t frame_count = 60) const noexcept;
 
     void SetTargetFrameRate(double target_fps) noexcept;
-    [[nodiscard]] double GetTargetFrameRate() const noexcept {
-        return _target_fps;
-    }
+    [[nodiscard]] double GetTargetFrameRate() const noexcept { return _target_fps; }
     [[nodiscard]] bool ShouldRender() const noexcept;
-    void SetFrameRateLimitEnabled(bool enabled) noexcept {
-        _frame_rate_limit_enabled = enabled;
-    }
-    [[nodiscard]] bool IsFrameRateLimitEnabled() const noexcept {
-        return _frame_rate_limit_enabled;
-    }
+    void SetFrameRateLimitEnabled(bool enabled) noexcept { _frame_rate_limit_enabled = enabled; }
+    [[nodiscard]] bool IsFrameRateLimitEnabled() const noexcept { return _frame_rate_limit_enabled; }
 
-    [[nodiscard]] double GetMinDeltaTime() const noexcept {
-        return _min_delta_time;
-    }
-    [[nodiscard]] double GetMaxDeltaTime() const noexcept {
-        return _max_delta_time;
-    }
-    [[nodiscard]] uint64_t GetFrameCount() const noexcept {
-        return _frame_count;
-    }
+    [[nodiscard]] double GetMinDeltaTime() const noexcept { return _min_delta_time; }
+    [[nodiscard]] double GetMaxDeltaTime() const noexcept { return _max_delta_time; }
+    [[nodiscard]] uint64_t GetFrameCount() const noexcept { return _frame_count; }
 
-    void SetMaxDeltaTime(double max_delta) noexcept {
-        _max_delta_time_limit = max_delta;
-    }
-    void SetSmoothingEnabled(bool enabled) noexcept {
-        _smoothing_enabled = enabled;
-    }
-    [[nodiscard]] bool IsSmoothingEnabled() const noexcept {
-        return _smoothing_enabled;
-    }
-    void SetSleepPacingEnabled(bool enabled) noexcept {
-        _sleep_pacing_enabled = enabled;
-    }
-    [[nodiscard]] bool IsSleepPacingEnabled() const noexcept {
-        return _sleep_pacing_enabled;
-    }
+    void SetMaxDeltaTime(double max_delta) noexcept { _max_delta_time_limit = max_delta; }
+    void SetSmoothingEnabled(bool enabled) noexcept { _smoothing_enabled = enabled; }
+    [[nodiscard]] bool IsSmoothingEnabled() const noexcept { return _smoothing_enabled; }
+    void SetSleepPacingEnabled(bool enabled) noexcept { _sleep_pacing_enabled = enabled; }
+    [[nodiscard]] bool IsSleepPacingEnabled() const noexcept { return _sleep_pacing_enabled; }
 
    private:
     [[nodiscard]] double CalculateSmoothedDeltaTime(double raw_delta) noexcept;

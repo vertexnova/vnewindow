@@ -45,51 +45,21 @@ enum class GraphicsBackend_TP {
     UNKNOWN = 99
 };
 
-enum class WindowMode_TP {
-    WINDOWED = 0,
-    FULLSCREEN = 1,
-    BORDERLESS = 2,
-    MAXIMIZED = 3
-};
+enum class WindowMode_TP { WINDOWED = 0, FULLSCREEN = 1, BORDERLESS = 2, MAXIMIZED = 3 };
 
-enum class WindowState_TP {
-    NORMAL = 0,
-    MINIMIZED = 1,
-    MAXIMIZED = 2,
-    FULLSCREEN = 3
-};
+enum class WindowState_TP { NORMAL = 0, MINIMIZED = 1, MAXIMIZED = 2, FULLSCREEN = 3 };
 
-enum class WindowVisibility_TP {
-    VISIBLE = 0,
-    HIDDEN = 1,
-    MINIMIZED = 2
-};
+enum class WindowVisibility_TP { VISIBLE = 0, HIDDEN = 1, MINIMIZED = 2 };
 
-enum class WindowFocus_TP {
-    FOCUSED = 0,
-    UNFOCUSED = 1
-};
+enum class WindowFocus_TP { FOCUSED = 0, UNFOCUSED = 1 };
 
-enum class WindowResize_TP {
-    RESIZABLE = 0,
-    FIXED_SIZE = 1
-};
+enum class WindowResize_TP { RESIZABLE = 0, FIXED_SIZE = 1 };
 
-enum class WindowDecoration_TP {
-    DECORATED = 0,
-    BORDERLESS = 1
-};
+enum class WindowDecoration_TP { DECORATED = 0, BORDERLESS = 1 };
 
-enum class WindowTransparency_TP {
-    OPAQUE = 0,
-    TRANSLUCENT = 1
-};
+enum class WindowTransparency_TP { OPAQUE = 0, TRANSLUCENT = 1 };
 
-enum class WindowCursor_TP {
-    NORMAL = 0,
-    HIDDEN = 1,
-    DISABLED = 2
-};
+enum class WindowCursor_TP { NORMAL = 0, HIDDEN = 1, DISABLED = 2 };
 
 enum class WindowEventType_TP {
     CLOSE = 0,
@@ -108,12 +78,7 @@ enum class WindowEventType_TP {
     STATUS_BAR = 14
 };
 
-enum class EventAction_TP {
-    BEGAN = 0,
-    CHANGED = 1,
-    ENDED = 2,
-    CANCELLED = 3
-};
+enum class EventAction_TP { BEGAN = 0, CHANGED = 1, ENDED = 2, CANCELLED = 3 };
 
 struct WindowPosition_C {
     int32_t x = 0;

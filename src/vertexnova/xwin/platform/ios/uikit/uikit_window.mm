@@ -39,8 +39,10 @@ void UIKitWindow_C::destroy_native() {
 void UIKitWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     destroy_native();
     _desc = descriptor;
-    CGRect frame = CGRectMake(static_cast<CGFloat>(_desc.position.x), static_cast<CGFloat>(_desc.position.y),
-                              static_cast<CGFloat>(_desc.size.width), static_cast<CGFloat>(_desc.size.height));
+    CGRect frame = CGRectMake(static_cast<CGFloat>(_desc.position.x),
+                              static_cast<CGFloat>(_desc.position.y),
+                              static_cast<CGFloat>(_desc.size.width),
+                              static_cast<CGFloat>(_desc.size.height));
     UIView* v = [[UIView alloc] initWithFrame:frame];
     v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     _ui_view = (__bridge_retained void*)v;

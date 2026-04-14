@@ -70,8 +70,18 @@ void Win32Window_C::create_window(const WindowDescriptor_C& descriptor) {
     AdjustWindowRect(&r, style, FALSE);
 
     const std::wstring title = Utf8ToWide(_desc.title);
-    _hwnd = CreateWindowExW(0, kClassName, title.c_str(), style, _desc.position.x, _desc.position.y, r.right - r.left,
-                            r.bottom - r.top, nullptr, nullptr, hinst, this);
+    _hwnd = CreateWindowExW(0,
+                            kClassName,
+                            title.c_str(),
+                            style,
+                            _desc.position.x,
+                            _desc.position.y,
+                            r.right - r.left,
+                            r.bottom - r.top,
+                            nullptr,
+                            nullptr,
+                            hinst,
+                            this);
     if (_hwnd) {
         _open = true;
         ShowWindow(_hwnd, _desc.visible ? SW_SHOW : SW_HIDE);
@@ -205,7 +215,13 @@ void Win32Window_C::Resize(uint32_t width, uint32_t height) {
     _desc.size.width = width;
     _desc.size.height = height;
     if (_hwnd) {
-        SetWindowPos(_hwnd, nullptr, 0, 0, static_cast<int>(width), static_cast<int>(height), SWP_NOMOVE | SWP_NOZORDER);
+        SetWindowPos(_hwnd,
+                     nullptr,
+                     0,
+                     0,
+                     static_cast<int>(width),
+                     static_cast<int>(height),
+                     SWP_NOMOVE | SWP_NOZORDER);
     }
 }
 
@@ -242,7 +258,8 @@ float Win32Window_C::GetDPIScale() const {
         return 1.0F;
     }
     using GetDpiForWindowFn = UINT(WINAPI*)(HWND);
-    static auto fn = reinterpret_cast<GetDpiForWindowFn>(GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetDpiForWindow"));
+    static auto fn =
+        reinterpret_cast<GetDpiForWindowFn>(GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetDpiForWindow"));
     if (fn) {
         return static_cast<float>(fn(_hwnd)) / 96.0F;
     }

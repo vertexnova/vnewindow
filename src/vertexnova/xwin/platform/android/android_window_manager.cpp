@@ -62,7 +62,9 @@ std::shared_ptr<Window_I> AndroidWindowManager_C::CreateWindow(const WindowDescr
     return w;
 }
 
-std::shared_ptr<Window_I> AndroidWindowManager_C::CreateWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<Window_I> AndroidWindowManager_C::CreateWindow(const std::string& title,
+                                                               uint32_t width,
+                                                               uint32_t height) {
     WindowDescriptor_C d(title, width, height);
     return CreateWindow(d);
 }

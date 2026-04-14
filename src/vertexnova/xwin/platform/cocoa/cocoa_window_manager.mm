@@ -67,7 +67,9 @@ std::shared_ptr<Window_I> CocoaWindowManager_C::CreateWindow(const WindowDescrip
     return w;
 }
 
-std::shared_ptr<Window_I> CocoaWindowManager_C::CreateWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<Window_I> CocoaWindowManager_C::CreateWindow(const std::string& title,
+                                                             uint32_t width,
+                                                             uint32_t height) {
     WindowDescriptor_C d(title, width, height);
     return CreateWindow(d);
 }
@@ -126,7 +128,10 @@ void CocoaWindowManager_C::FocusWindow(std::shared_ptr<Window_I> window) {
 
 void CocoaWindowManager_C::ProcessEvents() {
     for (;;) {
-        NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES];
+        NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny
+                                         untilDate:[NSDate distantPast]
+                                            inMode:NSDefaultRunLoopMode
+                                           dequeue:YES];
         if (!ev) {
             break;
         }

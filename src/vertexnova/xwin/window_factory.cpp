@@ -91,7 +91,8 @@ std::shared_ptr<WindowManager_I> WindowFactory_C::CreateWindowManager(WindowAPI_
     }
 }
 
-std::shared_ptr<WindowManager_I> WindowFactory_C::CreateWindowManager(WindowAPI_TP window_api, const std::string& properties) {
+std::shared_ptr<WindowManager_I> WindowFactory_C::CreateWindowManager(WindowAPI_TP window_api,
+                                                                      const std::string& properties) {
     auto mgr = CreateWindowManager(window_api);
     if (mgr) {
         mgr->SetProperties(properties);

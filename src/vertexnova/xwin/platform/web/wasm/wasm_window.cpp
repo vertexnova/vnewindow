@@ -35,7 +35,9 @@ void WasmWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     _desc = descriptor;
 #ifdef __EMSCRIPTEN__
     _canvas_tag = const_cast<char*>("#canvas");
-    emscripten_set_canvas_element_size("#canvas", static_cast<int>(_desc.size.width), static_cast<int>(_desc.size.height));
+    emscripten_set_canvas_element_size("#canvas",
+                                       static_cast<int>(_desc.size.width),
+                                       static_cast<int>(_desc.size.height));
     emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::ResizeCallback);
 #endif
     _initialized = true;
@@ -50,7 +52,9 @@ EM_BOOL WasmWindow_C::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent
     }
     self->_desc.size.width = static_cast<uint32_t>(event->windowInnerWidth);
     self->_desc.size.height = static_cast<uint32_t>(event->windowInnerHeight);
-    emscripten_set_canvas_element_size("#canvas", static_cast<int>(self->_desc.size.width), static_cast<int>(self->_desc.size.height));
+    emscripten_set_canvas_element_size("#canvas",
+                                       static_cast<int>(self->_desc.size.width),
+                                       static_cast<int>(self->_desc.size.height));
     if (self->_owner) {
         WindowEventData_C data{};
         data.type = WindowEventType_TP::RESIZE;

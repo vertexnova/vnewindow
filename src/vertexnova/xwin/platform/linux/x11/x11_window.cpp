@@ -49,8 +49,15 @@ void X11Window_C::Initialize(const WindowDescriptor_C& descriptor) {
     _desc = descriptor;
     const unsigned long black = BlackPixel(_display, _screen);
     const unsigned long white = WhitePixel(_display, _screen);
-    _window = XCreateSimpleWindow(_display, _root, _desc.position.x, _desc.position.y, static_cast<unsigned>(_desc.size.width),
-                                  static_cast<unsigned>(_desc.size.height), 0, black, white);
+    _window = XCreateSimpleWindow(_display,
+                                  _root,
+                                  _desc.position.x,
+                                  _desc.position.y,
+                                  static_cast<unsigned>(_desc.size.width),
+                                  static_cast<unsigned>(_desc.size.height),
+                                  0,
+                                  black,
+                                  white);
     if (!_window) {
         return;
     }

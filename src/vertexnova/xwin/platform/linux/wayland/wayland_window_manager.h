@@ -33,15 +33,9 @@ class WaylandWindowManager_C final : public WindowManager_I {
     /** @brief Bound from wl_registry global callback (xdg-shell + compositor). */
     void on_registry_global(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version);
 
-    wl_display* NativeDisplay() const {
-        return _display;
-    }
-    wl_compositor* NativeCompositor() const {
-        return _compositor;
-    }
-    xdg_wm_base* NativeXdgWmBase() const {
-        return _xdg_wm_base;
-    }
+    wl_display* NativeDisplay() const { return _display; }
+    wl_compositor* NativeCompositor() const { return _compositor; }
+    xdg_wm_base* NativeXdgWmBase() const { return _xdg_wm_base; }
 
     WaylandWindowManager_C();
     ~WaylandWindowManager_C() override;

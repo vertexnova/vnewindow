@@ -41,9 +41,12 @@ void CocoaWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     destroy_native();
     _desc = descriptor;
 
-    NSRect rect = NSMakeRect(_desc.position.x, _desc.position.y, static_cast<CGFloat>(_desc.size.width),
+    NSRect rect = NSMakeRect(_desc.position.x,
+                             _desc.position.y,
+                             static_cast<CGFloat>(_desc.size.width),
                              static_cast<CGFloat>(_desc.size.height));
-    NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
+    NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
+                       | NSWindowStyleMaskResizable;
     if (!_desc.decorated) {
         style = NSWindowStyleMaskBorderless;
     }
@@ -60,7 +63,10 @@ void CocoaWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
 
 void CocoaWindow_C::PollEvents() {
     for (;;) {
-        NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES];
+        NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny
+                                         untilDate:[NSDate distantPast]
+                                            inMode:NSDefaultRunLoopMode
+                                           dequeue:YES];
         if (!ev) {
             break;
         }

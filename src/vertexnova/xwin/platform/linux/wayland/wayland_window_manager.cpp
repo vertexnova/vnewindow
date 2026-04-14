@@ -49,7 +49,10 @@ const xdg_wm_base_listener kXdgWmBaseListener = {
 
 }  // namespace
 
-void WaylandWindowManager_C::on_registry_global(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version) {
+void WaylandWindowManager_C::on_registry_global(struct wl_registry* registry,
+                                                uint32_t name,
+                                                const char* interface,
+                                                uint32_t version) {
     if (std::strcmp(interface, wl_compositor_interface.name) == 0) {
         bind_compositor(registry, name, version);
     } else if (std::strcmp(interface, xdg_wm_base_interface.name) == 0) {
@@ -153,7 +156,9 @@ std::shared_ptr<Window_I> WaylandWindowManager_C::CreateWindow(const WindowDescr
     return w;
 }
 
-std::shared_ptr<Window_I> WaylandWindowManager_C::CreateWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<Window_I> WaylandWindowManager_C::CreateWindow(const std::string& title,
+                                                               uint32_t width,
+                                                               uint32_t height) {
     WindowDescriptor_C d(title, width, height);
     return CreateWindow(d);
 }
