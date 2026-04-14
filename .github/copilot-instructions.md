@@ -100,7 +100,7 @@ Apply this section when the PR changes files under `tests/` or `*_test.cpp`.
 
 ### Project layout
 
-- Library: **src/vertexnova/template/** — Public API: **include/vertexnova/template/** — Tests: **tests/** — Examples: **examples/**
+- Library: **src/vertexnova/xwin/** — Public API: **include/vertexnova/xwin/** — Tests: **tests/** — Examples: **examples/**
 - Dependencies: **deps/internal/** (e.g. vnecommon, vnelogging), **deps/external/** (e.g. googletest). No top-level `external/` or `libs/`.
 
 ### Formatting and static analysis

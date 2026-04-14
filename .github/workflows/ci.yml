@@ -120,7 +120,7 @@ jobs:
           DIRS=(src include)
           [[ -d tests ]] && DIRS+=(tests)
           find "${DIRS[@]}" \
-            -type f \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' -o -name '*.c' \) \
+            -type f \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' -o -name '*.c' -o -name '*.mm' \) \
             -print0 \
           | xargs -0 -r clang-format --dry-run --Werror \
               --style=file --fallback-style=Google
@@ -289,9 +289,9 @@ jobs:
           cmake -B build/shared/Release -S . \
             -DCMAKE_TOOLCHAIN_FILE="$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake" \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=shared \
-            -DVNE_TEMPLATE_TESTS=OFF \
+            -DVNE_XWIN_CI=ON \
+            -DVNE_XWIN_LIB_TYPE=shared \
+            -DVNE_XWIN_TESTS=OFF \
             -DENABLE_IPO=OFF
 
       - name: Build
@@ -343,9 +343,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_VERBOSE_MAKEFILE=ON \
             -DCMAKE_PREFIX_PATH="$(brew --prefix)" \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=static \
-            -DVNE_TEMPLATE_TESTS=OFF \
+            -DVNE_XWIN_CI=ON \
+            -DVNE_XWIN_LIB_TYPE=static \
+            -DVNE_XWIN_TESTS=OFF \
             -DENABLE_IPO=OFF
 
       - name: Build
@@ -391,9 +391,9 @@ jobs:
             -DANDROID_ABI=arm64-v8a \
             -DANDROID_PLATFORM=android-24 \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=shared \
-            -DVNE_TEMPLATE_TESTS=OFF \
+            -DVNE_XWIN_CI=ON \
+            -DVNE_XWIN_LIB_TYPE=shared \
+            -DVNE_XWIN_TESTS=OFF \
             -DENABLE_IPO=OFF
 
       - name: Build
@@ -459,15 +459,15 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DVNE_XWIN_CI=ON \
+            -DVNE_XWIN_LIB_TYPE=shared \
             -DENABLE_IPO=OFF \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           cmake --build build/shared/Release --config Release --parallel
 
       - name: Run clang-tidy
         run: |
-          find src -type f \( -name '*.cpp' -o -name '*.h' \) -print0 \
+          find src -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.mm' \) -print0 \
             | xargs -0 -r clang-tidy -p build/shared/Release \
                 --warnings-as-errors='*'
 

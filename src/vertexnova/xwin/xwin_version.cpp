@@ -3,22 +3,20 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Author:    Ajeet Singh Yadav
- * Created:   February 2026
+ * Created:   April 2026
  *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
-#include "common/logging_guard.h"
-#include "vertexnova/template/template.h"
+#include "vertexnova/xwin/xwin_version.h"
 
-int main() {
-    vne::template_ns::examples::LoggingGuard logging_guard;
+#include "config.h"
 
-    using namespace vne::template_ns;
+namespace vne::xwin {
 
-    VNE_LOG_INFO << hello();
-    VNE_LOG_INFO << "Version: " << get_version();
-
-    return 0;
+const char* get_version() noexcept {
+    return PROJECT_VERSION;
 }
+
+}  // namespace vne::xwin

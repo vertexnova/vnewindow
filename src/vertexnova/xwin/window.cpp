@@ -3,25 +3,24 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Author:    Ajeet Singh Yadav
- * Created:   February 2026
+ * Created:   April 2026
  *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/template/template.h"
-#include "config.h"
+#include "vertexnova/xwin/window.h"
 
-namespace vne {
-namespace template_ns {
+#include "platform/null/null_window.h"
 
-const char* get_version() {
-    return PROJECT_VERSION;
+#include <memory>
+
+namespace vne::xwin {
+
+std::unique_ptr<Window_I> Window_I::Create(const WindowDescriptor_C& descriptor) {
+    auto w = std::make_unique<NullWindow_C>();
+    w->Initialize(descriptor);
+    return w;
 }
 
-const char* hello() {
-    return "Hello from VneTemplate";
-}
-
-}  // namespace template_ns
-}  // namespace vne
+}  // namespace vne::xwin

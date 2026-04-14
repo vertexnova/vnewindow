@@ -1,27 +1,27 @@
 <p align="center">
-  <img src="icons/vertexnova_logo_medallion_with_text.svg" alt="VertexNova Template" width="320"/>
+  <img src="icons/vertexnova_logo_medallion_with_text.svg" alt="VertexNova VneCrossWindow" width="320"/>
 </p>
 
 <p align="center">
-  <strong>Minimal C++ project template for the VertexNova ecosystem</strong>
+  <strong>Native window surfaces for the VertexNova ecosystem (vne::xwin, no GLFW)</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/vertexnova/vnetemplate/actions/workflows/ci.yml">
-    <img src="https://github.com/vertexnova/vnetemplate/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"/>
+  <a href="https://github.com/vertexnova/vnecrosswindow/actions/workflows/ci.yml">
+    <img src="https://github.com/vertexnova/vnecrosswindow/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"/>
   </a>
   <img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++ Standard"/>
-  <a href="https://codecov.io/gh/vertexnova/vnetemplate">
-    <img src="https://codecov.io/gh/vertexnova/vnetemplate/branch/main/graph/badge.svg" alt="Coverage"/>
+  <a href="https://codecov.io/gh/vertexnova/vnecrosswindow">
+    <img src="https://codecov.io/gh/vertexnova/vnecrosswindow/branch/main/graph/badge.svg" alt="Coverage"/>
   </a>
   <img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"/>
 </p>
 
 ---
 
-# VneTemplate
+# VneCrossWindow
 
-Minimal VertexNova-standard C++ template: CMake, deps (external + internal), tests, examples, and documentation. Use it as a starting point for new libraries or apps in the [VertexNova](https://github.com/vertexnova) stack.
+Cross-platform **native windowing** library (`vne::xwin`): Win32, Cocoa, X11, optional Wayland (xdg-shell), Emscripten, UIKit, and Android `ANativeWindow`, plus a **null** backend for headless tests. CMake, internal deps (`vnecommon`, `vnelogging`), tests, and optional examples follow the [VertexNova](https://github.com/vertexnova) conventions.
 
 ## Directory layout
 
@@ -31,7 +31,7 @@ Minimal VertexNova-standard C++ template: CMake, deps (external + internal), tes
 | `configs/` | Configured headers (e.g. `config.h.in`) |
 | `deps/external/` | Third-party deps (e.g. googletest) |
 | `deps/internal/` | VertexNova internal libs (vnecommon, vnelogging) |
-| `include/` | Public API headers (`vertexnova/template/`) |
+| `include/` | Public API headers (`vertexnova/xwin/`) |
 | `src/` | Implementation |
 | `tests/` | Unit tests (Google Test) |
 | `docs/` | Doxygen input (`doxyfile.in`) and extra docs |
@@ -46,7 +46,7 @@ Minimal VertexNova-standard C++ template: CMake, deps (external + internal), tes
 ## Dependencies
 
 - **External:** Tests use [Google Test](https://github.com/google/googletest). Either add `deps/external/googletest` as a submodule (recommended tag: `v1.17.0`) or let CMake use FetchContent when the directory is missing.  
-- **Internal:** **vnecmake** (required) is the CMake modules submodule at `cmake/vnecmake`. Optional libraries `vnecommon` and `vnelogging` go under `deps/internal/`. See [deps/README.md](deps/README.md). If they are missing, the template still builds but does not link to `vne::common` or `vne::logging`.
+- **Internal:** **vnecmake** (required) is the CMake modules submodule at `cmake/vnecmake`. Libraries `vnecommon` and `vnelogging` live under `deps/internal/`. See [deps/README.md](deps/README.md).
 
 From the project root:
 
@@ -62,11 +62,11 @@ Builds use **`build/static`** or **`build/shared`** (one library type per direct
 
 ```bash
 # Shared library (default)
-cmake -B build/shared -DCMAKE_BUILD_TYPE=Debug -DVNE_TEMPLATE_TESTS=ON
+cmake -B build/shared -DCMAKE_BUILD_TYPE=Debug -DVNE_XWIN_TESTS=ON
 cmake --build build/shared
 
 # Static library
-cmake -B build/static -DCMAKE_BUILD_TYPE=Debug -DVNE_TEMPLATE_LIB_TYPE=static -DVNE_TEMPLATE_TESTS=ON
+cmake -B build/static -DCMAKE_BUILD_TYPE=Debug -DVNE_XWIN_LIB_TYPE=static -DVNE_XWIN_TESTS=ON
 cmake --build build/static
 ```
 
@@ -103,12 +103,12 @@ Or:
 
 ## Documentation
 
-- **Template overview and diagrams:** [docs/vertexnova/template/template.md](docs/vertexnova/template/template.md) — context and API diagrams (Draw.io sources in `docs/vertexnova/template/diagrams/`).
+- **Extra docs:** `docs/` (legacy template diagrams may still live under `docs/vertexnova/template/`).
 - **API docs:** Configure with Doxygen enabled and build the doc target:
 
   ```bash
   cmake -B build/shared -DENABLE_DOXYGEN=ON
-  cmake --build build/shared --target vnetemplate_doc_doxygen
+  cmake --build build/shared --target vnexwin_doc_doxygen
   ```
 
   Output: `build/shared/docs/html/index.html`.

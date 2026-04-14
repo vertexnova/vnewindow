@@ -125,7 +125,7 @@ jobs:
 
       - name: Install Linux build dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake libx11-dev
 
       - name: Install lcov (coverage builds only)
         if: runner.os == 'Linux' && inputs.enable_coverage
@@ -164,9 +164,9 @@ jobs:
           fi
 
           if [[ "$CACHE_LIB_TYPE" == "static" ]]; then
-              LIB_TYPE_FLAGS="-DVNE_TEMPLATE_LIB_TYPE=static"
+              LIB_TYPE_FLAGS="-DVNE_XWIN_LIB_TYPE=static"
           else
-              LIB_TYPE_FLAGS="-DVNE_TEMPLATE_LIB_TYPE=shared"
+              LIB_TYPE_FLAGS="-DVNE_XWIN_LIB_TYPE=shared"
           fi
 
           IPO_OFF=""
@@ -182,8 +182,8 @@ jobs:
           # shellcheck disable=SC2086
           cmake -B "$BUILD_DIR" -S . \
             -DCMAKE_BUILD_TYPE="$EFFECTIVE_BUILD_TYPE" \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_EXAMPLES=OFF \
+            -DVNE_XWIN_CI=ON \
+            -DVNE_XWIN_EXAMPLES=OFF \
             -DWARNINGS_AS_ERRORS="$WAE" \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             ${COVERAGE_FLAG} \
