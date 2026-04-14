@@ -128,20 +128,21 @@ jobs:
           if [[ -n "${{ matrix.c }}" ]]; then
             COMPILER_FLAGS="-DCMAKE_C_COMPILER=${{ matrix.c }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp }}"
           fi
-          cmake -B build/shared -S . \
+          cmake -B build/shared/Release -S . \
             -DCMAKE_BUILD_TYPE=Release \
             -DVNE_TEMPLATE_CI=ON \
             -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DENABLE_IPO=OFF \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install" \
             $COMPILER_FLAGS
 
       - name: Build
         shell: bash
-        run: cmake --build build/shared --config Release --parallel
+        run: cmake --build build/shared/Release --config Release --parallel
 
       - name: Install to staging directory
         shell: bash
-        run: cmake --install build/shared --config Release --component vnetemplate
+        run: cmake --install build/shared/Release --config Release --component vnetemplate
 
       - name: Package artifact
         shell: bash

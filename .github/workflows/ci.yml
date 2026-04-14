@@ -55,7 +55,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: false
-          fetch-depth: 2   # need parent to diff changed files
+          fetch-depth: 0
       - id: check
         env:
           ACTOR: ${{ github.actor }}
@@ -63,35 +63,31 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
         run: |
           IS_RELEASE=false
-
-          # Case 1: release-please PR open/updated (pull_request event).
-          # Branch name always starts with "release-please--".
           if [[ "$EVENT" == "pull_request" ]]; then
             if [[ "$HEAD_REF" == release-please--* ]]; then
               IS_RELEASE=true
-              echo "Release-please PR detected (branch: $HEAD_REF) — skipping builds."
+              echo "Release-please PR detected — skipping builds."
             fi
           fi
-
-          # Case 2: release-please PR merged to main (push event).
-          # Actor is the bot AND changed files are exclusively release-please managed files
-          # (CHANGELOG.md, VERSION, .release-please-manifest.json, release-please-config.json).
           if [[ "$EVENT" == "push" ]]; then
             ACTOR_MATCH=false
             if [[ "$ACTOR" == "release-please[bot]" || "$ACTOR" == "github-actions[bot]" ]]; then
               ACTOR_MATCH=true
             fi
-
-            CHANGED="$(git diff --name-only HEAD~1 HEAD 2>/dev/null || true)"
+            BEFORE="${{ github.event.before }}"
+            ZERO_SHA="0000000000000000000000000000000000000000"
+            if [[ -z "$BEFORE" || "$BEFORE" == "$ZERO_SHA" ]]; then
+              CHANGED="$(git diff --name-only HEAD~1 HEAD 2>/dev/null || true)"
+            else
+              CHANGED="$(git diff --name-only "${BEFORE}..${{ github.sha }}" 2>/dev/null || true)"
+            fi
             echo "Changed files: $CHANGED"
             NON_RELEASE=$(echo "$CHANGED" | grep -vE '^(CHANGELOG\.md|VERSION|\.release-please-manifest\.json|release-please-config\.json)$' || true)
-
             if [[ "$ACTOR_MATCH" == "true" && -z "$NON_RELEASE" && -n "$CHANGED" ]]; then
               IS_RELEASE=true
-              echo "Release-please merge detected (actor: $ACTOR, files: $CHANGED) — skipping builds."
+              echo "Release-please merge detected — skipping builds."
             fi
           fi
-
           echo "is_release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
 
   # ====================================================================
@@ -121,7 +117,9 @@ jobs:
 
       - name: Check formatting (uses project .clang-format, no modifications)
         run: |
-          find src include examples tests \
+          DIRS=(src include)
+          [[ -d tests ]] && DIRS+=(tests)
+          find "${DIRS[@]}" \
             -type f \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' -o -name '*.c' \) \
             -print0 \
           | xargs -0 -r clang-format --dry-run --Werror \
@@ -218,6 +216,7 @@ jobs:
       build_type:         Release
       enable_coverage:    false
       warnings_as_errors: true
+      extra_cmake_flags:  "-DENABLE_IPO=OFF"
     secrets: inherit
 
   build-macos:
@@ -264,6 +263,7 @@ jobs:
       enable_coverage:    false
       warnings_as_errors: true
       lib_type:           static
+      extra_cmake_flags:  "-DENABLE_IPO=OFF"
     secrets: inherit
 
   build-web:
@@ -286,15 +286,16 @@ jobs:
 
       - name: Configure CMake (Emscripten)
         run: |
-          cmake -B build/shared -S . \
+          cmake -B build/shared/Release -S . \
             -DCMAKE_TOOLCHAIN_FILE="$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake" \
             -DCMAKE_BUILD_TYPE=Release \
             -DVNE_TEMPLATE_CI=ON \
             -DVNE_TEMPLATE_LIB_TYPE=shared \
-            -DVNE_TEMPLATE_TESTS=OFF   # wasm cannot link -lpthread or run natively; build-only check
+            -DVNE_TEMPLATE_TESTS=OFF \
+            -DENABLE_IPO=OFF
 
       - name: Build
-        run: cmake --build build/shared --parallel
+        run: cmake --build build/shared/Release --parallel
 
   build-ios:
     name: "Build / iOS"
@@ -311,19 +312,48 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Select Xcode 26 (iOS)
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.0'
+
+      - name: Verify Xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! out="$(xcodebuild -version 2>&1)"; then
+            echo "::error::xcodebuild -version failed (exit non-zero)."
+            echo "$out"
+            exit 1
+          fi
+          echo "$out"
+          ver="$(printf '%s\n' "$out" | awk '/^Xcode /{print $2; exit}')"
+          if [[ -z "$ver" || "$ver" == "unknown" ]]; then
+            echo "::error::Could not read a valid Xcode version from xcodebuild -version (got: ${ver:-empty})."
+            exit 1
+          fi
+
       - name: Configure CMake (iOS)
         run: |
-          cmake -B build/static -S . \
+          cmake -B build/static/Release -S . \
             -G Xcode \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_VERBOSE_MAKEFILE=ON \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix)" \
             -DVNE_TEMPLATE_CI=ON \
             -DVNE_TEMPLATE_LIB_TYPE=static \
-            -DVNE_TEMPLATE_TESTS=OFF   # Xcode requires bundle ID for test targets; build-only check
+            -DVNE_TEMPLATE_TESTS=OFF \
+            -DENABLE_IPO=OFF
 
       - name: Build
-        run: cmake --build build/static --config Release --parallel
+        shell: bash
+        run: |
+          set -euxo pipefail
+          export VERBOSE=1
+          cmake --build build/static/Release --config Release --parallel --verbose
 
   build-android:
     name: "Build / Android (arm64-v8a)"
@@ -340,19 +370,34 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27d
+
       - name: Configure CMake (Android)
+        env:
+          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
-          cmake -B build/shared -S . \
-            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
+          set -euo pipefail
+          NDK="${ANDROID_NDK_ROOT}"
+          if [[ -z "$NDK" || ! -f "$NDK/build/cmake/android.toolchain.cmake" ]]; then
+            echo "::error::Android NDK path invalid (ANDROID_NDK_ROOT=${NDK:-empty})"
+            exit 1
+          fi
+          cmake -B build/shared/Release -S . \
+            -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
             -DANDROID_ABI=arm64-v8a \
             -DANDROID_PLATFORM=android-24 \
             -DCMAKE_BUILD_TYPE=Release \
             -DVNE_TEMPLATE_CI=ON \
             -DVNE_TEMPLATE_LIB_TYPE=shared \
-            -DVNE_TEMPLATE_TESTS=OFF   # Android binaries cannot run on the host runner; build-only check
+            -DVNE_TEMPLATE_TESTS=OFF \
+            -DENABLE_IPO=OFF
 
       - name: Build
-        run: cmake --build build/shared --parallel
+        run: cmake --build build/shared/Release --parallel
 
   build-linux-asan:
     name: "Build+Test / Linux ASan+UBSan"
@@ -367,7 +412,7 @@ jobs:
       build_type:         Debug
       enable_coverage:    false
       warnings_as_errors: true
-      extra_cmake_flags:  "-DENABLE_ASAN=ON"
+      extra_cmake_flags:  "-DENABLE_ASAN=ON -DENABLE_IPO=OFF"
     secrets: inherit
 
   # ====================================================================
@@ -398,8 +443,8 @@ jobs:
       - name: Restore CMake build cache (Clang)
         uses: actions/cache@v4
         with:
-          path: build/shared
-          key: build-linux-clang-Release-shared-${{ hashFiles('CMakeLists.txt') }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('.gitmodules') }}
+          path: build/shared/Release
+          key: build-linux-clang-Release-shared-${{ hashFiles('CMakeLists.txt') }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('.gitmodules') }}-${{ hashFiles('.github/workflows/ci.yml') }}
           restore-keys: |
             build-linux-clang-Release-shared-
             build-linux-clang-Release-
@@ -408,31 +453,29 @@ jobs:
       - name: Install clang and clang-tidy
         run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake clang clang-tidy
 
-      # Reconfigure only if the cache was missing (compile_commands.json needed).
-      - name: Configure CMake (cache miss fallback)
+      - name: Configure CMake (refresh compile_commands)
         run: |
-          if [ ! -f build/shared/compile_commands.json ]; then
-            cmake -B build/shared -S . \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_C_COMPILER=clang \
-              -DCMAKE_CXX_COMPILER=clang++ \
-              -DVNE_TEMPLATE_CI=ON \
-              -DVNE_TEMPLATE_LIB_TYPE=shared \
-              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-            cmake --build build/shared --config Release --parallel
-          fi
+          cmake -B build/shared/Release -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DVNE_TEMPLATE_CI=ON \
+            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DENABLE_IPO=OFF \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake --build build/shared/Release --config Release --parallel
 
       - name: Run clang-tidy
         run: |
           find src -type f \( -name '*.cpp' -o -name '*.h' \) -print0 \
-            | xargs -0 -r clang-tidy -p build/shared \
+            | xargs -0 -r clang-tidy -p build/shared/Release \
                 --warnings-as-errors='*'
 
       - name: Write clang-tidy summary
         if: always()
         run: |
           echo "## clang-tidy" >> "$GITHUB_STEP_SUMMARY"
-          echo "Analyzed \`src/\` using Clang compile database (\`build/shared/compile_commands.json\`)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Analyzed \`src/\` with \`build/shared/Release/compile_commands.json\`" >> "$GITHUB_STEP_SUMMARY"
 
   # ====================================================================
   # STAGE 5: CI GATE
@@ -463,6 +506,7 @@ jobs:
       - name: Check all required jobs passed
         run: |
           RESULTS=(
+            "detect-release=${{ needs.detect-release.result }}"
             "pre-checks-gate=${{ needs.pre-checks-gate.result }}"
             "build-linux-gcc=${{ needs.build-linux-gcc.result }}"
             "build-linux-clang=${{ needs.build-linux-clang.result }}"
@@ -496,6 +540,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Job | Result |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| detect-release | ${{ needs.detect-release.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| pre-checks-gate   | ${{ needs.pre-checks-gate.result }}   |" >> "$GITHUB_STEP_SUMMARY"
           echo "| build-linux-gcc   | ${{ needs.build-linux-gcc.result }}   |" >> "$GITHUB_STEP_SUMMARY"
           echo "| build-linux-clang | ${{ needs.build-linux-clang.result }} |" >> "$GITHUB_STEP_SUMMARY"

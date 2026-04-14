@@ -18,6 +18,7 @@ set -e  # Exit on any error
 
 # Default parallel jobs
 JOBS=10
+ARGS=()
 
 # Parse command line arguments for jobs
 while [[ $# -gt 0 ]]; do
@@ -225,14 +226,19 @@ PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 # Set the build directory: build/<lib_type>/<build_type>/build-linux-<compiler>-<version>
 BUILD_DIR="$PROJECT_ROOT/build/${LIB_TYPE}/${BUILD_TYPE}/build-linux-$COMPILER-${COMPILER_VERSION}"
 
+IPO_FLAGS=""
+if [ "$COMPILER" = "clang" ]; then
+  IPO_FLAGS="-DENABLE_IPO=OFF"
+fi
+
 # Build CMake command
 build_cmake_command() {
   local base_cmd=""
 
   if [ "$COMPILER" = "gcc" ]; then
-    base_cmd="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_TEMPLATE_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DVNE_TEMPLATE_TESTS=ON"
+    base_cmd="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_TEMPLATE_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DVNE_TEMPLATE_TESTS=ON $IPO_FLAGS"
   elif [ "$COMPILER" = "clang" ]; then
-    base_cmd="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_TEMPLATE_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DVNE_TEMPLATE_TESTS=ON"
+    base_cmd="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_TEMPLATE_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DVNE_TEMPLATE_TESTS=ON $IPO_FLAGS"
   fi
 
   echo "$base_cmd $PROJECT_ROOT"

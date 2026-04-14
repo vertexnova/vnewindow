@@ -123,12 +123,13 @@ Or:
 
 ## Format and tidy
 
-- **clang-format:** Config in [.clang-format](.clang-format). Format in place or check only (CI):
+- **clang-format:** Config in [.clang-format](.clang-format). Pin to **clang-format-17** for CI-identical output (see CI workflow).
   ```bash
-  ./scripts/format.sh          # format sources
-  ./scripts/format.sh -check   # check only (used in CI)
+  python3 scripts/clang_formatter.py all            # format (CI dirs)
+  python3 scripts/clang_formatter.py all --dry-run  # check only
   ```
-- **clang-tidy:** Config in [.clang-tidy](.clang-tidy). Generate `compile_commands.json` (e.g. `cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build/shared`), then run `clang-tidy -p build/shared`.
+  Or `./scripts/format.sh` / `./scripts/format.sh -check`.
+- **clang-tidy:** Config in [.clang-tidy](.clang-tidy). After a Clang `Release` configure (e.g. CI: `build/shared/Release`), run `clang-tidy -p build/shared/Release`.
 
 ## CI
 
