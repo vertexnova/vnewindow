@@ -16,62 +16,62 @@ namespace vne::xwin {
 
 class Window_I;
 
-void xwin_vne_bridge_key_down(Window_I* window,
+void xwinVneBridgeKeyDown(Window_I* window,
+                          const WindowDescriptor_C& desc,
+                          const XWinVneEventCallbacks_C& callbacks,
+                          vne::events::KeyCode key,
+                          uint8_t modifiers,
+                          bool repeat);
+
+void xwinVneBridgeKeyUp(Window_I* window,
+                        const WindowDescriptor_C& desc,
+                        const XWinVneEventCallbacks_C& callbacks,
+                        vne::events::KeyCode key,
+                        uint8_t modifiers);
+
+void xwinVneBridgeMouseButton(Window_I* window,
                               const WindowDescriptor_C& desc,
                               const XWinVneEventCallbacks_C& callbacks,
-                              vne::events::KeyCode key,
-                              uint8_t modifiers,
-                              bool repeat);
+                              vne::events::MouseButton button,
+                              bool pressed,
+                              double x,
+                              double y,
+                              uint8_t modifiers);
 
-void xwin_vne_bridge_key_up(Window_I* window,
+void xwinVneBridgeMouseMove(Window_I* window,
                             const WindowDescriptor_C& desc,
                             const XWinVneEventCallbacks_C& callbacks,
-                            vne::events::KeyCode key,
+                            double x,
+                            double y,
                             uint8_t modifiers);
 
-void xwin_vne_bridge_mouse_button(Window_I* window,
-                                  const WindowDescriptor_C& desc,
-                                  const XWinVneEventCallbacks_C& callbacks,
-                                  vne::events::MouseButton button,
-                                  bool pressed,
-                                  double x,
-                                  double y,
-                                  uint8_t modifiers);
+void xwinVneBridgeMouseScroll(Window_I* window,
+                              const WindowDescriptor_C& desc,
+                              const XWinVneEventCallbacks_C& callbacks,
+                              float x_offset,
+                              float y_offset);
 
-void xwin_vne_bridge_mouse_move(Window_I* window,
-                                const WindowDescriptor_C& desc,
-                                const XWinVneEventCallbacks_C& callbacks,
-                                double x,
-                                double y,
-                                uint8_t modifiers);
+void xwinVneBridgeTouch(Window_I* window,
+                        const WindowDescriptor_C& desc,
+                        const XWinVneEventCallbacks_C& callbacks,
+                        uint32_t touch_id,
+                        double x,
+                        double y,
+                        XWinTouchPhase_TP phase);
 
-void xwin_vne_bridge_mouse_scroll(Window_I* window,
-                                  const WindowDescriptor_C& desc,
-                                  const XWinVneEventCallbacks_C& callbacks,
-                                  float x_offset,
-                                  float y_offset);
+void xwinVneBridgeWindowResize(Window_I* window,
+                               const WindowDescriptor_C& desc,
+                               const XWinVneEventCallbacks_C& callbacks,
+                               uint32_t width,
+                               uint32_t height);
 
-void xwin_vne_bridge_touch(Window_I* window,
-                           const WindowDescriptor_C& desc,
-                           const XWinVneEventCallbacks_C& callbacks,
-                           uint32_t touch_id,
-                           double x,
-                           double y,
-                           XWinTouchPhase_TP phase);
+void xwinVneBridgeWindowClose(Window_I* window,
+                              const WindowDescriptor_C& desc,
+                              const XWinVneEventCallbacks_C& callbacks);
 
-void xwin_vne_bridge_window_resize(Window_I* window,
-                                   const WindowDescriptor_C& desc,
-                                   const XWinVneEventCallbacks_C& callbacks,
-                                   uint32_t width,
-                                   uint32_t height);
-
-void xwin_vne_bridge_window_close(Window_I* window,
-                                  const WindowDescriptor_C& desc,
-                                  const XWinVneEventCallbacks_C& callbacks);
-
-void xwin_vne_bridge_window_focus(Window_I* window,
-                                  const WindowDescriptor_C& desc,
-                                  const XWinVneEventCallbacks_C& callbacks,
-                                  bool focused);
+void xwinVneBridgeWindowFocus(Window_I* window,
+                              const WindowDescriptor_C& desc,
+                              const XWinVneEventCallbacks_C& callbacks,
+                              bool focused);
 
 }  // namespace vne::xwin

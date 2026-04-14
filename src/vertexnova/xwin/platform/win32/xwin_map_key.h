@@ -17,12 +17,12 @@
 namespace vne::xwin {
 
 /** @brief Map GetKeyState-style modifier bits to vne::events::ModifierKey flags. */
-std::uint8_t xwin_map_win32_modifier_flags();
+std::uint8_t xwinMapWin32ModifierFlags();
 
 /** @brief Map WM_KEY* / WM_SYSKEY* wParam/lParam to KeyCode (eUnknown if unmapped). */
-vne::events::KeyCode xwin_map_win32_key(WPARAM vk, LPARAM lParam);
+vne::events::KeyCode xwinMapWin32Key(WPARAM vk, LPARAM lParam);
 
 /** @brief Left/right/middle/extra from WM_*BUTTON* / double-click messages. */
-vne::events::MouseButton xwin_map_win32_mouse_button_from_message(UINT msg, WPARAM wParam);
+vne::events::MouseButton xwinMapWin32MouseButtonFromMessage(UINT msg, WPARAM wParam);
 
 }  // namespace vne::xwin

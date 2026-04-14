@@ -15,33 +15,31 @@
 
 #include <vertexnova/events/events.h>
 
-#include <memory>
-
 namespace vne::xwin {
 
 namespace {
 
-void push_key_pressed(vne::events::KeyCode key, uint8_t modifiers) {
+void pushKeyPressed(vne::events::KeyCode key, uint8_t modifiers) {
     vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::KeyPressedEvent>(key, modifiers));
 }
 
-void push_key_repeat(vne::events::KeyCode key, uint8_t modifiers) {
+void pushKeyRepeat(vne::events::KeyCode key, uint8_t modifiers) {
     vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::KeyRepeatEvent>(key, 1U));
     (void)modifiers;
 }
 
-void push_key_released(vne::events::KeyCode key, uint8_t modifiers) {
+void pushKeyReleased(vne::events::KeyCode key, uint8_t modifiers) {
     vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::KeyReleasedEvent>(key, modifiers));
 }
 
 }  // namespace
 
-void xwin_vne_bridge_key_down(Window_I* window,
-                              const WindowDescriptor_C& desc,
-                              const XWinVneEventCallbacks_C& callbacks,
-                              vne::events::KeyCode key,
-                              uint8_t modifiers,
-                              bool repeat) {
+void xwinVneBridgeKeyDown(Window_I* window,
+                          const WindowDescriptor_C& desc,
+                          const XWinVneEventCallbacks_C& callbacks,
+                          vne::events::KeyCode key,
+                          uint8_t modifiers,
+                          bool repeat) {
     if (key == vne::events::KeyCode::eUnknown) {
         return;
     }
@@ -51,9 +49,9 @@ void xwin_vne_bridge_key_down(Window_I* window,
     }
     if (desc.enable_events) {
         if (repeat) {
-            push_key_repeat(key, modifiers);
+            pushKeyRepeat(key, modifiers);
         } else {
-            push_key_pressed(key, modifiers);
+            pushKeyPressed(key, modifiers);
         }
     }
     if (callbacks.on_key_down) {
@@ -61,11 +59,11 @@ void xwin_vne_bridge_key_down(Window_I* window,
     }
 }
 
-void xwin_vne_bridge_key_up(Window_I* window,
-                            const WindowDescriptor_C& desc,
-                            const XWinVneEventCallbacks_C& callbacks,
-                            vne::events::KeyCode key,
-                            uint8_t modifiers) {
+void xwinVneBridgeKeyUp(Window_I* window,
+                        const WindowDescriptor_C& desc,
+                        const XWinVneEventCallbacks_C& callbacks,
+                        vne::events::KeyCode key,
+                        uint8_t modifiers) {
     if (key == vne::events::KeyCode::eUnknown) {
         return;
     }
@@ -74,21 +72,21 @@ void xwin_vne_bridge_key_up(Window_I* window,
         vne::events::Input::updateKeyState(ik, false);
     }
     if (desc.enable_events) {
-        push_key_released(key, modifiers);
+        pushKeyReleased(key, modifiers);
     }
     if (callbacks.on_key_up) {
         callbacks.on_key_up(window, key, modifiers);
     }
 }
 
-void xwin_vne_bridge_mouse_button(Window_I* window,
-                                  const WindowDescriptor_C& desc,
-                                  const XWinVneEventCallbacks_C& callbacks,
-                                  vne::events::MouseButton button,
-                                  bool pressed,
-                                  double x,
-                                  double y,
-                                  uint8_t modifiers) {
+void xwinVneBridgeMouseButton(Window_I* window,
+                              const WindowDescriptor_C& desc,
+                              const XWinVneEventCallbacks_C& callbacks,
+                              vne::events::MouseButton button,
+                              bool pressed,
+                              double x,
+                              double y,
+                              uint8_t modifiers) {
     const int ib = static_cast<int>(button);
     if (desc.enable_input) {
         vne::events::Input::updateMouseButtonState(ib, pressed);
@@ -107,12 +105,12 @@ void xwin_vne_bridge_mouse_button(Window_I* window,
     }
 }
 
-void xwin_vne_bridge_mouse_move(Window_I* window,
-                                const WindowDescriptor_C& desc,
-                                const XWinVneEventCallbacks_C& callbacks,
-                                double x,
-                                double y,
-                                uint8_t modifiers) {
+void xwinVneBridgeMouseMove(Window_I* window,
+                            const WindowDescriptor_C& desc,
+                            const XWinVneEventCallbacks_C& callbacks,
+                            double x,
+                            double y,
+                            uint8_t modifiers) {
     if (desc.enable_input) {
         vne::events::Input::updateMousePosition(static_cast<int>(x), static_cast<int>(y));
     }
@@ -125,11 +123,11 @@ void xwin_vne_bridge_mouse_move(Window_I* window,
     }
 }
 
-void xwin_vne_bridge_mouse_scroll(Window_I* window,
-                                  const WindowDescriptor_C& desc,
-                                  const XWinVneEventCallbacks_C& callbacks,
-                                  float x_offset,
-                                  float y_offset) {
+void xwinVneBridgeMouseScroll(Window_I* window,
+                              const WindowDescriptor_C& desc,
+                              const XWinVneEventCallbacks_C& callbacks,
+                              float x_offset,
+                              float y_offset) {
     if (desc.enable_input) {
         vne::events::Input::updateMouseScroll(x_offset, y_offset);
     }
@@ -143,13 +141,13 @@ void xwin_vne_bridge_mouse_scroll(Window_I* window,
     }
 }
 
-void xwin_vne_bridge_touch(Window_I* window,
-                           const WindowDescriptor_C& desc,
-                           const XWinVneEventCallbacks_C& callbacks,
-                           uint32_t touch_id,
-                           double x,
-                           double y,
-                           XWinTouchPhase_TP phase) {
+void xwinVneBridgeTouch(Window_I* window,
+                        const WindowDescriptor_C& desc,
+                        const XWinVneEventCallbacks_C& callbacks,
+                        uint32_t touch_id,
+                        double x,
+                        double y,
+                        XWinTouchPhase_TP phase) {
     if (!desc.enable_events && !callbacks.on_touch) {
         return;
     }
@@ -174,11 +172,11 @@ void xwin_vne_bridge_touch(Window_I* window,
     }
 }
 
-void xwin_vne_bridge_window_resize(Window_I* window,
-                                   const WindowDescriptor_C& desc,
-                                   const XWinVneEventCallbacks_C& callbacks,
-                                   uint32_t width,
-                                   uint32_t height) {
+void xwinVneBridgeWindowResize(Window_I* window,
+                               const WindowDescriptor_C& desc,
+                               const XWinVneEventCallbacks_C& callbacks,
+                               uint32_t width,
+                               uint32_t height) {
     if (desc.enable_input) {
         vne::events::Input::updateWindowSize(static_cast<int>(width), static_cast<int>(height));
     }
@@ -190,9 +188,9 @@ void xwin_vne_bridge_window_resize(Window_I* window,
     (void)callbacks;
 }
 
-void xwin_vne_bridge_window_close(Window_I* window,
-                                  const WindowDescriptor_C& desc,
-                                  const XWinVneEventCallbacks_C& callbacks) {
+void xwinVneBridgeWindowClose(Window_I* window,
+                              const WindowDescriptor_C& desc,
+                              const XWinVneEventCallbacks_C& callbacks) {
     if (desc.enable_events) {
         vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::WindowCloseEvent>());
     }
@@ -200,10 +198,10 @@ void xwin_vne_bridge_window_close(Window_I* window,
     (void)callbacks;
 }
 
-void xwin_vne_bridge_window_focus(Window_I* window,
-                                  const WindowDescriptor_C& desc,
-                                  const XWinVneEventCallbacks_C& callbacks,
-                                  bool focused) {
+void xwinVneBridgeWindowFocus(Window_I* window,
+                              const WindowDescriptor_C& desc,
+                              const XWinVneEventCallbacks_C& callbacks,
+                              bool focused) {
     (void)desc;
     if (callbacks.on_window_focus) {
         callbacks.on_window_focus(window, focused);

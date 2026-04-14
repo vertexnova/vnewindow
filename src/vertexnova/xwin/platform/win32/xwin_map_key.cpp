@@ -14,7 +14,7 @@ using vne::events::KeyCode;
 using vne::events::ModifierKey;
 using vne::events::MouseButton;
 
-std::uint8_t xwin_map_win32_modifier_flags() {
+std::uint8_t xwinMapWin32ModifierFlags() {
     std::uint8_t m = 0;
     if ((GetKeyState(VK_SHIFT) & 0x8000) != 0) {
         m |= static_cast<std::uint8_t>(ModifierKey::eModShift);
@@ -31,7 +31,7 @@ std::uint8_t xwin_map_win32_modifier_flags() {
     return m;
 }
 
-KeyCode xwin_map_win32_key(WPARAM vk, LPARAM lParam) {
+KeyCode xwinMapWin32Key(WPARAM vk, LPARAM lParam) {
     const std::uint32_t scan = (static_cast<std::uint32_t>(lParam) >> 16U) & 0xFFU;
     const bool ext = (lParam & (1 << 24)) != 0;
 
@@ -187,7 +187,7 @@ KeyCode xwin_map_win32_key(WPARAM vk, LPARAM lParam) {
     return KeyCode::eUnknown;
 }
 
-MouseButton xwin_map_win32_mouse_button_from_message(UINT msg, WPARAM wParam) {
+MouseButton xwinMapWin32MouseButtonFromMessage(UINT msg, WPARAM wParam) {
     switch (msg) {
         case WM_LBUTTONDOWN:
         case WM_LBUTTONUP:

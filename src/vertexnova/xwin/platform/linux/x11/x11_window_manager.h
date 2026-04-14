@@ -48,7 +48,7 @@ class X11WindowManager_C final : public WindowManager_I {
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
     void SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) override;
 
-    [[nodiscard]] const XWinVneEventCallbacks_C& vne_event_callbacks() const { return _vne_callbacks; }
+    [[nodiscard]] const XWinVneEventCallbacks_C& vneEventCallbacks() const { return _vne_callbacks; }
     bool ShouldClose() const override;
     bool ShouldCloseAll() const override;
 

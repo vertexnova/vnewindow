@@ -13,9 +13,9 @@
 
 namespace vne::xwin {
 
-std::uint8_t xwin_map_x11_modifiers(unsigned int state);
+std::uint8_t xwinMapX11Modifiers(unsigned int state);
 
 /** @brief Primary keysym from a key event (index 0). */
-vne::events::KeyCode xwin_map_x11_keysym(KeySym sym);
+vne::events::KeyCode xwinMapX11Keysym(KeySym sym);
 
 }  // namespace vne::xwin
