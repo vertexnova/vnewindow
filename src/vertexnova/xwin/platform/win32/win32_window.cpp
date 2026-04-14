@@ -12,6 +12,12 @@
 #include "win32_window.h"
 
 #include "win32_window_manager.h"
+#include "xwin_map_key.h"
+#include "xwin_vne_events_bridge.h"
+
+#include <vertexnova/events/types.h>
+
+#include <windowsx.h>
 
 namespace vne::xwin {
 
@@ -119,8 +125,12 @@ LRESULT CALLBACK Win32Window_C::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
 }
 
 LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    const XWinVneEventCallbacks_C empty_callbacks{};
+    const XWinVneEventCallbacks_C& cb = _event_owner ? _event_owner->vne_event_callbacks() : empty_callbacks;
+
     switch (msg) {
         case WM_CLOSE:
+            xwin_vne_bridge_window_close(this, _desc, cb);
             _open = false;
             if (_event_owner) {
                 WindowEventData_C ev{};
@@ -133,6 +143,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             if (wParam != SIZE_MINIMIZED) {
                 _desc.size.width = static_cast<uint32_t>(LOWORD(lParam));
                 _desc.size.height = static_cast<uint32_t>(HIWORD(lParam));
+                xwin_vne_bridge_window_resize(this, _desc, cb, _desc.size.width, _desc.size.height);
                 if (_event_owner) {
                     WindowEventData_C ev{};
                     ev.type = WindowEventType_TP::RESIZE;
@@ -145,6 +156,108 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         case WM_DESTROY:
             _open = false;
             return 0;
+        case WM_SETFOCUS:
+            xwin_vne_bridge_window_focus(this, _desc, cb, true);
+            if (_event_owner) {
+                WindowEventData_C ev{};
+                ev.type = WindowEventType_TP::FOCUS;
+                ev.focused = true;
+                _event_owner->NotifyWindowEvent(this, ev);
+            }
+            return 0;
+        case WM_KILLFOCUS:
+            xwin_vne_bridge_window_focus(this, _desc, cb, false);
+            if (_event_owner) {
+                WindowEventData_C ev{};
+                ev.type = WindowEventType_TP::FOCUS;
+                ev.focused = false;
+                _event_owner->NotifyWindowEvent(this, ev);
+            }
+            return 0;
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN: {
+            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_key_down);
+            if (want_vne) {
+                const vne::events::KeyCode kc = xwin_map_win32_key(wParam, lParam);
+                if (kc != vne::events::KeyCode::eUnknown) {
+                    const std::uint8_t mods = xwin_map_win32_modifier_flags();
+                    const bool repeat = (lParam & (1 << 30)) != 0;
+                    xwin_vne_bridge_key_down(this, _desc, cb, kc, mods, repeat);
+                }
+            }
+            if (msg == WM_SYSKEYDOWN) {
+                return DefWindowProcW(hwnd, msg, wParam, lParam);
+            }
+            return 0;
+        }
+        case WM_KEYUP:
+        case WM_SYSKEYUP: {
+            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_key_up);
+            if (want_vne) {
+                const vne::events::KeyCode kc = xwin_map_win32_key(wParam, lParam);
+                if (kc != vne::events::KeyCode::eUnknown) {
+                    const std::uint8_t mods = xwin_map_win32_modifier_flags();
+                    xwin_vne_bridge_key_up(this, _desc, cb, kc, mods);
+                }
+            }
+            if (msg == WM_SYSKEYUP) {
+                return DefWindowProcW(hwnd, msg, wParam, lParam);
+            }
+            return 0;
+        }
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONUP: {
+            const bool want_vne =
+                _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_button);
+            if (want_vne) {
+                const int x = GET_X_LPARAM(lParam);
+                const int y = GET_Y_LPARAM(lParam);
+                const std::uint8_t mods = xwin_map_win32_modifier_flags();
+                const vne::events::MouseButton btn = xwin_map_win32_mouse_button_from_message(msg, wParam);
+                const bool down = (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN
+                                     || msg == WM_XBUTTONDOWN);
+                xwin_vne_bridge_mouse_button(this, _desc, cb, btn, down, static_cast<double>(x),
+                                            static_cast<double>(y), mods);
+            }
+            return 0;
+        }
+        case WM_MOUSEMOVE: {
+            const bool want_vne =
+                _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_move);
+            if (want_vne) {
+                const int x = GET_X_LPARAM(lParam);
+                const int y = GET_Y_LPARAM(lParam);
+                const std::uint8_t mods = xwin_map_win32_modifier_flags();
+                xwin_vne_bridge_mouse_move(this, _desc, cb, static_cast<double>(x), static_cast<double>(y), mods);
+            }
+            return 0;
+        }
+        case WM_MOUSEWHEEL: {
+            const bool want_vne =
+                _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_scroll);
+            if (want_vne) {
+                const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
+                const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
+                xwin_vne_bridge_mouse_scroll(this, _desc, cb, 0.0F, step);
+            }
+            return 0;
+        }
+        case WM_MOUSEHWHEEL: {
+            const bool want_vne =
+                _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.on_mouse_scroll);
+            if (want_vne) {
+                const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
+                const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
+                xwin_vne_bridge_mouse_scroll(this, _desc, cb, step, 0.0F);
+            }
+            return 0;
+        }
         default:
             return DefWindowProcW(hwnd, msg, wParam, lParam);
     }

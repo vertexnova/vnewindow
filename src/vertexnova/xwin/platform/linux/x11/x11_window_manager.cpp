@@ -143,6 +143,10 @@ void X11WindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& ca
     _callback = callback;
 }
 
+void X11WindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
+    _vne_callbacks = std::move(callbacks);
+}
+
 bool X11WindowManager_C::ShouldClose() const {
     for (const auto& w : _windows) {
         if (w && !w->IsOpen()) {

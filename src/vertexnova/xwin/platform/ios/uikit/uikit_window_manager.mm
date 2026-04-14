@@ -130,6 +130,10 @@ void UIKitWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& 
     _callback = callback;
 }
 
+void UIKitWindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
+    _vne_callbacks = std::move(callbacks);
+}
+
 bool UIKitWindowManager_C::ShouldClose() const {
     for (const auto& w : _windows) {
         if (w && !w->IsOpen()) {

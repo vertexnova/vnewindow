@@ -42,6 +42,7 @@ class NullWindowManager_C final : public WindowManager_I {
 
     void ProcessEvents() override;
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
+    void SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) override;
     bool ShouldClose() const override;
     bool ShouldCloseAll() const override;
 
@@ -60,6 +61,7 @@ class NullWindowManager_C final : public WindowManager_I {
     std::shared_ptr<Window_I> _primary;
     std::shared_ptr<Window_I> _focused;
     WindowManagerEventCallback_T _callback{};
+    XWinVneEventCallbacks_C _vne_callbacks{};
     bool _initialized = false;
     std::string _properties;
 };

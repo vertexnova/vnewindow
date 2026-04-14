@@ -8,3 +8,4 @@ if(NOT TARGET vnexwin)
 endif()
 
 add_subdirectory(01_hello_xwin)
+add_subdirectory(02_xwin_events)

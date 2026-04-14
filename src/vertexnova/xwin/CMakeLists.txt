@@ -90,6 +90,7 @@ set(XWIN_SOURCES
     window.cpp
     window_factory.cpp
     time_step.cpp
+    xwin_vne_events_bridge.cpp
     platform/null/null_window.cpp
     platform/null/null_window_manager.cpp
 )
@@ -98,6 +99,7 @@ if(_vx_win32)
     list(APPEND XWIN_SOURCES
         platform/win32/win32_window.cpp
         platform/win32/win32_window_manager.cpp
+        platform/win32/xwin_map_key.cpp
     )
 endif()
 
@@ -123,6 +125,7 @@ if(_vx_x11)
     list(APPEND XWIN_SOURCES
         platform/linux/x11/x11_window.cpp
         platform/linux/x11/x11_window_manager.cpp
+        platform/linux/x11/xwin_map_key.cpp
     )
 endif()
 

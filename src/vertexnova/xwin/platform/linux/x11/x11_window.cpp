@@ -12,10 +12,31 @@
 #include "x11_window.h"
 
 #include "x11_window_manager.h"
+#include "xwin_map_key.h"
+#include "xwin_vne_events_bridge.h"
+
+#include <vertexnova/events/types.h>
 
 #include <X11/Xutil.h>
 
 namespace vne::xwin {
+
+namespace {
+
+vne::events::MouseButton x11_button_to_mouse_button(unsigned int button) {
+    switch (button) {
+        case 1U:
+            return vne::events::MouseButton::eLeft;
+        case 2U:
+            return vne::events::MouseButton::eMiddle;
+        case 3U:
+            return vne::events::MouseButton::eRight;
+        default:
+            return vne::events::MouseButton::eLeft;
+    }
+}
+
+}  // namespace
 
 X11Window_C::X11Window_C() = default;
 
@@ -61,7 +82,10 @@ void X11Window_C::Initialize(const WindowDescriptor_C& descriptor) {
     if (!_window) {
         return;
     }
-    XSelectInput(_display, _window, ExposureMask | KeyPressMask | StructureNotifyMask);
+    XSelectInput(_display,
+                 _window,
+                 ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
+                     | PointerMotionMask | StructureNotifyMask | FocusChangeMask);
     _wm_delete = XInternAtom(_display, "WM_DELETE_WINDOW", False);
     Atom protocols[] = {_wm_delete};
     XSetWMProtocols(_display, _window, protocols, 1);
@@ -79,6 +103,9 @@ void X11Window_C::PollEvents() {
     if (!_display || !_window) {
         return;
     }
+    const XWinVneEventCallbacks_C empty_callbacks{};
+    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vne_event_callbacks() : empty_callbacks;
+
     XEvent ev{};
     while (XPending(_display) > 0) {
         XNextEvent(_display, &ev);
@@ -87,6 +114,7 @@ void X11Window_C::PollEvents() {
         }
         if (ev.type == ClientMessage) {
             if (static_cast<Atom>(ev.xclient.data.l[0]) == _wm_delete) {
+                xwin_vne_bridge_window_close(this, _desc, cb);
                 _open = false;
                 if (_owner) {
                     WindowEventData_C data{};
@@ -97,10 +125,89 @@ void X11Window_C::PollEvents() {
         } else if (ev.type == ConfigureNotify) {
             _desc.size.width = static_cast<uint32_t>(ev.xconfigure.width);
             _desc.size.height = static_cast<uint32_t>(ev.xconfigure.height);
+            xwin_vne_bridge_window_resize(this, _desc, cb, _desc.size.width, _desc.size.height);
             if (_owner) {
                 WindowEventData_C data{};
                 data.type = WindowEventType_TP::RESIZE;
                 data.size = _desc.size;
+                _owner->NotifyWindowEvent(this, data);
+            }
+        } else if (ev.type == KeyPress) {
+            const unsigned int kc = static_cast<unsigned int>(ev.xkey.keycode);
+            const KeySym sym = XLookupKeysym(&ev.xkey, 0);
+            const vne::events::KeyCode mapped = xwin_map_x11_keysym(sym);
+            if (mapped != vne::events::KeyCode::eUnknown && kc < _keycode_down.size()) {
+                const bool repeat = _keycode_down[kc];
+                _keycode_down[kc] = true;
+                const std::uint8_t mods = xwin_map_x11_modifiers(ev.xkey.state);
+                xwin_vne_bridge_key_down(this, _desc, cb, mapped, mods, repeat);
+            }
+        } else if (ev.type == KeyRelease) {
+            const unsigned int kc = static_cast<unsigned int>(ev.xkey.keycode);
+            if (kc < _keycode_down.size()) {
+                _keycode_down[kc] = false;
+            }
+            const KeySym sym = XLookupKeysym(&ev.xkey, 0);
+            const vne::events::KeyCode mapped = xwin_map_x11_keysym(sym);
+            if (mapped != vne::events::KeyCode::eUnknown) {
+                const std::uint8_t mods = xwin_map_x11_modifiers(ev.xkey.state);
+                xwin_vne_bridge_key_up(this, _desc, cb, mapped, mods);
+            }
+        } else if (ev.type == ButtonPress) {
+            const unsigned int b = static_cast<unsigned int>(ev.xbutton.button);
+            if (b == 4U || b == 5U || b == 6U || b == 7U) {
+                const float y = (b == 4U) ? 1.0F : (b == 5U) ? -1.0F : 0.0F;
+                const float x = (b == 6U) ? 1.0F : (b == 7U) ? -1.0F : 0.0F;
+                xwin_vne_bridge_mouse_scroll(this, _desc, cb, x, y);
+            } else {
+                const std::uint8_t mods = xwin_map_x11_modifiers(ev.xbutton.state);
+                const vne::events::MouseButton mb = x11_button_to_mouse_button(b);
+                xwin_vne_bridge_mouse_button(this,
+                                            _desc,
+                                            cb,
+                                            mb,
+                                            true,
+                                            static_cast<double>(ev.xbutton.x),
+                                            static_cast<double>(ev.xbutton.y),
+                                            mods);
+            }
+        } else if (ev.type == ButtonRelease) {
+            const unsigned int b = static_cast<unsigned int>(ev.xbutton.button);
+            if (b >= 4U && b <= 7U) {
+                continue;
+            }
+            const std::uint8_t mods = xwin_map_x11_modifiers(ev.xbutton.state);
+            const vne::events::MouseButton mb = x11_button_to_mouse_button(b);
+            xwin_vne_bridge_mouse_button(this,
+                                        _desc,
+                                        cb,
+                                        mb,
+                                        false,
+                                        static_cast<double>(ev.xbutton.x),
+                                        static_cast<double>(ev.xbutton.y),
+                                        mods);
+        } else if (ev.type == MotionNotify) {
+            const std::uint8_t mods = xwin_map_x11_modifiers(ev.xmotion.state);
+            xwin_vne_bridge_mouse_move(this,
+                                      _desc,
+                                      cb,
+                                      static_cast<double>(ev.xmotion.x),
+                                      static_cast<double>(ev.xmotion.y),
+                                      mods);
+        } else if (ev.type == FocusIn) {
+            xwin_vne_bridge_window_focus(this, _desc, cb, true);
+            if (_owner) {
+                WindowEventData_C data{};
+                data.type = WindowEventType_TP::FOCUS;
+                data.focused = true;
+                _owner->NotifyWindowEvent(this, data);
+            }
+        } else if (ev.type == FocusOut) {
+            xwin_vne_bridge_window_focus(this, _desc, cb, false);
+            if (_owner) {
+                WindowEventData_C data{};
+                data.type = WindowEventType_TP::FOCUS;
+                data.focused = false;
                 _owner->NotifyWindowEvent(this, data);
             }
         }

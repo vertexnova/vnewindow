@@ -113,6 +113,10 @@ void NullWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& c
     _callback = callback;
 }
 
+void NullWindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
+    _vne_callbacks = std::move(callbacks);
+}
+
 bool NullWindowManager_C::ShouldClose() const {
     for (const auto& w : _windows) {
         if (w && !w->IsOpen()) {

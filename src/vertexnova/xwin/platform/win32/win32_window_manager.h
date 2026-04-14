@@ -45,6 +45,10 @@ class Win32WindowManager_C final : public WindowManager_I {
 
     void ProcessEvents() override;
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
+    void SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) override;
+
+    /** @brief Used by Win32Window_C when forwarding input to optional callbacks. */
+    [[nodiscard]] const XWinVneEventCallbacks_C& vne_event_callbacks() const { return _vne_callbacks; }
     bool ShouldClose() const override;
     bool ShouldCloseAll() const override;
 
@@ -63,6 +67,7 @@ class Win32WindowManager_C final : public WindowManager_I {
     std::shared_ptr<Window_I> _primary;
     std::shared_ptr<Window_I> _focused;
     WindowManagerEventCallback_T _callback{};
+    XWinVneEventCallbacks_C _vne_callbacks{};
     bool _initialized = false;
     std::string _properties;
     bool _class_registered = false;

@@ -143,6 +143,10 @@ void CocoaWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& 
     _callback = callback;
 }
 
+void CocoaWindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
+    _vne_callbacks = std::move(callbacks);
+}
+
 bool CocoaWindowManager_C::ShouldClose() const {
     for (const auto& w : _windows) {
         if (w && !w->IsOpen()) {

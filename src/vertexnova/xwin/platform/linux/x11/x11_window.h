@@ -14,6 +14,7 @@
 
 #include <X11/Xlib.h>
 
+#include <array>
 #include <string>
 
 namespace vne::xwin {
@@ -58,6 +59,8 @@ class X11Window_C final : public Window_I {
     WindowDescriptor_C _desc{};
     bool _open = false;
     Atom _wm_delete = 0;
+    /** Physical keycodes currently held (for KeyPress repeat detection). */
+    std::array<bool, 256> _keycode_down{};
 };
 
 }  // namespace vne::xwin

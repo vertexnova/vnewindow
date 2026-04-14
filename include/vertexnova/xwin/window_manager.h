@@ -13,6 +13,7 @@
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_descriptor.h"
 #include "vertexnova/xwin/xwin_types.h"
+#include "vertexnova/xwin/xwin_vne_event_callbacks.h"
 
 #include <functional>
 #include <memory>
@@ -45,6 +46,14 @@ class WindowManager_I {
 
     virtual void ProcessEvents() = 0;
     virtual void SetEventCallback(const WindowManagerEventCallback_T& callback) = 0;
+    /**
+     * @brief Optional granular hooks after vne::events updates (see xwin_vne_event_callbacks.h).
+     *
+     * After each frame: call vne::events::EventManager::instance().processEvents() if you use the
+     * queued events, then vne::events::Input::nextFrame() once after your simulation step (see
+     * vneevents input documentation). xwin does not call nextFrame() inside ProcessEvents().
+     */
+    virtual void SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) = 0;
     virtual bool ShouldClose() const = 0;
     virtual bool ShouldCloseAll() const = 0;
 
