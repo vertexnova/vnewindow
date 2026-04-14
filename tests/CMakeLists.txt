@@ -56,6 +56,14 @@ set(TEST_SOURCES
 #==============================================================================
 add_executable(vnexwin_tests ${TEST_SOURCES})
 
+# Shared vnexwin + MSVC: STL in headers from exported types (same pattern as vneio tests).
+if(MSVC AND TARGET vnexwin)
+    get_target_property(_vnexwin_tests_lib_type vnexwin TYPE)
+    if(_vnexwin_tests_lib_type STREQUAL "SHARED_LIBRARY")
+        target_compile_options(vnexwin_tests PRIVATE /wd4251 /wd4275)
+    endif()
+endif()
+
 target_include_directories(vnexwin_tests
     PRIVATE
         ${GTEST_INCLUDE_DIRS}

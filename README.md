@@ -21,7 +21,7 @@
 
 # VneCrossWindow
 
-Cross-platform **native windowing** library (`vne::xwin`): Win32, Cocoa, X11, optional Wayland (xdg-shell), Emscripten, UIKit, and Android `ANativeWindow`, plus a **null** backend for headless tests. CMake, internal deps (`vnecommon`, `vnelogging`), tests, and optional examples follow the [VertexNova](https://github.com/vertexnova) conventions.
+Cross-platform **native windowing** library (`vne::xwin`): Win32, Cocoa, X11, optional Wayland (xdg-shell), Emscripten, UIKit, and Android `ANativeWindow`, plus a **null** backend for headless tests. CMake, internal deps (`vnecommon`, `vnelogging`, `vneevents`), tests, and optional examples follow the [VertexNova](https://github.com/vertexnova) conventions.
 
 ## Directory layout
 
@@ -30,7 +30,7 @@ Cross-platform **native windowing** library (`vne::xwin`): Win32, Cocoa, X11, op
 | `cmake/vnecmake/` | CMake modules submodule (ProjectSetup, ProjectWarnings, VneUseDep) |
 | `configs/` | Configured headers (e.g. `config.h.in`) |
 | `deps/external/` | Third-party deps (e.g. googletest) |
-| `deps/internal/` | VertexNova internal libs (vnecommon, vnelogging) |
+| `deps/internal/` | VertexNova internal libs (vnecommon, vnelogging, vneevents) |
 | `include/` | Public API headers (`vertexnova/xwin/`) |
 | `src/` | Implementation |
 | `tests/` | Unit tests (Google Test) |
@@ -46,7 +46,7 @@ Cross-platform **native windowing** library (`vne::xwin`): Win32, Cocoa, X11, op
 ## Dependencies
 
 - **External:** Tests use [Google Test](https://github.com/google/googletest). Either add `deps/external/googletest` as a submodule (recommended tag: `v1.17.0`) or let CMake use FetchContent when the directory is missing.  
-- **Internal:** **vnecmake** (required) is the CMake modules submodule at `cmake/vnecmake`. Libraries `vnecommon` and `vnelogging` live under `deps/internal/`. See [deps/README.md](deps/README.md).
+- **Internal:** **vnecmake** (required) is the CMake modules submodule at `cmake/vnecmake`. Libraries `vnecommon`, `vnelogging`, and `vneevents` live under `deps/internal/`. See [deps/README.md](deps/README.md).
 
 From the project root:
 
@@ -58,7 +58,9 @@ git submodule update --init --recursive
 
 ## Build
 
-Builds use **`build/static`** or **`build/shared`** (one library type per directory). From the project root:
+Builds use **`build/static`** or **`build/shared`** (one library type per directory), same layout as **vneio**. With **`VNE_XWIN_LIB_TYPE=shared`**, CMake enables position-independent code, applies the same export/visibility rules as vneio (`VNE_XWIN_BUILDING_DLL` / `VNE_XWIN_DLL`, hidden visibility on Clang/GCC), and installs **`VneXWinTargets.cmake`** (`vne::` namespace) next to the library for `find_package`-style consumers.
+
+From the project root:
 
 ```bash
 # Shared library (default)

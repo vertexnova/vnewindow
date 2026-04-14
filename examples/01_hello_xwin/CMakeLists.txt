@@ -4,6 +4,13 @@
 
 add_executable(example_01_hello_xwin main.cpp)
 
+if(MSVC AND TARGET vnexwin)
+    get_target_property(_vx_ex_type vnexwin TYPE)
+    if(_vx_ex_type STREQUAL "SHARED_LIBRARY")
+        target_compile_options(example_01_hello_xwin PRIVATE /wd4251 /wd4275)
+    endif()
+endif()
+
 target_link_libraries(example_01_hello_xwin PRIVATE vne::xwin vne::logging)
 
 target_include_directories(example_01_hello_xwin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

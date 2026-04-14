@@ -18,10 +18,10 @@
 #include "platform/null/null_window_manager.h"
 
 #if VNE_XWIN_HAS_WIN32
-#include "platform/desktop/win32/win32_window_manager.h"
+#include "platform/win32/win32_window_manager.h"
 #endif
 #if VNE_XWIN_HAS_COCOA
-#include "platform/desktop/cocoa/cocoa_window_manager.h"
+#include "platform/cocoa/cocoa_window_manager.h"
 #endif
 #if VNE_XWIN_HAS_X11
 #include "platform/linux/x11/x11_window_manager.h"

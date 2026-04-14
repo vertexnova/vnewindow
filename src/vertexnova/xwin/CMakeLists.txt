@@ -96,8 +96,8 @@ set(XWIN_SOURCES
 
 if(_vx_win32)
     list(APPEND XWIN_SOURCES
-        platform/desktop/win32/win32_window.cpp
-        platform/desktop/win32/win32_window_manager.cpp
+        platform/win32/win32_window.cpp
+        platform/win32/win32_window_manager.cpp
     )
 endif()
 
@@ -107,8 +107,8 @@ endif()
 
 if(_vx_cocoa)
     list(APPEND XWIN_SOURCES
-        platform/desktop/cocoa/cocoa_window.mm
-        platform/desktop/cocoa/cocoa_window_manager.mm
+        platform/cocoa/cocoa_window.mm
+        platform/cocoa/cocoa_window_manager.mm
     )
 endif()
 
@@ -167,15 +167,36 @@ if(VNE_XWIN_LIB_TYPE STREQUAL "static")
     add_library(vnexwin STATIC ${XWIN_SOURCES})
 else()
     add_library(vnexwin SHARED ${XWIN_SOURCES})
-    target_compile_definitions(vnexwin PRIVATE VNE_XWIN_BUILDING_DLL)
 endif()
 
 add_library(vne::xwin ALIAS vnexwin)
 
+# Shared library ABI aligned with vneio (export/import macros, visibility, MSVC STL in exported types).
+get_target_property(_vnexwin_lib_type vnexwin TYPE)
+if(_vnexwin_lib_type STREQUAL "SHARED_LIBRARY")
+    target_compile_definitions(vnexwin
+        PRIVATE VNE_XWIN_BUILDING_DLL
+        INTERFACE VNE_XWIN_DLL
+    )
+    if(MSVC)
+        target_compile_options(vnexwin PRIVATE /wd4251 /wd4275)
+    else()
+        set_target_properties(vnexwin PROPERTIES
+            CXX_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN ON
+        )
+    endif()
+endif()
+
+set_target_properties(vnexwin PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+
 if(_vx_cocoa)
     set_source_files_properties(
-        platform/desktop/cocoa/cocoa_window.mm
-        platform/desktop/cocoa/cocoa_window_manager.mm
+        platform/cocoa/cocoa_window.mm
+        platform/cocoa/cocoa_window_manager.mm
         PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
     )
 endif()

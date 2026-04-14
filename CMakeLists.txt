@@ -204,6 +204,13 @@ if(NOT VNE_XWIN_LIB_TYPE STREQUAL "static" AND NOT VNE_XWIN_LIB_TYPE STREQUAL "s
     message(FATAL_ERROR
         "VNE_XWIN_LIB_TYPE must be 'static' or 'shared'. Got: ${VNE_XWIN_LIB_TYPE}")
 endif()
+
+# Same as vneio: PIC for all translation units when building libvnexwin as shared (submodule / consumer safe).
+if(VNE_XWIN_LIB_TYPE STREQUAL "shared")
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    message(STATUS "VneCrossWindow: VNE_XWIN_LIB_TYPE=shared -> CMAKE_POSITION_INDEPENDENT_CODE=ON")
+endif()
+
 option(ENABLE_DOXYGEN "Enable Doxygen documentation builds" OFF)
 option(ENABLE_COVERAGE "Enable code coverage reporting" OFF)
 option(ENABLE_ASAN "Enable AddressSanitizer + UndefinedBehaviorSanitizer (Clang/GCC, Linux/macOS only)" OFF)
@@ -351,6 +358,7 @@ endif()
 #==============================================================================
 include(GNUInstallDirs)
 install(TARGETS vnexwin XwinWarnings XwinBuildSettings
+    EXPORT VneXWinTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -365,3 +373,10 @@ install(DIRECTORY src/vertexnova/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertex
     FILES_MATCHING PATTERN "*.h")
 install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova/xwin
     COMPONENT vnexwin)
+
+install(EXPORT VneXWinTargets
+    FILE VneXWinTargets.cmake
+    NAMESPACE vne::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VneCrossWindow
+    COMPONENT vnexwin
+)
