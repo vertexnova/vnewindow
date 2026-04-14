@@ -10,3 +10,6 @@
 [submodule "deps/internal/vnelogging"]
 	path = deps/internal/vnelogging
 	url = https://github.com/vertexnova/vnelogging.git
+[submodule "deps/internal/vneevents"]
+	path = deps/internal/vneevents
+	url = https://github.com/vertexnova/vneevents.git

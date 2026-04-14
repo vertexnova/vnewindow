@@ -203,6 +203,9 @@ target_include_directories(vnexwin
 
 target_compile_features(vnexwin PUBLIC cxx_std_20)
 target_link_libraries(vnexwin PUBLIC vne::common vne::logging PRIVATE vne::xwin::BuildSettings)
+if(TARGET vne::events)
+    target_link_libraries(vnexwin PUBLIC vne::events)
+endif()
 
 if(_vx_win32)
     target_link_libraries(vnexwin PRIVATE user32 gdi32)
