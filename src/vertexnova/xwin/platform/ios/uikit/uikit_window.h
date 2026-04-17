@@ -12,6 +12,9 @@
  */
 
 #include "vertexnova/xwin/window.h"
+#include "vertexnova/xwin/xwin_vne_event_callbacks.h"
+
+#include <vertexnova/events/types.h>
 
 #include <string>
 
@@ -45,6 +48,9 @@ class UIKitWindow_C final : public Window_I {
     int GetHeight() const override;
     float GetDPIScale() const override;
 
+    // Called from VneXWinUIView
+    void handleTouch(uint32_t touch_id, double x, double y, XWinTouchPhase_TP phase);
+
    private:
     void destroy_native();
 
@@ -52,6 +58,8 @@ class UIKitWindow_C final : public Window_I {
     WindowDescriptor_C _desc{};
     bool _open = false;
     void* _ui_view = nullptr;
+
+    XWinVneEventCallbacks_C _empty_callbacks{};
 };
 
 }  // namespace vne::xwin

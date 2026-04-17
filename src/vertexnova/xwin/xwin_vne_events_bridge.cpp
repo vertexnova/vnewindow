@@ -202,7 +202,9 @@ void xwinVneBridgeWindowFocus(Window_I* window,
                               const WindowDescriptor_C& desc,
                               const XWinVneEventCallbacks_C& callbacks,
                               bool focused) {
-    (void)desc;
+    if (desc.enable_events) {
+        vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::WindowFocusEvent>(focused));
+    }
     if (callbacks.on_window_focus) {
         callbacks.on_window_focus(window, focused);
     }

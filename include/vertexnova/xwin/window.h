@@ -42,6 +42,8 @@ class Window_I {
     virtual bool IsFullscreen() const = 0;
     virtual void SetPosition(int x, int y) = 0;
     virtual void GetPosition(int& x, int& y) const = 0;
+    virtual void SetWindowLimits(const WindowLimits_C& limits);
+    virtual void SetCursor(WindowCursor_TP cursor);
     virtual void SetMonitor(uint32_t monitor_index);
     virtual uint32_t GetMonitor() const;
     virtual float GetDPIScale() const;
@@ -65,6 +67,12 @@ class Window_I {
     static std::unique_ptr<Window_I> Create(const WindowDescriptor_C& descriptor);
 };
 
+inline void Window_I::SetWindowLimits(const WindowLimits_C& limits) {
+    (void)limits;
+}
+inline void Window_I::SetCursor(WindowCursor_TP cursor) {
+    (void)cursor;
+}
 inline void Window_I::SetMonitor(uint32_t monitor_index) {
     (void)monitor_index;
 }

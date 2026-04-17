@@ -11,6 +11,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
+#include "vertexnova/xwin/xwin_vne_event_callbacks.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/html5.h>
@@ -51,14 +52,29 @@ class WasmWindow_C final : public Window_I {
 
 #ifdef __EMSCRIPTEN__
     static EM_BOOL ResizeCallback(int event_type, const EmscriptenUiEvent* event, void* user_data);
+    static EM_BOOL KeyDownCallback(int event_type, const EmscriptenKeyboardEvent* ev, void* ud);
+    static EM_BOOL KeyUpCallback(int event_type, const EmscriptenKeyboardEvent* ev, void* ud);
+    static EM_BOOL MouseDownCallback(int event_type, const EmscriptenMouseEvent* ev, void* ud);
+    static EM_BOOL MouseUpCallback(int event_type, const EmscriptenMouseEvent* ev, void* ud);
+    static EM_BOOL MouseMoveCallback(int event_type, const EmscriptenMouseEvent* ev, void* ud);
+    static EM_BOOL WheelCallback(int event_type, const EmscriptenWheelEvent* ev, void* ud);
+    static EM_BOOL TouchStartCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
+    static EM_BOOL TouchEndCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
+    static EM_BOOL TouchMoveCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
+    static EM_BOOL FullscreenChangeCallback(int event_type, const EmscriptenFullscreenChangeEvent* ev, void* ud);
 #endif
 
    private:
+    const XWinVneEventCallbacks_C& vneCallbacks() const;
+
     WasmWindowManager_C* _owner = nullptr;
     WindowDescriptor_C _desc{};
     bool _initialized = false;
     bool _should_close = false;
+    bool _fullscreen = false;
     void* _canvas_tag = nullptr;
+
+    XWinVneEventCallbacks_C _empty_callbacks{};
 };
 
 }  // namespace vne::xwin

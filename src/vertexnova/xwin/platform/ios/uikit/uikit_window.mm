@@ -12,9 +12,65 @@
 #include "uikit_window.h"
 
 #include "uikit_window_manager.h"
+#include "xwin_vne_events_bridge.h"
 
 #import <UIKit/UIKit.h>
 
+// ---------------------------------------------------------------------------
+// VneXWinUIView — UIView subclass that routes multi-touch to the bridge
+// ---------------------------------------------------------------------------
+@interface VneXWinUIView : UIView {
+    vne::xwin::UIKitWindow_C* _xwin;
+}
+- (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow_C*)xwin;
+@end
+
+@implementation VneXWinUIView
+
+- (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow_C*)xwin {
+    self = [super initWithFrame:frame];
+    if (self) {
+        _xwin = xwin;
+        self.multipleTouchEnabled = YES;
+        self.userInteractionEnabled = YES;
+    }
+    return self;
+}
+
+- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::XWinTouchPhase_TP)phase {
+    if (!_xwin) { return; }
+    for (UITouch* touch in touches) {
+        const CGPoint p = [touch locationInView:self];
+        // Use the touch object pointer hash as a stable per-finger id
+        const uint32_t touch_id = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(touch) & 0xFFFFFFFFu);
+        _xwin->handleTouch(touch_id, static_cast<double>(p.x), static_cast<double>(p.y), phase);
+    }
+}
+
+- (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    (void)event;
+    [self deliverTouches:touches phase:vne::xwin::XWinTouchPhase_TP::Down];
+}
+- (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    (void)event;
+    [self deliverTouches:touches phase:vne::xwin::XWinTouchPhase_TP::Move];
+}
+- (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    (void)event;
+    [self deliverTouches:touches phase:vne::xwin::XWinTouchPhase_TP::Up];
+}
+- (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    (void)event;
+    // Treat cancel as up so the app can release any held state
+    [self deliverTouches:touches phase:vne::xwin::XWinTouchPhase_TP::Up];
+}
+
+@end
+
+
+// ---------------------------------------------------------------------------
+// UIKitWindow_C implementation
+// ---------------------------------------------------------------------------
 namespace vne::xwin {
 
 UIKitWindow_C::UIKitWindow_C() = default;
@@ -43,13 +99,20 @@ void UIKitWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
                               static_cast<CGFloat>(_desc.position.y),
                               static_cast<CGFloat>(_desc.size.width),
                               static_cast<CGFloat>(_desc.size.height));
-    UIView* v = [[UIView alloc] initWithFrame:frame];
+    VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:frame xwin:this];
     v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     _ui_view = (__bridge_retained void*)v;
     _open = true;
 }
 
-void UIKitWindow_C::PollEvents() {}
+void UIKitWindow_C::handleTouch(uint32_t touch_id, double x, double y, XWinTouchPhase_TP phase) {
+    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
+    xwinVneBridgeTouch(this, _desc, cb, touch_id, x, y, phase);
+}
+
+void UIKitWindow_C::PollEvents() {
+    // Touch events are delivered by UIKit on the main run loop via VneXWinUIView.
+}
 
 void UIKitWindow_C::SwapBuffers() {}
 
@@ -66,11 +129,12 @@ WindowMode_TP UIKitWindow_C::GetWindowMode() const {
 }
 
 void UIKitWindow_C::SetFullscreen(bool enabled) {
+    // On iOS the app always occupies the full screen; this is a no-op.
     (void)enabled;
 }
 
 bool UIKitWindow_C::IsFullscreen() const {
-    return false;
+    return true;  // iOS is always full-screen
 }
 
 void UIKitWindow_C::SetPosition(int x, int y) {
@@ -102,7 +166,7 @@ void UIKitWindow_C::Resize(uint32_t width, uint32_t height) {
     if (_ui_view) {
         UIView* v = (__bridge UIView*)_ui_view;
         CGRect f = v.frame;
-        f.size.width = static_cast<CGFloat>(width);
+        f.size.width  = static_cast<CGFloat>(width);
         f.size.height = static_cast<CGFloat>(height);
         v.frame = f;
     }
@@ -134,10 +198,7 @@ int UIKitWindow_C::GetHeight() const {
 
 float UIKitWindow_C::GetDPIScale() const {
     UIScreen* s = [UIScreen mainScreen];
-    if (!s) {
-        return 1.0F;
-    }
-    return static_cast<float>(s.scale);
+    return s ? static_cast<float>(s.scale) : 1.0F;
 }
 
 }  // namespace vne::xwin
