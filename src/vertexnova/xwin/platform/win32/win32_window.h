@@ -36,6 +36,11 @@ class Win32Window_C final : public Window_I {
     WindowMode_TP GetWindowMode() const override;
     void SetFullscreen(bool enabled) override;
     bool IsFullscreen() const override;
+    void Minimize() override;
+    void Maximize() override;
+    void Restore() override;
+    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetCursor(WindowCursor_TP cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
@@ -61,8 +66,12 @@ class Win32Window_C final : public Window_I {
     Win32WindowManager_C* _event_owner = nullptr;
     WindowDescriptor_C _desc{};
     bool _open = false;
+    bool _fullscreen = false;
     WindowMode_TP _mode = WindowMode_TP::WINDOWED;
-    std::wstring _class_name;
+
+    // Saved pre-fullscreen state
+    DWORD _saved_style = 0;
+    RECT  _saved_rect  = {};
 };
 
 }  // namespace vne::xwin

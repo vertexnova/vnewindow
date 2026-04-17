@@ -260,6 +260,18 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             }
             return 0;
         }
+        case WM_GETMINMAXINFO: {
+            auto* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
+            if (_desc.limits.has_min_size) {
+                mmi->ptMinTrackSize.x = static_cast<LONG>(_desc.limits.min_size.width);
+                mmi->ptMinTrackSize.y = static_cast<LONG>(_desc.limits.min_size.height);
+            }
+            if (_desc.limits.has_max_size) {
+                mmi->ptMaxTrackSize.x = static_cast<LONG>(_desc.limits.max_size.width);
+                mmi->ptMaxTrackSize.y = static_cast<LONG>(_desc.limits.max_size.height);
+            }
+            return 0;
+        }
         default:
             return DefWindowProcW(hwnd, msg, wParam, lParam);
     }
@@ -299,11 +311,76 @@ WindowMode_TP Win32Window_C::GetWindowMode() const {
 }
 
 void Win32Window_C::SetFullscreen(bool enabled) {
-    (void)enabled;
+    if (!_hwnd || enabled == _fullscreen) { return; }
+    if (enabled) {
+        // Save current style and rect
+        _saved_style = static_cast<DWORD>(GetWindowLongW(_hwnd, GWL_STYLE));
+        GetWindowRect(_hwnd, &_saved_rect);
+        // Get monitor covering the window
+        HMONITOR mon = MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi{};
+        mi.cbSize = sizeof(mi);
+        GetMonitorInfoW(mon, &mi);
+        SetWindowLongW(_hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+        SetWindowPos(_hwnd, HWND_TOP,
+                     mi.rcMonitor.left, mi.rcMonitor.top,
+                     mi.rcMonitor.right  - mi.rcMonitor.left,
+                     mi.rcMonitor.bottom - mi.rcMonitor.top,
+                     SWP_FRAMECHANGED | SWP_NOACTIVATE);
+    } else {
+        SetWindowLongW(_hwnd, GWL_STYLE, _saved_style);
+        SetWindowPos(_hwnd, nullptr,
+                     _saved_rect.left, _saved_rect.top,
+                     _saved_rect.right  - _saved_rect.left,
+                     _saved_rect.bottom - _saved_rect.top,
+                     SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER);
+        ShowWindow(_hwnd, SW_RESTORE);
+    }
+    _fullscreen = enabled;
 }
 
 bool Win32Window_C::IsFullscreen() const {
-    return false;
+    return _fullscreen;
+}
+
+void Win32Window_C::Minimize() {
+    if (_hwnd) { ShowWindow(_hwnd, SW_MINIMIZE); }
+}
+
+void Win32Window_C::Maximize() {
+    if (_hwnd) { ShowWindow(_hwnd, SW_MAXIMIZE); }
+}
+
+void Win32Window_C::Restore() {
+    if (_hwnd) { ShowWindow(_hwnd, SW_RESTORE); }
+}
+
+void Win32Window_C::SetWindowLimits(const WindowLimits_C& limits) {
+    _desc.limits = limits;
+    // Limits are enforced in WM_GETMINMAXINFO inside HandleMessage
+}
+
+void Win32Window_C::SetCursor(WindowCursor_TP cursor) {
+    switch (cursor) {
+        case WindowCursor_TP::HIDDEN:
+            while (ShowCursor(FALSE) >= 0) {}
+            ClipCursor(nullptr);
+            break;
+        case WindowCursor_TP::DISABLED:
+            while (ShowCursor(FALSE) >= 0) {}
+            if (_hwnd) {
+                RECT r{};
+                GetClientRect(_hwnd, &r);
+                MapWindowPoints(_hwnd, nullptr, reinterpret_cast<POINT*>(&r), 2);
+                ClipCursor(&r);
+            }
+            break;
+        case WindowCursor_TP::NORMAL:
+        default:
+            while (ShowCursor(TRUE) < 0) {}
+            ClipCursor(nullptr);
+            break;
+    }
 }
 
 void Win32Window_C::SetPosition(int x, int y) {

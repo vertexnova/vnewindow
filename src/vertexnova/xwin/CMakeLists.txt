@@ -110,6 +110,7 @@ endif()
 if(_vx_cocoa)
     list(APPEND XWIN_SOURCES
         platform/cocoa/cocoa_window.mm
+        platform/cocoa/cocoa_map_key.mm
         platform/cocoa/cocoa_window_manager.mm
     )
 endif()
@@ -147,6 +148,7 @@ if(_vx_wayland)
     list(APPEND XWIN_SOURCES
         platform/linux/wayland/wayland_window.cpp
         platform/linux/wayland/wayland_window_manager.cpp
+        platform/linux/wayland/wayland_map_key.cpp
         "${_wl_gen}/xdg-shell-protocol.c"
     )
     set_source_files_properties("${_wl_gen}/xdg-shell-protocol.c" PROPERTIES LANGUAGE C)
@@ -155,6 +157,7 @@ endif()
 if(_vx_wasm)
     list(APPEND XWIN_SOURCES
         platform/web/wasm/wasm_window.cpp
+        platform/web/wasm/wasm_map_key.cpp
         platform/web/wasm/wasm_window_manager.cpp
     )
 endif()
@@ -199,6 +202,7 @@ set_target_properties(vnexwin PROPERTIES
 if(_vx_cocoa)
     set_source_files_properties(
         platform/cocoa/cocoa_window.mm
+        platform/cocoa/cocoa_map_key.mm
         platform/cocoa/cocoa_window_manager.mm
         PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
     )
@@ -250,6 +254,12 @@ endif()
 if(_vx_wayland)
     target_link_libraries(vnexwin PRIVATE ${WAYLAND_CLIENT_LIBRARIES})
     target_include_directories(vnexwin PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
+    # xkbcommon is needed for Wayland key symbol mapping
+    pkg_check_modules(XKBCOMMON QUIET xkbcommon)
+    if(XKBCOMMON_FOUND)
+        target_link_libraries(vnexwin PRIVATE ${XKBCOMMON_LIBRARIES})
+        target_include_directories(vnexwin PRIVATE ${XKBCOMMON_INCLUDE_DIRS})
+    endif()
 endif()
 
 if(_vx_wasm)

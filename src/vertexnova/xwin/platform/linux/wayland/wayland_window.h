@@ -56,6 +56,7 @@ class WaylandWindow_C final : public Window_I {
     WaylandWindowManager_C* _owner = nullptr;
     WindowDescriptor_C _desc{};
     bool _open = false;
+    bool _fullscreen = false;
     wl_surface* _surface = nullptr;
     xdg_surface* _xdg_surface = nullptr;
     xdg_toplevel* _toplevel = nullptr;

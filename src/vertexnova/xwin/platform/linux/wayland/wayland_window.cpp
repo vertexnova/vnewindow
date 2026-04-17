@@ -160,11 +160,21 @@ WindowMode_TP WaylandWindow_C::GetWindowMode() const {
 }
 
 void WaylandWindow_C::SetFullscreen(bool enabled) {
-    (void)enabled;
+    if (!_toplevel) { return; }
+    if (enabled) {
+        xdg_toplevel_set_fullscreen(_toplevel, nullptr);
+    } else {
+        xdg_toplevel_unset_fullscreen(_toplevel);
+    }
+    if (_surface && _owner && _owner->NativeDisplay()) {
+        wl_surface_commit(_surface);
+        wl_display_flush(_owner->NativeDisplay());
+    }
+    _fullscreen = enabled;
 }
 
 bool WaylandWindow_C::IsFullscreen() const {
-    return false;
+    return _fullscreen;
 }
 
 void WaylandWindow_C::SetPosition(int x, int y) {

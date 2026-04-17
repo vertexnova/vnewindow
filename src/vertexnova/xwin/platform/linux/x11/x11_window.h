@@ -27,6 +27,7 @@ class X11Window_C final : public Window_I {
     ~X11Window_C() override;
 
     void SetEventOwner(X11WindowManager_C* owner);
+    void SetDisplay(Display* display, int screen, ::Window root);
 
     void Initialize(const WindowDescriptor_C& descriptor) override;
     void PollEvents() override;
@@ -36,6 +37,10 @@ class X11Window_C final : public Window_I {
     WindowMode_TP GetWindowMode() const override;
     void SetFullscreen(bool enabled) override;
     bool IsFullscreen() const override;
+    void Minimize() override;
+    void Restore() override;
+    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetCursor(WindowCursor_TP cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
@@ -46,10 +51,9 @@ class X11Window_C final : public Window_I {
     int GetWidth() const override;
     int GetHeight() const override;
 
-    void SetDisplay(Display* display, int screen, ::Window root);
-
    private:
     void destroy();
+    void send_ewmh_state(bool add, Atom atom1, Atom atom2 = 0);
 
     Display* _display = nullptr;
     int _screen = 0;
@@ -58,7 +62,9 @@ class X11Window_C final : public Window_I {
     X11WindowManager_C* _owner = nullptr;
     WindowDescriptor_C _desc{};
     bool _open = false;
+    bool _fullscreen = false;
     Atom _wm_delete = 0;
+    Cursor _blank_cursor = None;
     /** Physical keycodes currently held (for KeyPress repeat detection). */
     std::array<bool, 256> _keycode_down{};
 };
