@@ -143,8 +143,8 @@ void CocoaWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& 
     _callback = callback;
 }
 
-void CocoaWindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
-    _vne_callbacks = std::move(callbacks);
+void CocoaWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+    _event_bridge_callbacks = std::move(callbacks);
 }
 
 bool CocoaWindowManager_C::ShouldClose() const {

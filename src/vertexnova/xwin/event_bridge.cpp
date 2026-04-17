@@ -9,7 +9,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 #include "vertexnova/xwin/window.h"
 
@@ -35,20 +35,20 @@ void pushKeyReleased(vne::events::KeyCode key, uint8_t modifiers) {
 
 }  // namespace
 
-void xwinVneBridgeKeyDown(Window_I* window,
-                          const WindowDescriptor_C& desc,
-                          const XWinVneEventCallbacks_C& callbacks,
-                          vne::events::KeyCode key,
-                          uint8_t modifiers,
-                          bool repeat) {
+void eventBridgeKeyDown(Window_I* window,
+                        const WindowDescriptor_C& descriptor,
+                        const EventBridgeCallbacks_C& callbacks,
+                        vne::events::KeyCode key,
+                        uint8_t modifiers,
+                        bool repeat) {
     if (key == vne::events::KeyCode::eUnknown) {
         return;
     }
     const int ik = static_cast<int>(key);
-    if (desc.enable_input) {
+    if (descriptor.enable_input) {
         vne::events::Input::updateKeyState(ik, true);
     }
-    if (desc.enable_events) {
+    if (descriptor.enable_events) {
         if (repeat) {
             pushKeyRepeat(key, modifiers);
         } else {
@@ -60,19 +60,19 @@ void xwinVneBridgeKeyDown(Window_I* window,
     }
 }
 
-void xwinVneBridgeKeyUp(Window_I* window,
-                        const WindowDescriptor_C& desc,
-                        const XWinVneEventCallbacks_C& callbacks,
-                        vne::events::KeyCode key,
-                        uint8_t modifiers) {
+void eventBridgeKeyUp(Window_I* window,
+                      const WindowDescriptor_C& descriptor,
+                      const EventBridgeCallbacks_C& callbacks,
+                      vne::events::KeyCode key,
+                      uint8_t modifiers) {
     if (key == vne::events::KeyCode::eUnknown) {
         return;
     }
     const int ik = static_cast<int>(key);
-    if (desc.enable_input) {
+    if (descriptor.enable_input) {
         vne::events::Input::updateKeyState(ik, false);
     }
-    if (desc.enable_events) {
+    if (descriptor.enable_events) {
         pushKeyReleased(key, modifiers);
     }
     if (callbacks.on_key_up) {
@@ -80,19 +80,19 @@ void xwinVneBridgeKeyUp(Window_I* window,
     }
 }
 
-void xwinVneBridgeMouseButton(Window_I* window,
-                              const WindowDescriptor_C& desc,
-                              const XWinVneEventCallbacks_C& callbacks,
-                              vne::events::MouseButton button,
-                              bool pressed,
-                              double x,
-                              double y,
-                              uint8_t modifiers) {
+void eventBridgeMouseButton(Window_I* window,
+                            const WindowDescriptor_C& descriptor,
+                            const EventBridgeCallbacks_C& callbacks,
+                            vne::events::MouseButton button,
+                            bool pressed,
+                            double x,
+                            double y,
+                            uint8_t modifiers) {
     const int ib = static_cast<int>(button);
-    if (desc.enable_input) {
+    if (descriptor.enable_input) {
         vne::events::Input::updateMouseButtonState(ib, pressed);
     }
-    if (desc.enable_events) {
+    if (descriptor.enable_events) {
         if (pressed) {
             vne::events::EventManager::instance().pushEvent(
                 std::make_unique<vne::events::MouseButtonPressedEvent>(button, modifiers, x, y));
@@ -106,16 +106,16 @@ void xwinVneBridgeMouseButton(Window_I* window,
     }
 }
 
-void xwinVneBridgeMouseMove(Window_I* window,
-                            const WindowDescriptor_C& desc,
-                            const XWinVneEventCallbacks_C& callbacks,
-                            double x,
-                            double y,
-                            uint8_t modifiers) {
-    if (desc.enable_input) {
+void eventBridgeMouseMove(Window_I* window,
+                          const WindowDescriptor_C& descriptor,
+                          const EventBridgeCallbacks_C& callbacks,
+                          double x,
+                          double y,
+                          uint8_t modifiers) {
+    if (descriptor.enable_input) {
         vne::events::Input::updateMousePosition(static_cast<int>(x), static_cast<int>(y));
     }
-    if (desc.enable_events) {
+    if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(
             std::make_unique<vne::events::MouseMovedEvent>(x, y, modifiers));
     }
@@ -124,15 +124,15 @@ void xwinVneBridgeMouseMove(Window_I* window,
     }
 }
 
-void xwinVneBridgeMouseScroll(Window_I* window,
-                              const WindowDescriptor_C& desc,
-                              const XWinVneEventCallbacks_C& callbacks,
-                              float x_offset,
-                              float y_offset) {
-    if (desc.enable_input) {
+void eventBridgeMouseScroll(Window_I* window,
+                            const WindowDescriptor_C& descriptor,
+                            const EventBridgeCallbacks_C& callbacks,
+                            float x_offset,
+                            float y_offset) {
+    if (descriptor.enable_input) {
         vne::events::Input::updateMouseScroll(x_offset, y_offset);
     }
-    if (desc.enable_events) {
+    if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(
             std::make_unique<vne::events::MouseScrolledEvent>(static_cast<double>(x_offset),
                                                               static_cast<double>(y_offset)));
@@ -142,27 +142,27 @@ void xwinVneBridgeMouseScroll(Window_I* window,
     }
 }
 
-void xwinVneBridgeTouch(Window_I* window,
-                        const WindowDescriptor_C& desc,
-                        const XWinVneEventCallbacks_C& callbacks,
-                        uint32_t touch_id,
-                        double x,
-                        double y,
-                        XWinTouchPhase_TP phase) {
-    if (!desc.enable_events && !callbacks.on_touch) {
+void eventBridgeTouch(Window_I* window,
+                      const WindowDescriptor_C& descriptor,
+                      const EventBridgeCallbacks_C& callbacks,
+                      uint32_t touch_id,
+                      double x,
+                      double y,
+                      EventBridgeTouchPhase_C phase) {
+    if (!descriptor.enable_events && !callbacks.on_touch) {
         return;
     }
-    if (desc.enable_events) {
+    if (descriptor.enable_events) {
         switch (phase) {
-            case XWinTouchPhase_TP::Down:
+            case EventBridgeTouchPhase_C::eDown:
                 vne::events::EventManager::instance().pushEvent(
                     std::make_unique<vne::events::TouchPressEvent>(touch_id, x, y));
                 break;
-            case XWinTouchPhase_TP::Up:
+            case EventBridgeTouchPhase_C::eUp:
                 vne::events::EventManager::instance().pushEvent(
                     std::make_unique<vne::events::TouchReleaseEvent>(touch_id, x, y));
                 break;
-            case XWinTouchPhase_TP::Move:
+            case EventBridgeTouchPhase_C::eMove:
                 vne::events::EventManager::instance().pushEvent(
                     std::make_unique<vne::events::TouchMoveEvent>(touch_id, x, y));
                 break;
@@ -173,15 +173,15 @@ void xwinVneBridgeTouch(Window_I* window,
     }
 }
 
-void xwinVneBridgeWindowResize(Window_I* window,
-                               const WindowDescriptor_C& desc,
-                               const XWinVneEventCallbacks_C& callbacks,
-                               uint32_t width,
-                               uint32_t height) {
-    if (desc.enable_input) {
+void eventBridgeWindowResize(Window_I* window,
+                             const WindowDescriptor_C& descriptor,
+                             const EventBridgeCallbacks_C& callbacks,
+                             uint32_t width,
+                             uint32_t height) {
+    if (descriptor.enable_input) {
         vne::events::Input::updateWindowSize(static_cast<int>(width), static_cast<int>(height));
     }
-    if (desc.enable_events) {
+    if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(
             std::make_unique<vne::events::WindowResizeEvent>(width, height));
     }
@@ -189,21 +189,21 @@ void xwinVneBridgeWindowResize(Window_I* window,
     (void)callbacks;
 }
 
-void xwinVneBridgeWindowClose(Window_I* window,
-                              const WindowDescriptor_C& desc,
-                              const XWinVneEventCallbacks_C& callbacks) {
-    if (desc.enable_events) {
+void eventBridgeWindowClose(Window_I* window,
+                            const WindowDescriptor_C& descriptor,
+                            const EventBridgeCallbacks_C& callbacks) {
+    if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::WindowCloseEvent>());
     }
     (void)window;
     (void)callbacks;
 }
 
-void xwinVneBridgeWindowFocus(Window_I* window,
-                              const WindowDescriptor_C& desc,
-                              const XWinVneEventCallbacks_C& callbacks,
-                              bool focused) {
-    if (desc.enable_events) {
+void eventBridgeWindowFocus(Window_I* window,
+                            const WindowDescriptor_C& descriptor,
+                            const EventBridgeCallbacks_C& callbacks,
+                            bool focused) {
+    if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::WindowFocusEvent>(focused));
     }
     if (callbacks.on_window_focus) {

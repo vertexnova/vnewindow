@@ -13,7 +13,7 @@
 
 #include "cocoa_map_key.h"
 #include "cocoa_window_manager.h"
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 #include "vertexnova/xwin/xwin_types.h"
 
@@ -295,35 +295,35 @@ void CocoaWindow_C::SwapBuffers() {}
 
 void CocoaWindow_C::handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat) {
     if (key == vne::events::KeyCode::eUnknown) { return; }
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeKeyDown(this, _desc, cb, key, mods, repeat);
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeKeyDown(this, _desc, cb, key, mods, repeat);
 }
 
 void CocoaWindow_C::handleKeyUp(vne::events::KeyCode key, uint8_t mods) {
     if (key == vne::events::KeyCode::eUnknown) { return; }
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeKeyUp(this, _desc, cb, key, mods);
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeKeyUp(this, _desc, cb, key, mods);
 }
 
 void CocoaWindow_C::handleMouseButton(vne::events::MouseButton button, bool pressed,
                                       double x, double y, uint8_t mods) {
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeMouseButton(this, _desc, cb, button, pressed, x, y, mods);
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeMouseButton(this, _desc, cb, button, pressed, x, y, mods);
 }
 
 void CocoaWindow_C::handleMouseMove(double x, double y, uint8_t mods) {
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeMouseMove(this, _desc, cb, x, y, mods);
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeMouseMove(this, _desc, cb, x, y, mods);
 }
 
 void CocoaWindow_C::handleMouseScroll(float dx, float dy) {
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeMouseScroll(this, _desc, cb, dx, dy);
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeMouseScroll(this, _desc, cb, dx, dy);
 }
 
 void CocoaWindow_C::handleWindowClose() {
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeWindowClose(this, _desc, cb);
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeWindowClose(this, _desc, cb);
     _open = false;
     if (_owner) {
         WindowEventData_C data{};
@@ -336,8 +336,8 @@ void CocoaWindow_C::handleWindowClose() {
 void CocoaWindow_C::handleWindowResize(uint32_t w, uint32_t h) {
     _desc.size.width = w;
     _desc.size.height = h;
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeWindowResize(this, _desc, cb, w, h);
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeWindowResize(this, _desc, cb, w, h);
     if (_owner) {
         WindowEventData_C data{};
         data.type = WindowEventType_TP::RESIZE;
@@ -347,8 +347,8 @@ void CocoaWindow_C::handleWindowResize(uint32_t w, uint32_t h) {
 }
 
 void CocoaWindow_C::handleWindowFocus(bool focused) {
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeWindowFocus(this, _desc, cb, focused);
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeWindowFocus(this, _desc, cb, focused);
     if (_owner) {
         WindowEventData_C data{};
         data.type = WindowEventType_TP::FOCUS;

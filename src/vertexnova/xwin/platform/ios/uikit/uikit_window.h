@@ -12,7 +12,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
-#include "vertexnova/xwin/xwin_vne_event_callbacks.h"
+#include "vertexnova/xwin/event_bridge_callbacks.h"
 
 #include <vertexnova/events/types.h>
 
@@ -54,7 +54,7 @@ class UIKitWindow_C final : public Window_I {
     float GetDPIScale() const override;
 
     // Called from VneXWinUIView
-    void handleTouch(uint32_t touch_id, double x, double y, XWinTouchPhase_TP phase);
+    void handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase_C phase);
 
    private:
     void destroy_native();
@@ -64,7 +64,7 @@ class UIKitWindow_C final : public Window_I {
     bool _open = false;
     void* _ui_view = nullptr;
 
-    XWinVneEventCallbacks_C _empty_callbacks{};
+    EventBridgeCallbacks_C _empty_callbacks{};
 };
 
 }  // namespace vne::xwin

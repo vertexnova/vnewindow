@@ -13,7 +13,7 @@
 
 #include "win32_window_manager.h"
 #include "xwin_map_key.h"
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 #include <vertexnova/events/types.h>
 
@@ -125,12 +125,12 @@ LRESULT CALLBACK Win32Window_C::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
 }
 
 LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    const XWinVneEventCallbacks_C empty_callbacks{};
-    const XWinVneEventCallbacks_C& cb = _event_owner ? _event_owner->vneEventCallbacks() : empty_callbacks;
+    const EventBridgeCallbacks_C empty_callbacks{};
+    const EventBridgeCallbacks_C& cb = _event_owner ? _event_owner->eventBridgeCallbacks() : empty_callbacks;
 
     switch (msg) {
         case WM_CLOSE:
-            xwinVneBridgeWindowClose(this, _desc, cb);
+            eventBridgeWindowClose(this, _desc, cb);
             _open = false;
             if (_event_owner) {
                 WindowEventData_C ev{};
@@ -143,7 +143,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             if (wParam != SIZE_MINIMIZED) {
                 _desc.size.width = static_cast<uint32_t>(LOWORD(lParam));
                 _desc.size.height = static_cast<uint32_t>(HIWORD(lParam));
-                xwinVneBridgeWindowResize(this, _desc, cb, _desc.size.width, _desc.size.height);
+                eventBridgeWindowResize(this, _desc, cb, _desc.size.width, _desc.size.height);
                 if (_event_owner) {
                     WindowEventData_C ev{};
                     ev.type = WindowEventType_TP::RESIZE;
@@ -157,7 +157,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             _open = false;
             return 0;
         case WM_SETFOCUS:
-            xwinVneBridgeWindowFocus(this, _desc, cb, true);
+            eventBridgeWindowFocus(this, _desc, cb, true);
             if (_event_owner) {
                 WindowEventData_C ev{};
                 ev.type = WindowEventType_TP::FOCUS;
@@ -166,7 +166,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             }
             return 0;
         case WM_KILLFOCUS:
-            xwinVneBridgeWindowFocus(this, _desc, cb, false);
+            eventBridgeWindowFocus(this, _desc, cb, false);
             if (_event_owner) {
                 WindowEventData_C ev{};
                 ev.type = WindowEventType_TP::FOCUS;
@@ -182,7 +182,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 if (kc != vne::events::KeyCode::eUnknown) {
                     const std::uint8_t mods = xwinMapWin32ModifierFlags();
                     const bool repeat = (lParam & (1 << 30)) != 0;
-                    xwinVneBridgeKeyDown(this, _desc, cb, kc, mods, repeat);
+                    eventBridgeKeyDown(this, _desc, cb, kc, mods, repeat);
                 }
             }
             if (msg == WM_SYSKEYDOWN) {
@@ -197,7 +197,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 const vne::events::KeyCode kc = xwinMapWin32Key(wParam, lParam);
                 if (kc != vne::events::KeyCode::eUnknown) {
                     const std::uint8_t mods = xwinMapWin32ModifierFlags();
-                    xwinVneBridgeKeyUp(this, _desc, cb, kc, mods);
+                    eventBridgeKeyUp(this, _desc, cb, kc, mods);
                 }
             }
             if (msg == WM_SYSKEYUP) {
@@ -221,7 +221,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 const vne::events::MouseButton btn = xwinMapWin32MouseButtonFromMessage(msg, wParam);
                 const bool down =
                     (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
-                xwinVneBridgeMouseButton(this,
+                eventBridgeMouseButton(this,
                                          _desc,
                                          cb,
                                          btn,
@@ -238,7 +238,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 const int x = GET_X_LPARAM(lParam);
                 const int y = GET_Y_LPARAM(lParam);
                 const std::uint8_t mods = xwinMapWin32ModifierFlags();
-                xwinVneBridgeMouseMove(this, _desc, cb, static_cast<double>(x), static_cast<double>(y), mods);
+                eventBridgeMouseMove(this, _desc, cb, static_cast<double>(x), static_cast<double>(y), mods);
             }
             return 0;
         }
@@ -247,7 +247,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             if (want_vne) {
                 const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
                 const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-                xwinVneBridgeMouseScroll(this, _desc, cb, 0.0F, step);
+                eventBridgeMouseScroll(this, _desc, cb, 0.0F, step);
             }
             return 0;
         }
@@ -256,7 +256,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             if (want_vne) {
                 const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
                 const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-                xwinVneBridgeMouseScroll(this, _desc, cb, step, 0.0F);
+                eventBridgeMouseScroll(this, _desc, cb, step, 0.0F);
             }
             return 0;
         }

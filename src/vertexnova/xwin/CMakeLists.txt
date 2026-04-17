@@ -90,7 +90,7 @@ set(XWIN_SOURCES
     window.cpp
     window_factory.cpp
     time_step.cpp
-    xwin_vne_events_bridge.cpp
+    event_bridge.cpp
     platform/null/null_window.cpp
     platform/null/null_window_manager.cpp
 )

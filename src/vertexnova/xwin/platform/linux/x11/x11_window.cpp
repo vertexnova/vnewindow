@@ -13,7 +13,7 @@
 
 #include "x11_window_manager.h"
 #include "xwin_map_key.h"
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 #include <vertexnova/events/types.h>
 
@@ -111,8 +111,8 @@ void X11Window_C::PollEvents() {
     if (!_display || !_window) {
         return;
     }
-    const XWinVneEventCallbacks_C empty_callbacks{};
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : empty_callbacks;
+    const EventBridgeCallbacks_C empty_callbacks{};
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : empty_callbacks;
 
     XEvent ev{};
     while (XPending(_display) > 0) {
@@ -122,7 +122,7 @@ void X11Window_C::PollEvents() {
         }
         if (ev.type == ClientMessage) {
             if (static_cast<Atom>(ev.xclient.data.l[0]) == _wm_delete) {
-                xwinVneBridgeWindowClose(this, _desc, cb);
+                eventBridgeWindowClose(this, _desc, cb);
                 _open = false;
                 if (_owner) {
                     WindowEventData_C data{};
@@ -133,7 +133,7 @@ void X11Window_C::PollEvents() {
         } else if (ev.type == ConfigureNotify) {
             _desc.size.width = static_cast<uint32_t>(ev.xconfigure.width);
             _desc.size.height = static_cast<uint32_t>(ev.xconfigure.height);
-            xwinVneBridgeWindowResize(this, _desc, cb, _desc.size.width, _desc.size.height);
+            eventBridgeWindowResize(this, _desc, cb, _desc.size.width, _desc.size.height);
             if (_owner) {
                 WindowEventData_C data{};
                 data.type = WindowEventType_TP::RESIZE;
@@ -148,7 +148,7 @@ void X11Window_C::PollEvents() {
                 const bool repeat = _keycode_down[kc];
                 _keycode_down[kc] = true;
                 const std::uint8_t mods = xwinMapX11Modifiers(ev.xkey.state);
-                xwinVneBridgeKeyDown(this, _desc, cb, mapped, mods, repeat);
+                eventBridgeKeyDown(this, _desc, cb, mapped, mods, repeat);
             }
         } else if (ev.type == KeyRelease) {
             const unsigned int kc = static_cast<unsigned int>(ev.xkey.keycode);
@@ -159,18 +159,18 @@ void X11Window_C::PollEvents() {
             const vne::events::KeyCode mapped = xwinMapX11Keysym(sym);
             if (mapped != vne::events::KeyCode::eUnknown) {
                 const std::uint8_t mods = xwinMapX11Modifiers(ev.xkey.state);
-                xwinVneBridgeKeyUp(this, _desc, cb, mapped, mods);
+                eventBridgeKeyUp(this, _desc, cb, mapped, mods);
             }
         } else if (ev.type == ButtonPress) {
             const unsigned int b = static_cast<unsigned int>(ev.xbutton.button);
             if (b == 4U || b == 5U || b == 6U || b == 7U) {
                 const float y = (b == 4U) ? 1.0F : (b == 5U) ? -1.0F : 0.0F;
                 const float x = (b == 6U) ? 1.0F : (b == 7U) ? -1.0F : 0.0F;
-                xwinVneBridgeMouseScroll(this, _desc, cb, x, y);
+                eventBridgeMouseScroll(this, _desc, cb, x, y);
             } else {
                 const std::uint8_t mods = xwinMapX11Modifiers(ev.xbutton.state);
                 const vne::events::MouseButton mb = x11ButtonToMouseButton(b);
-                xwinVneBridgeMouseButton(this,
+                eventBridgeMouseButton(this,
                                          _desc,
                                          cb,
                                          mb,
@@ -186,7 +186,7 @@ void X11Window_C::PollEvents() {
             }
             const std::uint8_t mods = xwinMapX11Modifiers(ev.xbutton.state);
             const vne::events::MouseButton mb = x11ButtonToMouseButton(b);
-            xwinVneBridgeMouseButton(this,
+            eventBridgeMouseButton(this,
                                      _desc,
                                      cb,
                                      mb,
@@ -196,14 +196,14 @@ void X11Window_C::PollEvents() {
                                      mods);
         } else if (ev.type == MotionNotify) {
             const std::uint8_t mods = xwinMapX11Modifiers(ev.xmotion.state);
-            xwinVneBridgeMouseMove(this,
+            eventBridgeMouseMove(this,
                                    _desc,
                                    cb,
                                    static_cast<double>(ev.xmotion.x),
                                    static_cast<double>(ev.xmotion.y),
                                    mods);
         } else if (ev.type == FocusIn) {
-            xwinVneBridgeWindowFocus(this, _desc, cb, true);
+            eventBridgeWindowFocus(this, _desc, cb, true);
             if (_owner) {
                 WindowEventData_C data{};
                 data.type = WindowEventType_TP::FOCUS;
@@ -211,7 +211,7 @@ void X11Window_C::PollEvents() {
                 _owner->NotifyWindowEvent(this, data);
             }
         } else if (ev.type == FocusOut) {
-            xwinVneBridgeWindowFocus(this, _desc, cb, false);
+            eventBridgeWindowFocus(this, _desc, cb, false);
             if (_owner) {
                 WindowEventData_C data{};
                 data.type = WindowEventType_TP::FOCUS;

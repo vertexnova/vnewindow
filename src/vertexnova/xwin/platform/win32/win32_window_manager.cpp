@@ -134,8 +134,8 @@ void Win32WindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& 
     _callback = callback;
 }
 
-void Win32WindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
-    _vne_callbacks = std::move(callbacks);
+void Win32WindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+    _event_bridge_callbacks = std::move(callbacks);
 }
 
 bool Win32WindowManager_C::ShouldClose() const {

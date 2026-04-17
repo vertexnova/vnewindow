@@ -11,7 +11,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
-#include "vertexnova/xwin/xwin_vne_event_callbacks.h"
+#include "vertexnova/xwin/event_bridge_callbacks.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/html5.h>
@@ -73,7 +73,7 @@ class WasmWindow_C final : public Window_I {
 #endif
 
    private:
-    const XWinVneEventCallbacks_C& vneCallbacks() const;
+    const EventBridgeCallbacks_C& eventBridgeCallbacks() const;
 
     WasmWindowManager_C* _owner = nullptr;
     WindowDescriptor_C _desc{};
@@ -82,7 +82,7 @@ class WasmWindow_C final : public Window_I {
     bool _fullscreen = false;
     void* _canvas_tag = nullptr;
 
-    XWinVneEventCallbacks_C _empty_callbacks{};
+    EventBridgeCallbacks_C _empty_callbacks{};
 };
 
 }  // namespace vne::xwin

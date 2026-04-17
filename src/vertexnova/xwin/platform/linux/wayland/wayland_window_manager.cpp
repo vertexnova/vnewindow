@@ -13,7 +13,7 @@
 
 #include "wayland_map_key.h"
 #include "wayland_window.h"
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 #include <algorithm>
 #include <chrono>
@@ -232,7 +232,7 @@ void WaylandWindowManager_C::on_keyboard_leave(wl_surface* surface) {
 
 void WaylandWindowManager_C::notify_window_focus(WaylandWindow_C* win, bool focused) {
     if (!win) { return; }
-    xwinVneBridgeWindowFocus(win, win->descriptor(), _vne_callbacks, focused);
+    eventBridgeWindowFocus(win, win->descriptor(), _event_bridge_callbacks, focused);
     WindowEventData_C ev{};
     ev.type = WindowEventType_TP::FOCUS;
     ev.focused = focused;
@@ -321,9 +321,9 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
 
     const WindowDescriptor_C& desc = win->descriptor();
     if (pressed) {
-        xwinVneBridgeKeyDown(win, desc, _vne_callbacks, kc, mods, false);
+        eventBridgeKeyDown(win, desc, _event_bridge_callbacks, kc, mods, false);
     } else {
-        xwinVneBridgeKeyUp(win, desc, _vne_callbacks, kc, mods);
+        eventBridgeKeyUp(win, desc, _event_bridge_callbacks, kc, mods);
     }
 }
 
@@ -339,7 +339,7 @@ void WaylandWindowManager_C::on_pointer_motion(double x, double y) {
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
     const uint8_t mods = xwinMapWaylandModifiers(_mod_depressed, _mod_latched, _mod_locked);
-    xwinVneBridgeMouseMove(win, win->descriptor(), _vne_callbacks, x, y, mods);
+    eventBridgeMouseMove(win, win->descriptor(), _event_bridge_callbacks, x, y, mods);
 }
 
 void WaylandWindowManager_C::on_pointer_button(uint32_t button, uint32_t state,
@@ -352,32 +352,32 @@ void WaylandWindowManager_C::on_pointer_button(uint32_t button, uint32_t state,
     const vne::events::MouseButton mb = linuxButtonToMouse(button);
     const bool pressed = (state == WL_POINTER_BUTTON_STATE_PRESSED);
     const uint8_t mods = xwinMapWaylandModifiers(_mod_depressed, _mod_latched, _mod_locked);
-    xwinVneBridgeMouseButton(win, win->descriptor(), _vne_callbacks, mb, pressed, px, py, mods);
+    eventBridgeMouseButton(win, win->descriptor(), _event_bridge_callbacks, mb, pressed, px, py, mods);
 }
 
 void WaylandWindowManager_C::on_pointer_axis(double x_off, double y_off) {
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
-    xwinVneBridgeMouseScroll(win, win->descriptor(), _vne_callbacks,
+    eventBridgeMouseScroll(win, win->descriptor(), _event_bridge_callbacks,
                              static_cast<float>(x_off), static_cast<float>(y_off));
 }
 
 void WaylandWindowManager_C::on_touch_down(uint32_t id, double x, double y) {
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
-    xwinVneBridgeTouch(win, win->descriptor(), _vne_callbacks, id, x, y, XWinTouchPhase_TP::Down);
+    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase_C::eDown);
 }
 
 void WaylandWindowManager_C::on_touch_up(uint32_t id, double x, double y) {
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
-    xwinVneBridgeTouch(win, win->descriptor(), _vne_callbacks, id, x, y, XWinTouchPhase_TP::Up);
+    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase_C::eUp);
 }
 
 void WaylandWindowManager_C::on_touch_motion(uint32_t id, double x, double y) {
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
-    xwinVneBridgeTouch(win, win->descriptor(), _vne_callbacks, id, x, y, XWinTouchPhase_TP::Move);
+    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase_C::eMove);
 }
 
 void WaylandWindowManager_C::on_seat_capabilities(struct wl_seat* seat, uint32_t caps) {
@@ -541,7 +541,7 @@ void WaylandWindowManager_C::ProcessEvents() {
 }
 
 void WaylandWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& cb) { _callback = cb; }
-void WaylandWindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C cbs) { _vne_callbacks = std::move(cbs); }
+void WaylandWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C cbs) { _event_bridge_callbacks = std::move(cbs); }
 
 bool WaylandWindowManager_C::ShouldClose() const {
     for (const auto& w : _windows) { if (w && !w->IsOpen()) { return true; } }

@@ -13,7 +13,7 @@
 
 #include "wasm_map_key.h"
 #include "wasm_window_manager.h"
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/em_asm.h>
@@ -48,8 +48,8 @@ void WasmWindow_C::SetEventOwner(WasmWindowManager_C* owner) {
     _owner = owner;
 }
 
-const XWinVneEventCallbacks_C& WasmWindow_C::vneCallbacks() const {
-    return _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
+const EventBridgeCallbacks_C& WasmWindow_C::eventBridgeCallbacks() const {
+    return _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
 }
 
 void WasmWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
@@ -105,7 +105,7 @@ EM_BOOL WasmWindow_C::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent
     emscripten_set_canvas_element_size("#canvas",
                                        static_cast<int>(self->_desc.size.width),
                                        static_cast<int>(self->_desc.size.height));
-    xwinVneBridgeWindowResize(self, self->_desc, self->vneCallbacks(),
+    eventBridgeWindowResize(self, self->_desc, self->eventBridgeCallbacks(),
                               self->_desc.size.width, self->_desc.size.height);
     if (self->_owner) {
         WindowEventData_C data{};
@@ -122,7 +122,7 @@ EM_BOOL WasmWindow_C::KeyDownCallback(int /*event_type*/, const EmscriptenKeyboa
     const vne::events::KeyCode kc = xwinMapEmscriptenKey(ev->code);
     const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     const bool repeat = ev->repeat;
-    xwinVneBridgeKeyDown(self, self->_desc, self->vneCallbacks(), kc, mods, repeat);
+    eventBridgeKeyDown(self, self->_desc, self->eventBridgeCallbacks(), kc, mods, repeat);
     return EM_TRUE;
 }
 
@@ -131,7 +131,7 @@ EM_BOOL WasmWindow_C::KeyUpCallback(int /*event_type*/, const EmscriptenKeyboard
     if (!self || !ev) { return EM_FALSE; }
     const vne::events::KeyCode kc = xwinMapEmscriptenKey(ev->code);
     const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    xwinVneBridgeKeyUp(self, self->_desc, self->vneCallbacks(), kc, mods);
+    eventBridgeKeyUp(self, self->_desc, self->eventBridgeCallbacks(), kc, mods);
     return EM_TRUE;
 }
 
@@ -140,7 +140,7 @@ EM_BOOL WasmWindow_C::MouseDownCallback(int /*event_type*/, const EmscriptenMous
     if (!self || !ev) { return EM_FALSE; }
     const vne::events::MouseButton btn = xwinMapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
     const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    xwinVneBridgeMouseButton(self, self->_desc, self->vneCallbacks(), btn, true,
+    eventBridgeMouseButton(self, self->_desc, self->eventBridgeCallbacks(), btn, true,
                              static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
 }
@@ -150,7 +150,7 @@ EM_BOOL WasmWindow_C::MouseUpCallback(int /*event_type*/, const EmscriptenMouseE
     if (!self || !ev) { return EM_FALSE; }
     const vne::events::MouseButton btn = xwinMapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
     const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    xwinVneBridgeMouseButton(self, self->_desc, self->vneCallbacks(), btn, false,
+    eventBridgeMouseButton(self, self->_desc, self->eventBridgeCallbacks(), btn, false,
                              static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
 }
@@ -159,7 +159,7 @@ EM_BOOL WasmWindow_C::MouseMoveCallback(int /*event_type*/, const EmscriptenMous
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self || !ev) { return EM_FALSE; }
     const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    xwinVneBridgeMouseMove(self, self->_desc, self->vneCallbacks(),
+    eventBridgeMouseMove(self, self->_desc, self->eventBridgeCallbacks(),
                            static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
 }
@@ -168,7 +168,7 @@ EM_BOOL WasmWindow_C::WheelCallback(int /*event_type*/, const EmscriptenWheelEve
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self || !ev) { return EM_FALSE; }
     // deltaX/deltaY are in CSS pixels (deltaMode=0); normalise to scroll steps
-    xwinVneBridgeMouseScroll(self, self->_desc, self->vneCallbacks(),
+    eventBridgeMouseScroll(self, self->_desc, self->eventBridgeCallbacks(),
                              static_cast<float>(-ev->deltaX / 100.0),
                              static_cast<float>(-ev->deltaY / 100.0));
     return EM_TRUE;
@@ -180,11 +180,11 @@ EM_BOOL WasmWindow_C::TouchStartCallback(int /*event_type*/, const EmscriptenTou
     for (int i = 0; i < ev->numTouches; ++i) {
         const EmscriptenTouchPoint& tp = ev->touches[i];
         if (!tp.isChanged) { continue; }
-        xwinVneBridgeTouch(self, self->_desc, self->vneCallbacks(),
+        eventBridgeTouch(self, self->_desc, self->eventBridgeCallbacks(),
                            static_cast<uint32_t>(tp.identifier),
                            static_cast<double>(tp.targetX),
                            static_cast<double>(tp.targetY),
-                           XWinTouchPhase_TP::Down);
+                           EventBridgeTouchPhase_C::eDown);
     }
     return EM_TRUE;
 }
@@ -195,11 +195,11 @@ EM_BOOL WasmWindow_C::TouchEndCallback(int /*event_type*/, const EmscriptenTouch
     for (int i = 0; i < ev->numTouches; ++i) {
         const EmscriptenTouchPoint& tp = ev->touches[i];
         if (!tp.isChanged) { continue; }
-        xwinVneBridgeTouch(self, self->_desc, self->vneCallbacks(),
+        eventBridgeTouch(self, self->_desc, self->eventBridgeCallbacks(),
                            static_cast<uint32_t>(tp.identifier),
                            static_cast<double>(tp.targetX),
                            static_cast<double>(tp.targetY),
-                           XWinTouchPhase_TP::Up);
+                           EventBridgeTouchPhase_C::eUp);
     }
     return EM_TRUE;
 }
@@ -210,11 +210,11 @@ EM_BOOL WasmWindow_C::TouchMoveCallback(int /*event_type*/, const EmscriptenTouc
     for (int i = 0; i < ev->numTouches; ++i) {
         const EmscriptenTouchPoint& tp = ev->touches[i];
         if (!tp.isChanged) { continue; }
-        xwinVneBridgeTouch(self, self->_desc, self->vneCallbacks(),
+        eventBridgeTouch(self, self->_desc, self->eventBridgeCallbacks(),
                            static_cast<uint32_t>(tp.identifier),
                            static_cast<double>(tp.targetX),
                            static_cast<double>(tp.targetY),
-                           XWinTouchPhase_TP::Move);
+                           EventBridgeTouchPhase_C::eMove);
     }
     return EM_TRUE;
 }
@@ -225,11 +225,11 @@ EM_BOOL WasmWindow_C::TouchCancelCallback(int /*event_type*/, const EmscriptenTo
     for (int i = 0; i < ev->numTouches; ++i) {
         const EmscriptenTouchPoint& tp = ev->touches[i];
         if (!tp.isChanged) { continue; }
-        xwinVneBridgeTouch(self, self->_desc, self->vneCallbacks(),
+        eventBridgeTouch(self, self->_desc, self->eventBridgeCallbacks(),
                            static_cast<uint32_t>(tp.identifier),
                            static_cast<double>(tp.targetX),
                            static_cast<double>(tp.targetY),
-                           XWinTouchPhase_TP::Up);
+                           EventBridgeTouchPhase_C::eUp);
     }
     return EM_TRUE;
 }
@@ -237,7 +237,7 @@ EM_BOOL WasmWindow_C::TouchCancelCallback(int /*event_type*/, const EmscriptenTo
 EM_BOOL WasmWindow_C::FocusCallback(int /*event_type*/, const EmscriptenFocusEvent*, void* ud) {
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self) { return EM_FALSE; }
-    xwinVneBridgeWindowFocus(self, self->_desc, self->vneCallbacks(), true);
+    eventBridgeWindowFocus(self, self->_desc, self->eventBridgeCallbacks(), true);
     if (self->_owner) {
         WindowEventData_C data{};
         data.type = WindowEventType_TP::FOCUS;
@@ -250,7 +250,7 @@ EM_BOOL WasmWindow_C::FocusCallback(int /*event_type*/, const EmscriptenFocusEve
 EM_BOOL WasmWindow_C::BlurCallback(int /*event_type*/, const EmscriptenFocusEvent*, void* ud) {
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self) { return EM_FALSE; }
-    xwinVneBridgeWindowFocus(self, self->_desc, self->vneCallbacks(), false);
+    eventBridgeWindowFocus(self, self->_desc, self->eventBridgeCallbacks(), false);
     if (self->_owner) {
         WindowEventData_C data{};
         data.type = WindowEventType_TP::FOCUS;

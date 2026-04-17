@@ -20,7 +20,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
-#include "vertexnova/xwin/xwin_vne_event_callbacks.h"
+#include "vertexnova/xwin/event_bridge_callbacks.h"
 
 #include <vertexnova/events/types.h>
 
@@ -60,7 +60,7 @@ class AndroidWindow_C final : public Window_I {
      * @brief Inject a touch event from the host AInputQueue / GameActivity loop.
      * Call once per finger per AInputEvent after reading AINPUT_EVENT_TYPE_MOTION.
      */
-    void InjectTouchEvent(uint32_t touch_id, double x, double y, XWinTouchPhase_TP phase);
+    void InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase_C phase);
 
     /**
      * @brief Inject a key event from the host AInputQueue / GameActivity loop.
@@ -71,14 +71,14 @@ class AndroidWindow_C final : public Window_I {
     /** @brief Inject a window resize notification (call when ANativeWindow resizes). */
     void InjectResizeEvent(uint32_t width, uint32_t height);
 
-    /** @brief Provide optional granular callbacks (mirrors WindowManager::SetVneEventCallbacks). */
-    void SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks);
+    /** @brief Provide optional granular callbacks (mirrors WindowManager::setEventBridgeCallbacks). */
+    void setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks);
 
    private:
     WindowDescriptor_C _desc{};
     bool _open = false;
     void* _native = nullptr;
-    XWinVneEventCallbacks_C _callbacks{};
+    EventBridgeCallbacks_C _event_bridge_callbacks{};
 };
 
 }  // namespace vne::xwin

@@ -12,7 +12,7 @@
 #include "wayland_window.h"
 
 #include "wayland_window_manager.h"
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 #include <cstring>
 
@@ -83,8 +83,8 @@ void WaylandWindow_C::apply_toplevel_configure(uint32_t width, uint32_t height) 
     _desc.size.width = width;
     _desc.size.height = height;
     if (_owner) {
-        const XWinVneEventCallbacks_C& cb = _owner->vneEventCallbacks();
-        xwinVneBridgeWindowResize(this, _desc, cb, width, height);
+        const EventBridgeCallbacks_C& cb = _owner->eventBridgeCallbacks();
+        eventBridgeWindowResize(this, _desc, cb, width, height);
         WindowEventData_C ev{};
         ev.type = WindowEventType_TP::RESIZE;
         ev.size = _desc.size;

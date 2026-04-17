@@ -46,9 +46,9 @@ class X11WindowManager_C final : public WindowManager_I {
 
     void ProcessEvents() override;
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
-    void SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) override;
+    void setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) override;
 
-    [[nodiscard]] const XWinVneEventCallbacks_C& vneEventCallbacks() const { return _vne_callbacks; }
+    [[nodiscard]] const EventBridgeCallbacks_C& eventBridgeCallbacks() const { return _event_bridge_callbacks; }
     bool ShouldClose() const override;
     bool ShouldCloseAll() const override;
 
@@ -70,7 +70,7 @@ class X11WindowManager_C final : public WindowManager_I {
     std::shared_ptr<Window_I> _primary;
     std::shared_ptr<Window_I> _focused;
     WindowManagerEventCallback_T _callback{};
-    XWinVneEventCallbacks_C _vne_callbacks{};
+    EventBridgeCallbacks_C _event_bridge_callbacks{};
     bool _initialized = false;
     std::string _properties;
 };

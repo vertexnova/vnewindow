@@ -127,8 +127,8 @@ void WasmWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& c
     _callback = callback;
 }
 
-void WasmWindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
-    _vne_callbacks = std::move(callbacks);
+void WasmWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+    _event_bridge_callbacks = std::move(callbacks);
 }
 
 bool WasmWindowManager_C::ShouldClose() const {

@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Demonstrates vne::events integration: optional XWinVneEventCallbacks_C,
+ * Demonstrates vne::events integration: optional EventBridgeCallbacks_C,
  * EventManager::processEvents(), and Input::nextFrame() after ProcessEvents().
  * Close the window to exit (null backend exits immediately).
  * ----------------------------------------------------------------------
@@ -14,7 +14,7 @@
 #include "vertexnova/xwin/window_factory.h"
 #include "vertexnova/xwin/window_descriptor.h"
 #include "vertexnova/xwin/xwin_types.h"
-#include "vertexnova/xwin/xwin_vne_event_callbacks.h"
+#include "vertexnova/xwin/event_bridge_callbacks.h"
 
 #include <cstdint>
 
@@ -40,12 +40,12 @@ int main() {
         return 1;
     }
 
-    vne::xwin::XWinVneEventCallbacks_C hooks{};
+    vne::xwin::EventBridgeCallbacks_C hooks{};
     hooks.on_key_down = [](vne::xwin::Window_I* win, vne::events::KeyCode key, std::uint8_t /*mods*/, bool repeat) {
         VNE_LOG_INFO << "on_key_down window=" << win << " key=" << static_cast<int>(key) << " repeat=" << repeat;
     };
 
-    mgr->SetVneEventCallbacks(std::move(hooks));
+    mgr->setEventBridgeCallbacks(std::move(hooks));
 
     if (w->GetWindowAPI() == vne::xwin::WindowAPI_TP::NULL_WINDOW) {
         VNE_LOG_INFO << "Null backend has no native input; closing window for a clean smoke run.";

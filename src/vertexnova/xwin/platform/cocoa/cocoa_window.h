@@ -12,7 +12,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
-#include "vertexnova/xwin/xwin_vne_event_callbacks.h"
+#include "vertexnova/xwin/event_bridge_callbacks.h"
 
 #include <vertexnova/events/types.h>
 
@@ -76,7 +76,7 @@ class CocoaWindow_C final : public Window_I {
     void* _ns_view = nullptr;
     void* _ns_delegate = nullptr;
 
-    XWinVneEventCallbacks_C _empty_callbacks{};
+    EventBridgeCallbacks_C _empty_callbacks{};
 };
 
 }  // namespace vne::xwin

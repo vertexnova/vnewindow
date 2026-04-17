@@ -12,7 +12,7 @@
 #include "uikit_window.h"
 
 #include "uikit_window_manager.h"
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 #import <UIKit/UIKit.h>
 
@@ -37,7 +37,7 @@
     return self;
 }
 
-- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::XWinTouchPhase_TP)phase {
+- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase_C)phase {
     if (!_xwin) { return; }
     for (UITouch* touch in touches) {
         const CGPoint p = [touch locationInView:self];
@@ -49,20 +49,20 @@
 
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     (void)event;
-    [self deliverTouches:touches phase:vne::xwin::XWinTouchPhase_TP::Down];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase_C::eDown];
 }
 - (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     (void)event;
-    [self deliverTouches:touches phase:vne::xwin::XWinTouchPhase_TP::Move];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase_C::eMove];
 }
 - (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     (void)event;
-    [self deliverTouches:touches phase:vne::xwin::XWinTouchPhase_TP::Up];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase_C::eUp];
 }
 - (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     (void)event;
     // Treat cancel as up so the app can release any held state
-    [self deliverTouches:touches phase:vne::xwin::XWinTouchPhase_TP::Up];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase_C::eUp];
 }
 
 @end
@@ -105,9 +105,9 @@ void UIKitWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     _open = true;
 }
 
-void UIKitWindow_C::handleTouch(uint32_t touch_id, double x, double y, XWinTouchPhase_TP phase) {
-    const XWinVneEventCallbacks_C& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
-    xwinVneBridgeTouch(this, _desc, cb, touch_id, x, y, phase);
+void UIKitWindow_C::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase_C phase) {
+    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    eventBridgeTouch(this, _desc, cb, touch_id, x, y, phase);
 }
 
 void UIKitWindow_C::PollEvents() {

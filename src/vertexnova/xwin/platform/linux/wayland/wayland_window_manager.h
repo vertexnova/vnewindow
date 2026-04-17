@@ -34,7 +34,7 @@ class WaylandWindow_C;
 class WaylandWindowManager_C final : public WindowManager_I {
    public:
     void NotifyWindowEvent(Window_I* window, const WindowEventData_C& event);
-    const XWinVneEventCallbacks_C& vneEventCallbacks() const { return _vne_callbacks; }
+    const EventBridgeCallbacks_C& eventBridgeCallbacks() const { return _event_bridge_callbacks; }
 
     /** @brief Bound from wl_registry global callback (xdg-shell + compositor + seat). */
     void on_registry_global(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version);
@@ -77,7 +77,7 @@ class WaylandWindowManager_C final : public WindowManager_I {
 
     void ProcessEvents() override;
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
-    void SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) override;
+    void setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) override;
     bool ShouldClose() const override;
     bool ShouldCloseAll() const override;
 
@@ -129,7 +129,7 @@ class WaylandWindowManager_C final : public WindowManager_I {
     std::shared_ptr<Window_I> _primary;
     std::shared_ptr<Window_I> _focused;
     WindowManagerEventCallback_T _callback{};
-    XWinVneEventCallbacks_C _vne_callbacks{};
+    EventBridgeCallbacks_C _event_bridge_callbacks{};
     bool _initialized = false;
     std::string _properties;
 };

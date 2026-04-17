@@ -11,7 +11,7 @@
 
 #include "android_window.h"
 
-#include "xwin_vne_events_bridge.h"
+#include "event_bridge.h"
 
 namespace vne::xwin {
 
@@ -105,26 +105,26 @@ int AndroidWindow_C::GetHeight() const {
     return static_cast<int>(_desc.size.height);
 }
 
-void AndroidWindow_C::InjectTouchEvent(uint32_t touch_id, double x, double y, XWinTouchPhase_TP phase) {
-    xwinVneBridgeTouch(this, _desc, _callbacks, touch_id, x, y, phase);
+void AndroidWindow_C::InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase_C phase) {
+    eventBridgeTouch(this, _desc, _event_bridge_callbacks, touch_id, x, y, phase);
 }
 
 void AndroidWindow_C::InjectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers) {
     if (down) {
-        xwinVneBridgeKeyDown(this, _desc, _callbacks, key, modifiers, false);
+        eventBridgeKeyDown(this, _desc, _event_bridge_callbacks, key, modifiers, false);
     } else {
-        xwinVneBridgeKeyUp(this, _desc, _callbacks, key, modifiers);
+        eventBridgeKeyUp(this, _desc, _event_bridge_callbacks, key, modifiers);
     }
 }
 
 void AndroidWindow_C::InjectResizeEvent(uint32_t width, uint32_t height) {
     _desc.size.width = width;
     _desc.size.height = height;
-    xwinVneBridgeWindowResize(this, _desc, _callbacks, width, height);
+    eventBridgeWindowResize(this, _desc, _event_bridge_callbacks, width, height);
 }
 
-void AndroidWindow_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
-    _callbacks = std::move(callbacks);
+void AndroidWindow_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+    _event_bridge_callbacks = std::move(callbacks);
 }
 
 }  // namespace vne::xwin

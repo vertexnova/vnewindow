@@ -127,8 +127,8 @@ void AndroidWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T
     _callback = callback;
 }
 
-void AndroidWindowManager_C::SetVneEventCallbacks(XWinVneEventCallbacks_C callbacks) {
-    _vne_callbacks = std::move(callbacks);
+void AndroidWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+    _event_bridge_callbacks = std::move(callbacks);
 }
 
 bool AndroidWindowManager_C::ShouldClose() const {
