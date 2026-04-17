@@ -132,7 +132,11 @@ void WaylandWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     _open = true;
 }
 
-void WaylandWindow_C::PollEvents() {}
+void WaylandWindow_C::PollEvents() {
+    if (_owner && _owner->NativeDisplay()) {
+        wl_display_dispatch_pending(_owner->NativeDisplay());
+    }
+}
 
 void WaylandWindow_C::SwapBuffers() {}
 

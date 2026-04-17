@@ -28,6 +28,7 @@ class WaylandWindow_C final : public Window_I {
     ~WaylandWindow_C() override;
 
     void SetOwner(WaylandWindowManager_C* owner);
+    const WindowDescriptor_C& descriptor() const { return _desc; }
 
     void Initialize(const WindowDescriptor_C& descriptor) override;
     void PollEvents() override;
