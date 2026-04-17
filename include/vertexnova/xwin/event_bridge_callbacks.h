@@ -1,4 +1,8 @@
 #pragma once
+/*
+ * Optional per-channel callbacks for native window input routed alongside
+ * vne::events. All slots are optional; unset functions are not invoked.
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -6,8 +10,7 @@
  * Author:    Ajeet Singh Yadav
  * Created:   April 2026
  *
- * Optional per-channel callbacks for native window input routed alongside
- * vne::events. All slots are optional; unset functions are not invoked.
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 

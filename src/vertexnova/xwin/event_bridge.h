@@ -1,4 +1,5 @@
 #pragma once
+/* Internal bridge from native window paths to vne::events and optional callbacks. */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -6,7 +7,7 @@
  * Author:    Ajeet Singh Yadav
  * Created:   April 2026
  *
- * Internal bridge from native window paths to vne::events and optional callbacks.
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 

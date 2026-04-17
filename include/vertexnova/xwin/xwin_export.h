@@ -1,4 +1,9 @@
 #pragma once
+/*
+ * @brief `VNE_XWIN_API` — same contract as vneio `VNEIO_API` (shared vs static).
+ * On Windows: @c VNE_XWIN_BUILDING_DLL export / @c VNE_XWIN_DLL import.
+ * On Unix shared: @c VNE_XWIN_BUILDING_DLL sets default visibility; consumers need not define @c VNE_XWIN_DLL.
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -7,9 +12,6 @@
  * Created:   April 2026
  *
  * Autodoc:   yes
- * @brief `VNE_XWIN_API` — same contract as vneio `VNEIO_API` (shared vs static).
- * On Windows: @c VNE_XWIN_BUILDING_DLL export / @c VNE_XWIN_DLL import.
- * On Unix shared: @c VNE_XWIN_BUILDING_DLL sets default visibility; consumers need not define @c VNE_XWIN_DLL.
  * ----------------------------------------------------------------------
  */
 

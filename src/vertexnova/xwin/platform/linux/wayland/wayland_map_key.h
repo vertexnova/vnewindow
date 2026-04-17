@@ -1,4 +1,8 @@
 #pragma once
+/*
+ * Maps XKB keysyms and modifier state to vne::events types.
+ * XKB keysym values are numerically identical to X11 KeySym values.
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -6,8 +10,7 @@
  * Author:    Ajeet Singh Yadav
  * Created:   April 2026
  *
- * Maps XKB keysyms and modifier state to vne::events types.
- * XKB keysym values are numerically identical to X11 KeySym values.
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 

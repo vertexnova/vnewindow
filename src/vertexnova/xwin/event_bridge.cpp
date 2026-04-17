@@ -1,3 +1,9 @@
+/*
+ * Bridges native xwin paths to vne::events (Input + EventManager) and optional
+ * per-window callbacks. Application should call vne::events::Input::nextFrame()
+ * once per frame after game logic; call EventManager::processEvents() when
+ * draining the queue is desired.
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -5,10 +11,7 @@
  * Author:    Ajeet Singh Yadav
  * Created:   April 2026
  *
- * Bridges native xwin paths to vne::events (Input + EventManager) and optional
- * per-window callbacks. Application should call vne::events::Input::nextFrame()
- * once per frame after game logic; call EventManager::processEvents() when
- * draining the queue is desired.
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 

@@ -1,3 +1,8 @@
+/*
+ * NSEvent virtual key code (CGKeyCode) → vne::events::KeyCode.
+ * Scan codes are independent of keyboard layout (US ANSI positions).
+ * Reference: IOKit/hidsystem/ev_keymap.h and Carbon HIToolbox/Events.h
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -5,9 +10,7 @@
  * Author:    Ajeet Singh Yadav
  * Created:   April 2026
  *
- * NSEvent virtual key code (CGKeyCode) → vne::events::KeyCode.
- * Scan codes are independent of keyboard layout (US ANSI positions).
- * Reference: IOKit/hidsystem/ev_keymap.h and Carbon HIToolbox/Events.h
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 

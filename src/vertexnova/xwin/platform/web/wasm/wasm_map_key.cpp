@@ -1,3 +1,7 @@
+/*
+ * DOM KeyboardEvent.code → vne::events::KeyCode mapping.
+ * Code strings follow the W3C UI Events KeyboardEvent code values spec.
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -5,8 +9,7 @@
  * Author:    Ajeet Singh Yadav
  * Created:   April 2026
  *
- * DOM KeyboardEvent.code → vne::events::KeyCode mapping.
- * Code strings follow the W3C UI Events KeyboardEvent code values spec.
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 

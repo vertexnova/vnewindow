@@ -1,12 +1,5 @@
 #pragma once
-/* ---------------------------------------------------------------------
- * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
- * Licensed under the Apache License, Version 2.0 (the "License")
- *
- * Author:    Ajeet Singh Yadav
- * Created:   April 2026
- *
- * Autodoc:   yes
+/*
  * Pass ANativeWindow* via WindowDescriptor_C::platform_data from JNI / GameActivity.
  *
  * Input delivery pattern
@@ -16,6 +9,15 @@
  * and InjectKeyEvent() from its AInputQueue / GameActivity input callback after
  * forwarding each AInputEvent to xwin. This routes events through the standard
  * vne::events bridge (EventManager queue + Input state + optional callbacks).
+ */
+/* ---------------------------------------------------------------------
+ * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
+ *
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 

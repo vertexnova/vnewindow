@@ -1,3 +1,7 @@
+/*
+ * Linux: if WAYLAND_DISPLAY is set and the Wayland backend is compiled, it is preferred
+ * over X11; otherwise DISPLAY selects X11. Headless CI uses NULL_WINDOW.
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -6,8 +10,6 @@
  * Created:   April 2026
  *
  * Autodoc:   yes
- * Linux: if WAYLAND_DISPLAY is set and the Wayland backend is compiled, it is preferred
- * over X11; otherwise DISPLAY selects X11. Headless CI uses NULL_WINDOW.
  * ----------------------------------------------------------------------
  */
 

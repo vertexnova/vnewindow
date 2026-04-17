@@ -1,4 +1,7 @@
 #pragma once
+/*
+ * Main-thread-only AppKit usage; caller should drive NSApplication for full event delivery.
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -7,7 +10,6 @@
  * Created:   April 2026
  *
  * Autodoc:   yes
- * Main-thread-only AppKit usage; caller should drive NSApplication for full event delivery.
  * ----------------------------------------------------------------------
  */
 

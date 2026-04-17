@@ -1,4 +1,7 @@
 #pragma once
+/*
+ * UIKit views are main-thread only. Host app typically owns UIWindow; this view is a surface host.
+ */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -7,7 +10,6 @@
  * Created:   April 2026
  *
  * Autodoc:   yes
- * UIKit views are main-thread only. Host app typically owns UIWindow; this view is a surface host.
  * ----------------------------------------------------------------------
  */
 
