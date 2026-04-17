@@ -113,7 +113,7 @@ void NullWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& c
     _callback = callback;
 }
 
-void NullWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+void NullWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     _event_bridge_callbacks = std::move(callbacks);
 }
 

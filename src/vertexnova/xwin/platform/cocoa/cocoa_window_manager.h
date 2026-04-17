@@ -22,7 +22,7 @@ namespace vne::xwin {
 class CocoaWindowManager_C final : public WindowManager_I {
    public:
     void NotifyWindowEvent(Window_I* window, const WindowEventData_C& event);
-    const EventBridgeCallbacks_C& eventBridgeCallbacks() const { return _event_bridge_callbacks; }
+    const EventBridgeCallbacks& eventBridgeCallbacks() const { return _event_bridge_callbacks; }
 
     CocoaWindowManager_C();
     ~CocoaWindowManager_C() override;
@@ -45,7 +45,7 @@ class CocoaWindowManager_C final : public WindowManager_I {
 
     void ProcessEvents() override;
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
-    void setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) override;
+    void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) override;
     bool ShouldClose() const override;
     bool ShouldCloseAll() const override;
 
@@ -64,7 +64,7 @@ class CocoaWindowManager_C final : public WindowManager_I {
     std::shared_ptr<Window_I> _primary;
     std::shared_ptr<Window_I> _focused;
     WindowManagerEventCallback_T _callback{};
-    EventBridgeCallbacks_C _event_bridge_callbacks{};
+    EventBridgeCallbacks _event_bridge_callbacks{};
     bool _initialized = false;
     std::string _properties;
 };

@@ -2,6 +2,9 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
+ *
  * Bridges native xwin paths to vne::events (Input + EventManager) and optional
  * per-window callbacks. Application should call vne::events::Input::nextFrame()
  * once per frame after game logic; call EventManager::processEvents() when
@@ -37,7 +40,7 @@ void pushKeyReleased(vne::events::KeyCode key, uint8_t modifiers) {
 
 void eventBridgeKeyDown(Window_I* window,
                         const WindowDescriptor_C& descriptor,
-                        const EventBridgeCallbacks_C& callbacks,
+                        const EventBridgeCallbacks& callbacks,
                         vne::events::KeyCode key,
                         uint8_t modifiers,
                         bool repeat) {
@@ -55,14 +58,14 @@ void eventBridgeKeyDown(Window_I* window,
             pushKeyPressed(key, modifiers);
         }
     }
-    if (callbacks.on_key_down) {
-        callbacks.on_key_down(window, key, modifiers, repeat);
+    if (callbacks.onKeyDown) {
+        callbacks.onKeyDown(window, key, modifiers, repeat);
     }
 }
 
 void eventBridgeKeyUp(Window_I* window,
                       const WindowDescriptor_C& descriptor,
-                      const EventBridgeCallbacks_C& callbacks,
+                      const EventBridgeCallbacks& callbacks,
                       vne::events::KeyCode key,
                       uint8_t modifiers) {
     if (key == vne::events::KeyCode::eUnknown) {
@@ -75,14 +78,14 @@ void eventBridgeKeyUp(Window_I* window,
     if (descriptor.enable_events) {
         pushKeyReleased(key, modifiers);
     }
-    if (callbacks.on_key_up) {
-        callbacks.on_key_up(window, key, modifiers);
+    if (callbacks.onKeyUp) {
+        callbacks.onKeyUp(window, key, modifiers);
     }
 }
 
 void eventBridgeMouseButton(Window_I* window,
                             const WindowDescriptor_C& descriptor,
-                            const EventBridgeCallbacks_C& callbacks,
+                            const EventBridgeCallbacks& callbacks,
                             vne::events::MouseButton button,
                             bool pressed,
                             double x,
@@ -101,14 +104,14 @@ void eventBridgeMouseButton(Window_I* window,
                 std::make_unique<vne::events::MouseButtonReleasedEvent>(button, modifiers, x, y));
         }
     }
-    if (callbacks.on_mouse_button) {
-        callbacks.on_mouse_button(window, button, pressed, x, y, modifiers);
+    if (callbacks.onMouseButton) {
+        callbacks.onMouseButton(window, button, pressed, x, y, modifiers);
     }
 }
 
 void eventBridgeMouseMove(Window_I* window,
                           const WindowDescriptor_C& descriptor,
-                          const EventBridgeCallbacks_C& callbacks,
+                          const EventBridgeCallbacks& callbacks,
                           double x,
                           double y,
                           uint8_t modifiers) {
@@ -119,14 +122,14 @@ void eventBridgeMouseMove(Window_I* window,
         vne::events::EventManager::instance().pushEvent(
             std::make_unique<vne::events::MouseMovedEvent>(x, y, modifiers));
     }
-    if (callbacks.on_mouse_move) {
-        callbacks.on_mouse_move(window, x, y, modifiers);
+    if (callbacks.onMouseMove) {
+        callbacks.onMouseMove(window, x, y, modifiers);
     }
 }
 
 void eventBridgeMouseScroll(Window_I* window,
                             const WindowDescriptor_C& descriptor,
-                            const EventBridgeCallbacks_C& callbacks,
+                            const EventBridgeCallbacks& callbacks,
                             float x_offset,
                             float y_offset) {
     if (descriptor.enable_input) {
@@ -137,45 +140,45 @@ void eventBridgeMouseScroll(Window_I* window,
             std::make_unique<vne::events::MouseScrolledEvent>(static_cast<double>(x_offset),
                                                               static_cast<double>(y_offset)));
     }
-    if (callbacks.on_mouse_scroll) {
-        callbacks.on_mouse_scroll(window, x_offset, y_offset);
+    if (callbacks.onMouseScroll) {
+        callbacks.onMouseScroll(window, x_offset, y_offset);
     }
 }
 
 void eventBridgeTouch(Window_I* window,
                       const WindowDescriptor_C& descriptor,
-                      const EventBridgeCallbacks_C& callbacks,
+                      const EventBridgeCallbacks& callbacks,
                       uint32_t touch_id,
                       double x,
                       double y,
-                      EventBridgeTouchPhase_C phase) {
-    if (!descriptor.enable_events && !callbacks.on_touch) {
+                      EventBridgeTouchPhase phase) {
+    if (!descriptor.enable_events && !callbacks.onTouch) {
         return;
     }
     if (descriptor.enable_events) {
         switch (phase) {
-            case EventBridgeTouchPhase_C::eDown:
+            case EventBridgeTouchPhase::eDown:
                 vne::events::EventManager::instance().pushEvent(
                     std::make_unique<vne::events::TouchPressEvent>(touch_id, x, y));
                 break;
-            case EventBridgeTouchPhase_C::eUp:
+            case EventBridgeTouchPhase::eUp:
                 vne::events::EventManager::instance().pushEvent(
                     std::make_unique<vne::events::TouchReleaseEvent>(touch_id, x, y));
                 break;
-            case EventBridgeTouchPhase_C::eMove:
+            case EventBridgeTouchPhase::eMove:
                 vne::events::EventManager::instance().pushEvent(
                     std::make_unique<vne::events::TouchMoveEvent>(touch_id, x, y));
                 break;
         }
     }
-    if (callbacks.on_touch) {
-        callbacks.on_touch(window, touch_id, x, y, phase);
+    if (callbacks.onTouch) {
+        callbacks.onTouch(window, touch_id, x, y, phase);
     }
 }
 
 void eventBridgeWindowResize(Window_I* window,
                              const WindowDescriptor_C& descriptor,
-                             const EventBridgeCallbacks_C& callbacks,
+                             const EventBridgeCallbacks& callbacks,
                              uint32_t width,
                              uint32_t height) {
     if (descriptor.enable_input) {
@@ -191,7 +194,7 @@ void eventBridgeWindowResize(Window_I* window,
 
 void eventBridgeWindowClose(Window_I* window,
                             const WindowDescriptor_C& descriptor,
-                            const EventBridgeCallbacks_C& callbacks) {
+                            const EventBridgeCallbacks& callbacks) {
     if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::WindowCloseEvent>());
     }
@@ -201,13 +204,13 @@ void eventBridgeWindowClose(Window_I* window,
 
 void eventBridgeWindowFocus(Window_I* window,
                             const WindowDescriptor_C& descriptor,
-                            const EventBridgeCallbacks_C& callbacks,
+                            const EventBridgeCallbacks& callbacks,
                             bool focused) {
     if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::WindowFocusEvent>(focused));
     }
-    if (callbacks.on_window_focus) {
-        callbacks.on_window_focus(window, focused);
+    if (callbacks.onWindowFocus) {
+        callbacks.onWindowFocus(window, focused);
     }
 }
 

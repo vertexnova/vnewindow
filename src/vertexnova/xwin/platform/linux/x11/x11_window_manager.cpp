@@ -143,7 +143,7 @@ void X11WindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& ca
     _callback = callback;
 }
 
-void X11WindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+void X11WindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     _event_bridge_callbacks = std::move(callbacks);
 }
 

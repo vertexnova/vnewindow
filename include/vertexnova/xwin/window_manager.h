@@ -53,7 +53,7 @@ class WindowManager_I {
      * queued events, then vne::events::Input::nextFrame() once after your simulation step (see
      * vneevents input documentation). xwin does not call nextFrame() inside ProcessEvents().
      */
-    virtual void setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) = 0;
+    virtual void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) = 0;
     virtual bool ShouldClose() const = 0;
     virtual bool ShouldCloseAll() const = 0;
 

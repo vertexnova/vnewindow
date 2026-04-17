@@ -105,7 +105,7 @@ int AndroidWindow_C::GetHeight() const {
     return static_cast<int>(_desc.size.height);
 }
 
-void AndroidWindow_C::InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase_C phase) {
+void AndroidWindow_C::InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
     eventBridgeTouch(this, _desc, _event_bridge_callbacks, touch_id, x, y, phase);
 }
 
@@ -123,7 +123,7 @@ void AndroidWindow_C::InjectResizeEvent(uint32_t width, uint32_t height) {
     eventBridgeWindowResize(this, _desc, _event_bridge_callbacks, width, height);
 }
 
-void AndroidWindow_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+void AndroidWindow_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     _event_bridge_callbacks = std::move(callbacks);
 }
 

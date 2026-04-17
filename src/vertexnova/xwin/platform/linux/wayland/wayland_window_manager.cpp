@@ -247,7 +247,7 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
     // (Linux keycodes are XKB scancode - 8; we need to get the keysym another way)
     // Without a full xkb_state, map the scan code to a known keysym using the
     // standard QWERTY assumption. For full layout support xkb_state_key_get_one_sym
-    // would be used; we call xwinMapWaylandKeysym with the XKB keysym.
+    // would be used; we call mapWaylandKeysym with the XKB keysym.
     // Here we apply the standard evdev→XKB keysym table subset.
     // For simplicity we convert scan codes to XKB keysyms using the offset rule:
     //   xkb_keycode = linux_keycode + 8
@@ -315,8 +315,8 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
     }
 
     if (sym == 0) { return; }
-    const vne::events::KeyCode kc = xwinMapWaylandKeysym(sym);
-    const uint8_t mods = xwinMapWaylandModifiers(_mod_depressed, _mod_latched, _mod_locked);
+    const vne::events::KeyCode kc = mapWaylandKeysym(sym);
+    const uint8_t mods = mapWaylandModifiers(_mod_depressed, _mod_latched, _mod_locked);
     const bool pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
     const WindowDescriptor_C& desc = win->descriptor();
@@ -338,7 +338,7 @@ void WaylandWindowManager_C::on_pointer_motion(double x, double y) {
     _ptr_y = y;
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
-    const uint8_t mods = xwinMapWaylandModifiers(_mod_depressed, _mod_latched, _mod_locked);
+    const uint8_t mods = mapWaylandModifiers(_mod_depressed, _mod_latched, _mod_locked);
     eventBridgeMouseMove(win, win->descriptor(), _event_bridge_callbacks, x, y, mods);
 }
 
@@ -351,7 +351,7 @@ void WaylandWindowManager_C::on_pointer_button(uint32_t button, uint32_t state,
     const double py = (y < 0.0) ? _ptr_y : y;
     const vne::events::MouseButton mb = linuxButtonToMouse(button);
     const bool pressed = (state == WL_POINTER_BUTTON_STATE_PRESSED);
-    const uint8_t mods = xwinMapWaylandModifiers(_mod_depressed, _mod_latched, _mod_locked);
+    const uint8_t mods = mapWaylandModifiers(_mod_depressed, _mod_latched, _mod_locked);
     eventBridgeMouseButton(win, win->descriptor(), _event_bridge_callbacks, mb, pressed, px, py, mods);
 }
 
@@ -365,19 +365,19 @@ void WaylandWindowManager_C::on_pointer_axis(double x_off, double y_off) {
 void WaylandWindowManager_C::on_touch_down(uint32_t id, double x, double y) {
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
-    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase_C::eDown);
+    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase::eDown);
 }
 
 void WaylandWindowManager_C::on_touch_up(uint32_t id, double x, double y) {
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
-    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase_C::eUp);
+    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase::eUp);
 }
 
 void WaylandWindowManager_C::on_touch_motion(uint32_t id, double x, double y) {
     WaylandWindow_C* win = focused_window();
     if (!win) { return; }
-    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase_C::eMove);
+    eventBridgeTouch(win, win->descriptor(), _event_bridge_callbacks, id, x, y, EventBridgeTouchPhase::eMove);
 }
 
 void WaylandWindowManager_C::on_seat_capabilities(struct wl_seat* seat, uint32_t caps) {
@@ -541,7 +541,7 @@ void WaylandWindowManager_C::ProcessEvents() {
 }
 
 void WaylandWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& cb) { _callback = cb; }
-void WaylandWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C cbs) { _event_bridge_callbacks = std::move(cbs); }
+void WaylandWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks cbs) { _event_bridge_callbacks = std::move(cbs); }
 
 bool WaylandWindowManager_C::ShouldClose() const {
     for (const auto& w : _windows) { if (w && !w->IsOpen()) { return true; } }

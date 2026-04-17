@@ -1,6 +1,9 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
  * ----------------------------------------------------------------------
  */
 
@@ -13,7 +16,7 @@ namespace vne::xwin {
 using vne::events::KeyCode;
 using vne::events::ModifierKey;
 
-std::uint8_t xwinMapX11Modifiers(unsigned int state) {
+std::uint8_t mapX11Modifiers(unsigned int state) {
     std::uint8_t m = 0;
     if ((state & ShiftMask) != 0U) {
         m |= static_cast<std::uint8_t>(ModifierKey::eModShift);
@@ -30,7 +33,7 @@ std::uint8_t xwinMapX11Modifiers(unsigned int state) {
     return m;
 }
 
-KeyCode xwinMapX11Keysym(KeySym sym) {
+KeyCode mapX11Keysym(KeySym sym) {
     if (sym >= XK_a && sym <= XK_z) {
         return static_cast<KeyCode>(static_cast<int>(KeyCode::eA) + static_cast<int>(sym - XK_a));
     }

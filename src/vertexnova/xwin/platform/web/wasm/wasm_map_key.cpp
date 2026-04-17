@@ -2,6 +2,9 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
+ *
  * DOM KeyboardEvent.code → vne::events::KeyCode mapping.
  * Code strings follow the W3C UI Events KeyboardEvent code values spec.
  * ----------------------------------------------------------------------
@@ -107,14 +110,14 @@ static const std::unordered_map<std::string, KeyCode>& keyMap() {
     return kMap;
 }
 
-KeyCode xwinMapEmscriptenKey(const char* code) {
+KeyCode mapEmscriptenKey(const char* code) {
     if (!code) { return KeyCode::eUnknown; }
     const auto& m = keyMap();
     const auto it = m.find(code);
     return (it != m.end()) ? it->second : KeyCode::eUnknown;
 }
 
-MouseButton xwinMapEmscriptenMouseButton(unsigned short button) {
+MouseButton mapEmscriptenMouseButton(unsigned short button) {
     switch (button) {
         case 0: return MouseButton::eLeft;
         case 1: return MouseButton::eMiddle;
@@ -125,7 +128,7 @@ MouseButton xwinMapEmscriptenMouseButton(unsigned short button) {
     }
 }
 
-uint8_t xwinMapEmscriptenModifiers(bool shift, bool ctrl, bool alt, bool meta) {
+uint8_t mapEmscriptenModifiers(bool shift, bool ctrl, bool alt, bool meta) {
     uint8_t mods = 0;
     if (shift) { mods |= static_cast<uint8_t>(ModifierKey::eModShift); }
     if (ctrl)  { mods |= static_cast<uint8_t>(ModifierKey::eModCtrl);  }

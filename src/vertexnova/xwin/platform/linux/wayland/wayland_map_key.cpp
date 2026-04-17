@@ -2,6 +2,9 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
+ *
  * XKB keysym → vne::events::KeyCode.
  * XKB_KEY_* constants are numerically identical to X11 XK_* constants.
  * ----------------------------------------------------------------------
@@ -17,7 +20,7 @@ using vne::events::KeyCode;
 using vne::events::ModifierKey;
 
 // clang-format off
-KeyCode xwinMapWaylandKeysym(uint32_t sym) {
+KeyCode mapWaylandKeysym(uint32_t sym) {
     // Lowercase a-z
     if (sym >= XKB_KEY_a && sym <= XKB_KEY_z) {
         return static_cast<KeyCode>(static_cast<int>(KeyCode::eA) + static_cast<int>(sym - XKB_KEY_a));
@@ -104,7 +107,7 @@ KeyCode xwinMapWaylandKeysym(uint32_t sym) {
 }
 // clang-format on
 
-uint8_t xwinMapWaylandModifiers(uint32_t depressed, uint32_t latched, uint32_t locked) {
+uint8_t mapWaylandModifiers(uint32_t depressed, uint32_t latched, uint32_t locked) {
     // XKB modifier indices: Shift=1, Lock=2, Control=4, Mod1(Alt)=8, Mod4(Super)=64
     // These are the standard X11/XKB modifier masks; actual bit positions depend on the keymap,
     // but these are almost universally correct for a standard PC layout.

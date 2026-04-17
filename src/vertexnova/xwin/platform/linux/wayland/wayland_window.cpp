@@ -83,7 +83,7 @@ void WaylandWindow_C::apply_toplevel_configure(uint32_t width, uint32_t height) 
     _desc.size.width = width;
     _desc.size.height = height;
     if (_owner) {
-        const EventBridgeCallbacks_C& cb = _owner->eventBridgeCallbacks();
+        const EventBridgeCallbacks& cb = _owner->eventBridgeCallbacks();
         eventBridgeWindowResize(this, _desc, cb, width, height);
         WindowEventData_C ev{};
         ev.type = WindowEventType_TP::RESIZE;

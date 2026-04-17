@@ -143,7 +143,7 @@ void CocoaWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& 
     _callback = callback;
 }
 
-void CocoaWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+void CocoaWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     _event_bridge_callbacks = std::move(callbacks);
 }
 

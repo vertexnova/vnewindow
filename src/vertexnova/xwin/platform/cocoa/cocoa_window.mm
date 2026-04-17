@@ -58,25 +58,25 @@
 
 - (void)keyDown:(NSEvent*)ev {
     if (!_xwin) { return; }
-    const vne::events::KeyCode kc = vne::xwin::xwinMapCocoaKeyCode(ev.keyCode);
-    const uint8_t mods = vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags);
+    const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
+    const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
     const bool repeat = ev.isARepeat;
     _xwin->handleKeyDown(kc, mods, repeat);
 }
 
 - (void)keyUp:(NSEvent*)ev {
     if (!_xwin) { return; }
-    const vne::events::KeyCode kc = vne::xwin::xwinMapCocoaKeyCode(ev.keyCode);
-    const uint8_t mods = vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags);
+    const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
+    const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
     _xwin->handleKeyUp(kc, mods);
 }
 
 - (void)flagsChanged:(NSEvent*)ev {
     if (!_xwin) { return; }
     // Treat modifier-only changes as key press/release based on current flags
-    const vne::events::KeyCode kc = vne::xwin::xwinMapCocoaKeyCode(ev.keyCode);
+    const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
     if (kc == vne::events::KeyCode::eUnknown) { return; }
-    const uint8_t mods = vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags);
+    const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
     // Heuristic: if the modifier bit is still set it was just pressed, otherwise released
     const bool is_press = (mods != 0);
     if (is_press) {
@@ -92,37 +92,37 @@
     if (!_xwin) { return; }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
     _xwin->handleMouseButton(vne::events::MouseButton::eLeft, true, p.x, p.y,
-                             vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)mouseUp:(NSEvent*)ev {
     if (!_xwin) { return; }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
     _xwin->handleMouseButton(vne::events::MouseButton::eLeft, false, p.x, p.y,
-                             vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)rightMouseDown:(NSEvent*)ev {
     if (!_xwin) { return; }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
     _xwin->handleMouseButton(vne::events::MouseButton::eRight, true, p.x, p.y,
-                             vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)rightMouseUp:(NSEvent*)ev {
     if (!_xwin) { return; }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
     _xwin->handleMouseButton(vne::events::MouseButton::eRight, false, p.x, p.y,
-                             vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)otherMouseDown:(NSEvent*)ev {
     if (!_xwin) { return; }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
     _xwin->handleMouseButton(vne::events::MouseButton::eMiddle, true, p.x, p.y,
-                             vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)otherMouseUp:(NSEvent*)ev {
     if (!_xwin) { return; }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
     _xwin->handleMouseButton(vne::events::MouseButton::eMiddle, false, p.x, p.y,
-                             vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 
 // ---- Mouse motion ----
@@ -130,7 +130,7 @@
 - (void)mouseMoved:(NSEvent*)ev {
     if (!_xwin) { return; }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    _xwin->handleMouseMove(p.x, p.y, vne::xwin::xwinMapCocoaModifiers(ev.modifierFlags));
+    _xwin->handleMouseMove(p.x, p.y, vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)mouseDragged:(NSEvent*)ev      { [self mouseMoved:ev]; }
 - (void)rightMouseDragged:(NSEvent*)ev { [self mouseMoved:ev]; }
@@ -295,34 +295,34 @@ void CocoaWindow_C::SwapBuffers() {}
 
 void CocoaWindow_C::handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat) {
     if (key == vne::events::KeyCode::eUnknown) { return; }
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeKeyDown(this, _desc, cb, key, mods, repeat);
 }
 
 void CocoaWindow_C::handleKeyUp(vne::events::KeyCode key, uint8_t mods) {
     if (key == vne::events::KeyCode::eUnknown) { return; }
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeKeyUp(this, _desc, cb, key, mods);
 }
 
 void CocoaWindow_C::handleMouseButton(vne::events::MouseButton button, bool pressed,
                                       double x, double y, uint8_t mods) {
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeMouseButton(this, _desc, cb, button, pressed, x, y, mods);
 }
 
 void CocoaWindow_C::handleMouseMove(double x, double y, uint8_t mods) {
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeMouseMove(this, _desc, cb, x, y, mods);
 }
 
 void CocoaWindow_C::handleMouseScroll(float dx, float dy) {
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeMouseScroll(this, _desc, cb, dx, dy);
 }
 
 void CocoaWindow_C::handleWindowClose() {
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeWindowClose(this, _desc, cb);
     _open = false;
     if (_owner) {
@@ -336,7 +336,7 @@ void CocoaWindow_C::handleWindowClose() {
 void CocoaWindow_C::handleWindowResize(uint32_t w, uint32_t h) {
     _desc.size.width = w;
     _desc.size.height = h;
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeWindowResize(this, _desc, cb, w, h);
     if (_owner) {
         WindowEventData_C data{};
@@ -347,7 +347,7 @@ void CocoaWindow_C::handleWindowResize(uint32_t w, uint32_t h) {
 }
 
 void CocoaWindow_C::handleWindowFocus(bool focused) {
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeWindowFocus(this, _desc, cb, focused);
     if (_owner) {
         WindowEventData_C data{};

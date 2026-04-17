@@ -130,7 +130,7 @@ void UIKitWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& 
     _callback = callback;
 }
 
-void UIKitWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks) {
+void UIKitWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     _event_bridge_callbacks = std::move(callbacks);
 }
 

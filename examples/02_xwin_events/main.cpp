@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Demonstrates vne::events integration: optional EventBridgeCallbacks_C,
+ * Demonstrates vne::events integration: optional EventBridgeCallbacks struct,
  * EventManager::processEvents(), and Input::nextFrame() after ProcessEvents().
  * Close the window to exit (null backend exits immediately).
  * ----------------------------------------------------------------------
@@ -40,9 +40,9 @@ int main() {
         return 1;
     }
 
-    vne::xwin::EventBridgeCallbacks_C hooks{};
-    hooks.on_key_down = [](vne::xwin::Window_I* win, vne::events::KeyCode key, std::uint8_t /*mods*/, bool repeat) {
-        VNE_LOG_INFO << "on_key_down window=" << win << " key=" << static_cast<int>(key) << " repeat=" << repeat;
+    vne::xwin::EventBridgeCallbacks hooks{};
+    hooks.onKeyDown = [](vne::xwin::Window_I* win, vne::events::KeyCode key, std::uint8_t /*mods*/, bool repeat) {
+        VNE_LOG_INFO << "onKeyDown window=" << win << " key=" << static_cast<int>(key) << " repeat=" << repeat;
     };
 
     mgr->setEventBridgeCallbacks(std::move(hooks));

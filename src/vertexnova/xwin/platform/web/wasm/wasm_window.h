@@ -73,7 +73,7 @@ class WasmWindow_C final : public Window_I {
 #endif
 
    private:
-    const EventBridgeCallbacks_C& eventBridgeCallbacks() const;
+    const EventBridgeCallbacks& eventBridgeCallbacks() const;
 
     WasmWindowManager_C* _owner = nullptr;
     WindowDescriptor_C _desc{};
@@ -82,7 +82,7 @@ class WasmWindow_C final : public Window_I {
     bool _fullscreen = false;
     void* _canvas_tag = nullptr;
 
-    EventBridgeCallbacks_C _empty_callbacks{};
+    EventBridgeCallbacks _empty_callbacks{};
 };
 
 }  // namespace vne::xwin

@@ -60,7 +60,7 @@ class AndroidWindow_C final : public Window_I {
      * @brief Inject a touch event from the host AInputQueue / GameActivity loop.
      * Call once per finger per AInputEvent after reading AINPUT_EVENT_TYPE_MOTION.
      */
-    void InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase_C phase);
+    void InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
 
     /**
      * @brief Inject a key event from the host AInputQueue / GameActivity loop.
@@ -72,13 +72,13 @@ class AndroidWindow_C final : public Window_I {
     void InjectResizeEvent(uint32_t width, uint32_t height);
 
     /** @brief Provide optional granular callbacks (mirrors WindowManager::setEventBridgeCallbacks). */
-    void setEventBridgeCallbacks(EventBridgeCallbacks_C callbacks);
+    void setEventBridgeCallbacks(EventBridgeCallbacks callbacks);
 
    private:
     WindowDescriptor_C _desc{};
     bool _open = false;
     void* _native = nullptr;
-    EventBridgeCallbacks_C _event_bridge_callbacks{};
+    EventBridgeCallbacks _event_bridge_callbacks{};
 };
 
 }  // namespace vne::xwin

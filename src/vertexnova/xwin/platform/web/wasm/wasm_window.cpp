@@ -48,7 +48,7 @@ void WasmWindow_C::SetEventOwner(WasmWindowManager_C* owner) {
     _owner = owner;
 }
 
-const EventBridgeCallbacks_C& WasmWindow_C::eventBridgeCallbacks() const {
+const EventBridgeCallbacks& WasmWindow_C::eventBridgeCallbacks() const {
     return _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
 }
 
@@ -119,8 +119,8 @@ EM_BOOL WasmWindow_C::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent
 EM_BOOL WasmWindow_C::KeyDownCallback(int /*event_type*/, const EmscriptenKeyboardEvent* ev, void* ud) {
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self || !ev) { return EM_FALSE; }
-    const vne::events::KeyCode kc = xwinMapEmscriptenKey(ev->code);
-    const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
+    const vne::events::KeyCode kc = mapEmscriptenKey(ev->code);
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     const bool repeat = ev->repeat;
     eventBridgeKeyDown(self, self->_desc, self->eventBridgeCallbacks(), kc, mods, repeat);
     return EM_TRUE;
@@ -129,8 +129,8 @@ EM_BOOL WasmWindow_C::KeyDownCallback(int /*event_type*/, const EmscriptenKeyboa
 EM_BOOL WasmWindow_C::KeyUpCallback(int /*event_type*/, const EmscriptenKeyboardEvent* ev, void* ud) {
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self || !ev) { return EM_FALSE; }
-    const vne::events::KeyCode kc = xwinMapEmscriptenKey(ev->code);
-    const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
+    const vne::events::KeyCode kc = mapEmscriptenKey(ev->code);
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeKeyUp(self, self->_desc, self->eventBridgeCallbacks(), kc, mods);
     return EM_TRUE;
 }
@@ -138,8 +138,8 @@ EM_BOOL WasmWindow_C::KeyUpCallback(int /*event_type*/, const EmscriptenKeyboard
 EM_BOOL WasmWindow_C::MouseDownCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self || !ev) { return EM_FALSE; }
-    const vne::events::MouseButton btn = xwinMapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
-    const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
+    const vne::events::MouseButton btn = mapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeMouseButton(self, self->_desc, self->eventBridgeCallbacks(), btn, true,
                              static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
@@ -148,8 +148,8 @@ EM_BOOL WasmWindow_C::MouseDownCallback(int /*event_type*/, const EmscriptenMous
 EM_BOOL WasmWindow_C::MouseUpCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self || !ev) { return EM_FALSE; }
-    const vne::events::MouseButton btn = xwinMapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
-    const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
+    const vne::events::MouseButton btn = mapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeMouseButton(self, self->_desc, self->eventBridgeCallbacks(), btn, false,
                              static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
@@ -158,7 +158,7 @@ EM_BOOL WasmWindow_C::MouseUpCallback(int /*event_type*/, const EmscriptenMouseE
 EM_BOOL WasmWindow_C::MouseMoveCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
     auto* self = static_cast<WasmWindow_C*>(ud);
     if (!self || !ev) { return EM_FALSE; }
-    const uint8_t mods = xwinMapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeMouseMove(self, self->_desc, self->eventBridgeCallbacks(),
                            static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
@@ -184,7 +184,7 @@ EM_BOOL WasmWindow_C::TouchStartCallback(int /*event_type*/, const EmscriptenTou
                            static_cast<uint32_t>(tp.identifier),
                            static_cast<double>(tp.targetX),
                            static_cast<double>(tp.targetY),
-                           EventBridgeTouchPhase_C::eDown);
+                           EventBridgeTouchPhase::eDown);
     }
     return EM_TRUE;
 }
@@ -199,7 +199,7 @@ EM_BOOL WasmWindow_C::TouchEndCallback(int /*event_type*/, const EmscriptenTouch
                            static_cast<uint32_t>(tp.identifier),
                            static_cast<double>(tp.targetX),
                            static_cast<double>(tp.targetY),
-                           EventBridgeTouchPhase_C::eUp);
+                           EventBridgeTouchPhase::eUp);
     }
     return EM_TRUE;
 }
@@ -214,7 +214,7 @@ EM_BOOL WasmWindow_C::TouchMoveCallback(int /*event_type*/, const EmscriptenTouc
                            static_cast<uint32_t>(tp.identifier),
                            static_cast<double>(tp.targetX),
                            static_cast<double>(tp.targetY),
-                           EventBridgeTouchPhase_C::eMove);
+                           EventBridgeTouchPhase::eMove);
     }
     return EM_TRUE;
 }
@@ -229,7 +229,7 @@ EM_BOOL WasmWindow_C::TouchCancelCallback(int /*event_type*/, const EmscriptenTo
                            static_cast<uint32_t>(tp.identifier),
                            static_cast<double>(tp.targetX),
                            static_cast<double>(tp.targetY),
-                           EventBridgeTouchPhase_C::eUp);
+                           EventBridgeTouchPhase::eUp);
     }
     return EM_TRUE;
 }

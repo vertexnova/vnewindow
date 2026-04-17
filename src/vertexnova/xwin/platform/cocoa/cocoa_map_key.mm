@@ -2,6 +2,9 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
+ *
  * NSEvent virtual key code (CGKeyCode) → vne::events::KeyCode.
  * Scan codes are independent of keyboard layout (US ANSI positions).
  * Reference: IOKit/hidsystem/ev_keymap.h and Carbon HIToolbox/Events.h
@@ -18,7 +21,7 @@ using vne::events::KeyCode;
 using vne::events::ModifierKey;
 
 // clang-format off
-KeyCode xwinMapCocoaKeyCode(uint16_t kc) {
+KeyCode mapCocoaKeyCode(uint16_t kc) {
     switch (kc) {
         // Alphanumeric row
         case 0x00: return KeyCode::eA;
@@ -141,7 +144,7 @@ KeyCode xwinMapCocoaKeyCode(uint16_t kc) {
 }
 // clang-format on
 
-uint8_t xwinMapCocoaModifiers(unsigned long flags) {
+uint8_t mapCocoaModifiers(unsigned long flags) {
     uint8_t mods = 0;
     // NSEventModifierFlagShift = 1 << 17
     if ((flags & (1UL << 17)) != 0UL) {

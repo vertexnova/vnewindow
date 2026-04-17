@@ -54,7 +54,7 @@ class UIKitWindow_C final : public Window_I {
     float GetDPIScale() const override;
 
     // Called from VneXWinUIView
-    void handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase_C phase);
+    void handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
 
    private:
     void destroy_native();
@@ -64,7 +64,7 @@ class UIKitWindow_C final : public Window_I {
     bool _open = false;
     void* _ui_view = nullptr;
 
-    EventBridgeCallbacks_C _empty_callbacks{};
+    EventBridgeCallbacks _empty_callbacks{};
 };
 
 }  // namespace vne::xwin

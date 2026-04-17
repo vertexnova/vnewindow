@@ -111,8 +111,8 @@ void X11Window_C::PollEvents() {
     if (!_display || !_window) {
         return;
     }
-    const EventBridgeCallbacks_C empty_callbacks{};
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : empty_callbacks;
+    const EventBridgeCallbacks empty_callbacks{};
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : empty_callbacks;
 
     XEvent ev{};
     while (XPending(_display) > 0) {
@@ -143,11 +143,11 @@ void X11Window_C::PollEvents() {
         } else if (ev.type == KeyPress) {
             const unsigned int kc = static_cast<unsigned int>(ev.xkey.keycode);
             const KeySym sym = XLookupKeysym(&ev.xkey, 0);
-            const vne::events::KeyCode mapped = xwinMapX11Keysym(sym);
+            const vne::events::KeyCode mapped = mapX11Keysym(sym);
             if (mapped != vne::events::KeyCode::eUnknown && kc < _keycode_down.size()) {
                 const bool repeat = _keycode_down[kc];
                 _keycode_down[kc] = true;
-                const std::uint8_t mods = xwinMapX11Modifiers(ev.xkey.state);
+                const std::uint8_t mods = mapX11Modifiers(ev.xkey.state);
                 eventBridgeKeyDown(this, _desc, cb, mapped, mods, repeat);
             }
         } else if (ev.type == KeyRelease) {
@@ -156,9 +156,9 @@ void X11Window_C::PollEvents() {
                 _keycode_down[kc] = false;
             }
             const KeySym sym = XLookupKeysym(&ev.xkey, 0);
-            const vne::events::KeyCode mapped = xwinMapX11Keysym(sym);
+            const vne::events::KeyCode mapped = mapX11Keysym(sym);
             if (mapped != vne::events::KeyCode::eUnknown) {
-                const std::uint8_t mods = xwinMapX11Modifiers(ev.xkey.state);
+                const std::uint8_t mods = mapX11Modifiers(ev.xkey.state);
                 eventBridgeKeyUp(this, _desc, cb, mapped, mods);
             }
         } else if (ev.type == ButtonPress) {
@@ -168,7 +168,7 @@ void X11Window_C::PollEvents() {
                 const float x = (b == 6U) ? 1.0F : (b == 7U) ? -1.0F : 0.0F;
                 eventBridgeMouseScroll(this, _desc, cb, x, y);
             } else {
-                const std::uint8_t mods = xwinMapX11Modifiers(ev.xbutton.state);
+                const std::uint8_t mods = mapX11Modifiers(ev.xbutton.state);
                 const vne::events::MouseButton mb = x11ButtonToMouseButton(b);
                 eventBridgeMouseButton(this,
                                          _desc,
@@ -184,7 +184,7 @@ void X11Window_C::PollEvents() {
             if (b >= 4U && b <= 7U) {
                 continue;
             }
-            const std::uint8_t mods = xwinMapX11Modifiers(ev.xbutton.state);
+            const std::uint8_t mods = mapX11Modifiers(ev.xbutton.state);
             const vne::events::MouseButton mb = x11ButtonToMouseButton(b);
             eventBridgeMouseButton(this,
                                      _desc,
@@ -195,7 +195,7 @@ void X11Window_C::PollEvents() {
                                      static_cast<double>(ev.xbutton.y),
                                      mods);
         } else if (ev.type == MotionNotify) {
-            const std::uint8_t mods = xwinMapX11Modifiers(ev.xmotion.state);
+            const std::uint8_t mods = mapX11Modifiers(ev.xmotion.state);
             eventBridgeMouseMove(this,
                                    _desc,
                                    cb,

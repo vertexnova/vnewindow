@@ -37,7 +37,7 @@
     return self;
 }
 
-- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase_C)phase {
+- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase)phase {
     if (!_xwin) { return; }
     for (UITouch* touch in touches) {
         const CGPoint p = [touch locationInView:self];
@@ -49,20 +49,20 @@
 
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase_C::eDown];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eDown];
 }
 - (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase_C::eMove];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eMove];
 }
 - (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase_C::eUp];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp];
 }
 - (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     (void)event;
     // Treat cancel as up so the app can release any held state
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase_C::eUp];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp];
 }
 
 @end
@@ -105,8 +105,8 @@ void UIKitWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     _open = true;
 }
 
-void UIKitWindow_C::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase_C phase) {
-    const EventBridgeCallbacks_C& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+void UIKitWindow_C::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeTouch(this, _desc, cb, touch_id, x, y, phase);
 }
 
