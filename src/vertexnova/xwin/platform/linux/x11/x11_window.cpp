@@ -171,13 +171,13 @@ void X11Window_C::PollEvents() {
                 const std::uint8_t mods = mapX11Modifiers(ev.xbutton.state);
                 const vne::events::MouseButton mb = x11ButtonToMouseButton(b);
                 eventBridgeMouseButton(this,
-                                         _desc,
-                                         cb,
-                                         mb,
-                                         true,
-                                         static_cast<double>(ev.xbutton.x),
-                                         static_cast<double>(ev.xbutton.y),
-                                         mods);
+                                       _desc,
+                                       cb,
+                                       mb,
+                                       true,
+                                       static_cast<double>(ev.xbutton.x),
+                                       static_cast<double>(ev.xbutton.y),
+                                       mods);
             }
         } else if (ev.type == ButtonRelease) {
             const unsigned int b = static_cast<unsigned int>(ev.xbutton.button);
@@ -187,21 +187,21 @@ void X11Window_C::PollEvents() {
             const std::uint8_t mods = mapX11Modifiers(ev.xbutton.state);
             const vne::events::MouseButton mb = x11ButtonToMouseButton(b);
             eventBridgeMouseButton(this,
-                                     _desc,
-                                     cb,
-                                     mb,
-                                     false,
-                                     static_cast<double>(ev.xbutton.x),
-                                     static_cast<double>(ev.xbutton.y),
-                                     mods);
+                                   _desc,
+                                   cb,
+                                   mb,
+                                   false,
+                                   static_cast<double>(ev.xbutton.x),
+                                   static_cast<double>(ev.xbutton.y),
+                                   mods);
         } else if (ev.type == MotionNotify) {
             const std::uint8_t mods = mapX11Modifiers(ev.xmotion.state);
             eventBridgeMouseMove(this,
-                                   _desc,
-                                   cb,
-                                   static_cast<double>(ev.xmotion.x),
-                                   static_cast<double>(ev.xmotion.y),
-                                   mods);
+                                 _desc,
+                                 cb,
+                                 static_cast<double>(ev.xmotion.x),
+                                 static_cast<double>(ev.xmotion.y),
+                                 mods);
         } else if (ev.type == FocusIn) {
             eventBridgeWindowFocus(this, _desc, cb, true);
             if (_owner) {
@@ -241,7 +241,9 @@ WindowMode_TP X11Window_C::GetWindowMode() const {
 }
 
 void X11Window_C::send_ewmh_state(bool add, Atom atom1, Atom atom2) {
-    if (!_display || !_window) { return; }
+    if (!_display || !_window) {
+        return;
+    }
     XEvent ev{};
     ev.type = ClientMessage;
     ev.xclient.window = _window;
@@ -251,13 +253,14 @@ void X11Window_C::send_ewmh_state(bool add, Atom atom1, Atom atom2) {
     ev.xclient.data.l[1] = static_cast<long>(atom1);
     ev.xclient.data.l[2] = static_cast<long>(atom2);
     ev.xclient.data.l[3] = 1;  // source: application
-    XSendEvent(_display, _root, False,
-               SubstructureRedirectMask | SubstructureNotifyMask, &ev);
+    XSendEvent(_display, _root, False, SubstructureRedirectMask | SubstructureNotifyMask, &ev);
     XFlush(_display);
 }
 
 void X11Window_C::SetFullscreen(bool enabled) {
-    if (!_display || !_window || enabled == _fullscreen) { return; }
+    if (!_display || !_window || enabled == _fullscreen) {
+        return;
+    }
     Atom fs = XInternAtom(_display, "_NET_WM_STATE_FULLSCREEN", False);
     send_ewmh_state(enabled, fs);
     _fullscreen = enabled;
@@ -275,7 +278,9 @@ void X11Window_C::Minimize() {
 }
 
 void X11Window_C::Maximize() {
-    if (!_display || !_window) { return; }
+    if (!_display || !_window) {
+        return;
+    }
     Atom maxH = XInternAtom(_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
     Atom maxV = XInternAtom(_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
     send_ewmh_state(true, maxH, maxV);
@@ -294,18 +299,22 @@ void X11Window_C::Restore() {
 
 void X11Window_C::SetWindowLimits(const WindowLimits_C& limits) {
     _desc.limits = limits;
-    if (!_display || !_window) { return; }
+    if (!_display || !_window) {
+        return;
+    }
     XSizeHints* hints = XAllocSizeHints();
-    if (!hints) { return; }
+    if (!hints) {
+        return;
+    }
     hints->flags = 0;
     if (limits.has_min_size) {
         hints->flags |= PMinSize;
-        hints->min_width  = static_cast<int>(limits.min_size.width);
+        hints->min_width = static_cast<int>(limits.min_size.width);
         hints->min_height = static_cast<int>(limits.min_size.height);
     }
     if (limits.has_max_size) {
         hints->flags |= PMaxSize;
-        hints->max_width  = static_cast<int>(limits.max_size.width);
+        hints->max_width = static_cast<int>(limits.max_size.width);
         hints->max_height = static_cast<int>(limits.max_size.height);
     }
     XSetWMNormalHints(_display, _window, hints);
@@ -314,7 +323,9 @@ void X11Window_C::SetWindowLimits(const WindowLimits_C& limits) {
 }
 
 void X11Window_C::SetCursor(WindowCursor_TP cursor) {
-    if (!_display || !_window) { return; }
+    if (!_display || !_window) {
+        return;
+    }
     switch (cursor) {
         case WindowCursor_TP::HIDDEN:
         case WindowCursor_TP::DISABLED: {

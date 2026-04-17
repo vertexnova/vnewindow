@@ -38,7 +38,9 @@
 }
 
 - (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase)phase {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     for (UITouch* touch in touches) {
         const CGPoint p = [touch locationInView:self];
         // Use the touch object pointer hash as a stable per-finger id
@@ -66,7 +68,6 @@
 }
 
 @end
-
 
 // ---------------------------------------------------------------------------
 // UIKitWindow_C implementation
@@ -182,7 +183,7 @@ void UIKitWindow_C::Resize(uint32_t width, uint32_t height) {
     if (_ui_view) {
         UIView* v = (__bridge UIView*)_ui_view;
         CGRect f = v.frame;
-        f.size.width  = static_cast<CGFloat>(width);
+        f.size.width = static_cast<CGFloat>(width);
         f.size.height = static_cast<CGFloat>(height);
         v.frame = f;
     }

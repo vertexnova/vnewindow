@@ -71,7 +71,7 @@ class Win32Window_C final : public Window_I {
 
     // Saved pre-fullscreen state
     DWORD _saved_style = 0;
-    RECT  _saved_rect  = {};
+    RECT _saved_rect = {};
 };
 
 }  // namespace vne::xwin

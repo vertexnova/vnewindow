@@ -58,8 +58,7 @@ class CocoaWindow_C final : public Window_I {
     // Called from ObjC helper classes
     void handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat);
     void handleKeyUp(vne::events::KeyCode key, uint8_t mods);
-    void handleMouseButton(vne::events::MouseButton button, bool pressed,
-                           double x, double y, uint8_t mods);
+    void handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods);
     void handleMouseMove(double x, double y, uint8_t mods);
     void handleMouseScroll(float dx, float dy);
     void handleWindowClose();

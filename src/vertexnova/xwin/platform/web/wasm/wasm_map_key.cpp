@@ -22,8 +22,8 @@
 namespace vne::xwin {
 
 using vne::events::KeyCode;
-using vne::events::MouseButton;
 using vne::events::ModifierKey;
+using vne::events::MouseButton;
 
 static const std::unordered_map<std::string, KeyCode>& keyMap() {
     // clang-format off
@@ -114,7 +114,9 @@ static const std::unordered_map<std::string, KeyCode>& keyMap() {
 }
 
 KeyCode mapEmscriptenKey(const char* code) {
-    if (!code) { return KeyCode::eUnknown; }
+    if (!code) {
+        return KeyCode::eUnknown;
+    }
     const auto& m = keyMap();
     const auto it = m.find(code);
     return (it != m.end()) ? it->second : KeyCode::eUnknown;
@@ -122,21 +124,35 @@ KeyCode mapEmscriptenKey(const char* code) {
 
 MouseButton mapEmscriptenMouseButton(unsigned short button) {
     switch (button) {
-        case 0: return MouseButton::eLeft;
-        case 1: return MouseButton::eMiddle;
-        case 2: return MouseButton::eRight;
-        case 3: return MouseButton::eButton3;
-        case 4: return MouseButton::eButton4;
-        default: return MouseButton::eLeft;
+        case 0:
+            return MouseButton::eLeft;
+        case 1:
+            return MouseButton::eMiddle;
+        case 2:
+            return MouseButton::eRight;
+        case 3:
+            return MouseButton::eButton3;
+        case 4:
+            return MouseButton::eButton4;
+        default:
+            return MouseButton::eLeft;
     }
 }
 
 uint8_t mapEmscriptenModifiers(bool shift, bool ctrl, bool alt, bool meta) {
     uint8_t mods = 0;
-    if (shift) { mods |= static_cast<uint8_t>(ModifierKey::eModShift); }
-    if (ctrl)  { mods |= static_cast<uint8_t>(ModifierKey::eModCtrl);  }
-    if (alt)   { mods |= static_cast<uint8_t>(ModifierKey::eModAlt);   }
-    if (meta)  { mods |= static_cast<uint8_t>(ModifierKey::eModMeta);  }
+    if (shift) {
+        mods |= static_cast<uint8_t>(ModifierKey::eModShift);
+    }
+    if (ctrl) {
+        mods |= static_cast<uint8_t>(ModifierKey::eModCtrl);
+    }
+    if (alt) {
+        mods |= static_cast<uint8_t>(ModifierKey::eModAlt);
+    }
+    if (meta) {
+        mods |= static_cast<uint8_t>(ModifierKey::eModMeta);
+    }
     return mods;
 }
 

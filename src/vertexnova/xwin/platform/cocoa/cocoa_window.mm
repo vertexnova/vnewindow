@@ -41,23 +41,32 @@
     if (self) {
         _xwin = xwin;
         // Track mouse movement even when no button is pressed
-        [self addTrackingArea:[[NSTrackingArea alloc]
-                                initWithRect:NSZeroRect
-                                     options:NSTrackingMouseMoved | NSTrackingActiveInKeyWindow | NSTrackingInVisibleRect
-                                       owner:self
-                                    userInfo:nil]];
+        [self addTrackingArea:[[NSTrackingArea alloc] initWithRect:NSZeroRect
+                                                           options:NSTrackingMouseMoved | NSTrackingActiveInKeyWindow
+                                                                   | NSTrackingInVisibleRect
+                                                             owner:self
+                                                          userInfo:nil]];
     }
     return self;
 }
 
-- (BOOL)acceptsFirstResponder { return YES; }
-- (BOOL)acceptsFirstMouse:(NSEvent*)event { (void)event; return YES; }
-- (BOOL)isFlipped { return YES; }  // top-left origin to match other platforms
+- (BOOL)acceptsFirstResponder {
+    return YES;
+}
+- (BOOL)acceptsFirstMouse:(NSEvent*)event {
+    (void)event;
+    return YES;
+}
+- (BOOL)isFlipped {
+    return YES;
+}  // top-left origin to match other platforms
 
 // ---- Keyboard ----
 
 - (void)keyDown:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
     const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
     const bool repeat = ev.isARepeat;
@@ -65,17 +74,23 @@
 }
 
 - (void)keyUp:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
     const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
     _xwin->handleKeyUp(kc, mods);
 }
 
 - (void)flagsChanged:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     // Treat modifier-only changes as key press/release based on current flags
     const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
-    if (kc == vne::events::KeyCode::eUnknown) { return; }
+    if (kc == vne::events::KeyCode::eUnknown) {
+        return;
+    }
     const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
     // Heuristic: if the modifier bit is still set it was just pressed, otherwise released
     const bool is_press = (mods != 0);
@@ -89,68 +104,106 @@
 // ---- Mouse buttons ----
 
 - (void)mouseDown:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    _xwin->handleMouseButton(vne::events::MouseButton::eLeft, true, p.x, p.y,
+    _xwin->handleMouseButton(vne::events::MouseButton::eLeft,
+                             true,
+                             p.x,
+                             p.y,
                              vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)mouseUp:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    _xwin->handleMouseButton(vne::events::MouseButton::eLeft, false, p.x, p.y,
+    _xwin->handleMouseButton(vne::events::MouseButton::eLeft,
+                             false,
+                             p.x,
+                             p.y,
                              vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)rightMouseDown:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    _xwin->handleMouseButton(vne::events::MouseButton::eRight, true, p.x, p.y,
+    _xwin->handleMouseButton(vne::events::MouseButton::eRight,
+                             true,
+                             p.x,
+                             p.y,
                              vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)rightMouseUp:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    _xwin->handleMouseButton(vne::events::MouseButton::eRight, false, p.x, p.y,
+    _xwin->handleMouseButton(vne::events::MouseButton::eRight,
+                             false,
+                             p.x,
+                             p.y,
                              vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)otherMouseDown:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    _xwin->handleMouseButton(vne::events::MouseButton::eMiddle, true, p.x, p.y,
+    _xwin->handleMouseButton(vne::events::MouseButton::eMiddle,
+                             true,
+                             p.x,
+                             p.y,
                              vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 - (void)otherMouseUp:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    _xwin->handleMouseButton(vne::events::MouseButton::eMiddle, false, p.x, p.y,
+    _xwin->handleMouseButton(vne::events::MouseButton::eMiddle,
+                             false,
+                             p.x,
+                             p.y,
                              vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
 
 // ---- Mouse motion ----
 
 - (void)mouseMoved:(NSEvent*)ev {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
     _xwin->handleMouseMove(p.x, p.y, vne::xwin::mapCocoaModifiers(ev.modifierFlags));
 }
-- (void)mouseDragged:(NSEvent*)ev      { [self mouseMoved:ev]; }
-- (void)rightMouseDragged:(NSEvent*)ev { [self mouseMoved:ev]; }
-- (void)otherMouseDragged:(NSEvent*)ev { [self mouseMoved:ev]; }
+- (void)mouseDragged:(NSEvent*)ev {
+    [self mouseMoved:ev];
+}
+- (void)rightMouseDragged:(NSEvent*)ev {
+    [self mouseMoved:ev];
+}
+- (void)otherMouseDragged:(NSEvent*)ev {
+    [self mouseMoved:ev];
+}
 
 // ---- Scroll wheel ----
 
 - (void)scrollWheel:(NSEvent*)ev {
-    if (!_xwin) { return; }
-    _xwin->handleMouseScroll(static_cast<float>(ev.scrollingDeltaX),
-                             static_cast<float>(ev.scrollingDeltaY));
+    if (!_xwin) {
+        return;
+    }
+    _xwin->handleMouseScroll(static_cast<float>(ev.scrollingDeltaX), static_cast<float>(ev.scrollingDeltaY));
 }
 
 @end
 
-
 // ---------------------------------------------------------------------------
 // VneXWinWindowDelegate — NSWindowDelegate for window-level events
 // ---------------------------------------------------------------------------
-@interface VneXWinWindowDelegate : NSObject<NSWindowDelegate> {
+@interface VneXWinWindowDelegate : NSObject <NSWindowDelegate> {
     vne::xwin::CocoaWindow_C* _xwin;
 }
 - (instancetype)initWithXwin:(vne::xwin::CocoaWindow_C*)xwin;
@@ -160,46 +213,58 @@
 
 - (instancetype)initWithXwin:(vne::xwin::CocoaWindow_C*)xwin {
     self = [super init];
-    if (self) { _xwin = xwin; }
+    if (self) {
+        _xwin = xwin;
+    }
     return self;
 }
 
 - (BOOL)windowShouldClose:(NSWindow*)sender {
     (void)sender;
-    if (_xwin) { _xwin->handleWindowClose(); }
+    if (_xwin) {
+        _xwin->handleWindowClose();
+    }
     return NO;  // CocoaWindow_C::Close() calls destroy_native()
 }
 
 - (void)windowDidResize:(NSNotification*)notification {
-    if (!_xwin) { return; }
+    if (!_xwin) {
+        return;
+    }
     NSWindow* win = notification.object;
     const NSRect r = [win.contentView frame];
-    _xwin->handleWindowResize(static_cast<uint32_t>(r.size.width),
-                              static_cast<uint32_t>(r.size.height));
+    _xwin->handleWindowResize(static_cast<uint32_t>(r.size.width), static_cast<uint32_t>(r.size.height));
 }
 
 - (void)windowDidBecomeKey:(NSNotification*)notification {
     (void)notification;
-    if (_xwin) { _xwin->handleWindowFocus(true); }
+    if (_xwin) {
+        _xwin->handleWindowFocus(true);
+    }
 }
 
 - (void)windowDidResignKey:(NSNotification*)notification {
     (void)notification;
-    if (_xwin) { _xwin->handleWindowFocus(false); }
+    if (_xwin) {
+        _xwin->handleWindowFocus(false);
+    }
 }
 
 - (void)windowDidEnterFullScreen:(NSNotification*)notification {
     (void)notification;
-    if (_xwin) { _xwin->setFullscreenState(true); }
+    if (_xwin) {
+        _xwin->setFullscreenState(true);
+    }
 }
 
 - (void)windowDidExitFullScreen:(NSNotification*)notification {
     (void)notification;
-    if (_xwin) { _xwin->setFullscreenState(false); }
+    if (_xwin) {
+        _xwin->setFullscreenState(false);
+    }
 }
 
 @end
-
 
 // ---------------------------------------------------------------------------
 // CocoaWindow_C implementation
@@ -236,16 +301,13 @@ void CocoaWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
                              _desc.position.y,
                              static_cast<CGFloat>(_desc.size.width),
                              static_cast<CGFloat>(_desc.size.height));
-    NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable
-                       | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
+    NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
+                       | NSWindowStyleMaskResizable;
     if (!_desc.decorated) {
         style = NSWindowStyleMaskBorderless;
     }
 
-    NSWindow* win = [[NSWindow alloc] initWithContentRect:rect
-                                                styleMask:style
-                                                  backing:NSBackingStoreBuffered
-                                                    defer:NO];
+    NSWindow* win = [[NSWindow alloc] initWithContentRect:rect styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [win setTitle:[NSString stringWithUTF8String:_desc.title.c_str()]];
     [win setCollectionBehavior:[win collectionBehavior] | NSWindowCollectionBehaviorFullScreenPrimary];
 
@@ -284,7 +346,9 @@ void CocoaWindow_C::PollEvents() {
                                          untilDate:[NSDate distantPast]
                                             inMode:NSDefaultRunLoopMode
                                            dequeue:YES];
-        if (!ev) { break; }
+        if (!ev) {
+            break;
+        }
         [NSApp sendEvent:ev];
     }
 }
@@ -294,19 +358,22 @@ void CocoaWindow_C::SwapBuffers() {}
 // ---- Event dispatch helpers (called from ObjC) ----
 
 void CocoaWindow_C::handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat) {
-    if (key == vne::events::KeyCode::eUnknown) { return; }
+    if (key == vne::events::KeyCode::eUnknown) {
+        return;
+    }
     const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeKeyDown(this, _desc, cb, key, mods, repeat);
 }
 
 void CocoaWindow_C::handleKeyUp(vne::events::KeyCode key, uint8_t mods) {
-    if (key == vne::events::KeyCode::eUnknown) { return; }
+    if (key == vne::events::KeyCode::eUnknown) {
+        return;
+    }
     const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeKeyUp(this, _desc, cb, key, mods);
 }
 
-void CocoaWindow_C::handleMouseButton(vne::events::MouseButton button, bool pressed,
-                                      double x, double y, uint8_t mods) {
+void CocoaWindow_C::handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods) {
     const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeMouseButton(this, _desc, cb, button, pressed, x, y, mods);
 }
@@ -380,8 +447,12 @@ WindowMode_TP CocoaWindow_C::GetWindowMode() const {
 }
 
 void CocoaWindow_C::SetFullscreen(bool enabled) {
-    if (!_ns_window) { return; }
-    if (enabled == _fullscreen) { return; }
+    if (!_ns_window) {
+        return;
+    }
+    if (enabled == _fullscreen) {
+        return;
+    }
     NSWindow* win = (__bridge NSWindow*)_ns_window;
     [win toggleFullScreen:nil];
     // _fullscreen updated via windowDidEnterFullScreen: / windowDidExitFullScreen:
@@ -400,7 +471,9 @@ void CocoaWindow_C::Minimize() {
 void CocoaWindow_C::Maximize() {
     if (_ns_window) {
         NSWindow* win = (__bridge NSWindow*)_ns_window;
-        if (!win.isZoomed) { [win zoom:nil]; }
+        if (!win.isZoomed) {
+            [win zoom:nil];
+        }
     }
 }
 
@@ -449,7 +522,9 @@ void CocoaWindow_C::Resize(uint32_t width, uint32_t height) {
 
 void CocoaWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
     _desc.limits = limits;
-    if (!_ns_window) { return; }
+    if (!_ns_window) {
+        return;
+    }
     NSWindow* win = (__bridge NSWindow*)_ns_window;
     if (limits.has_min_size) {
         [win setMinSize:NSMakeSize(limits.min_size.width, limits.min_size.height)];
@@ -501,7 +576,9 @@ int CocoaWindow_C::GetHeight() const {
 }
 
 float CocoaWindow_C::GetDPIScale() const {
-    if (!_ns_window) { return 1.0F; }
+    if (!_ns_window) {
+        return 1.0F;
+    }
     NSWindow* win = (__bridge NSWindow*)_ns_window;
     NSScreen* screen = win.screen ? win.screen : [NSScreen mainScreen];
     return screen ? static_cast<float>(screen.backingScaleFactor) : 1.0F;

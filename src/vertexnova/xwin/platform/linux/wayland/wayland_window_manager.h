@@ -52,9 +52,9 @@ class WaylandWindowManager_C final : public WindowManager_I {
     void on_touch_up(uint32_t id, double x, double y);
     void on_touch_motion(uint32_t id, double x, double y);
 
-    wl_display*    NativeDisplay()    const { return _display;    }
+    wl_display* NativeDisplay() const { return _display; }
     wl_compositor* NativeCompositor() const { return _compositor; }
-    xdg_wm_base*   NativeXdgWmBase()  const { return _xdg_wm_base; }
+    xdg_wm_base* NativeXdgWmBase() const { return _xdg_wm_base; }
 
     WaylandWindowManager_C();
     ~WaylandWindowManager_C() override;
@@ -105,21 +105,21 @@ class WaylandWindowManager_C final : public WindowManager_I {
     void on_keyboard_leave(struct wl_surface* surface);
     void notify_window_focus(WaylandWindow_C* win, bool focused);
 
-    wl_surface*    _kbd_focus_surface = nullptr;
+    wl_surface* _kbd_focus_surface = nullptr;
 
-    wl_display*    _display      = nullptr;
-    wl_registry*   _registry     = nullptr;
-    wl_compositor* _compositor   = nullptr;
-    xdg_wm_base*   _xdg_wm_base = nullptr;
-    wl_seat*       _seat         = nullptr;
-    wl_keyboard*   _keyboard     = nullptr;
-    wl_pointer*    _pointer      = nullptr;
-    wl_touch*      _wl_touch     = nullptr;
+    wl_display* _display = nullptr;
+    wl_registry* _registry = nullptr;
+    wl_compositor* _compositor = nullptr;
+    xdg_wm_base* _xdg_wm_base = nullptr;
+    wl_seat* _seat = nullptr;
+    wl_keyboard* _keyboard = nullptr;
+    wl_pointer* _pointer = nullptr;
+    wl_touch* _wl_touch = nullptr;
 
     // Modifier state accumulated from wl_keyboard::modifiers event
     uint32_t _mod_depressed = 0;
-    uint32_t _mod_latched   = 0;
-    uint32_t _mod_locked    = 0;
+    uint32_t _mod_latched = 0;
+    uint32_t _mod_locked = 0;
 
     // Last known pointer position (needed for button events that don't re-send coords)
     double _ptr_x = 0.0;

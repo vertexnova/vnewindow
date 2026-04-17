@@ -23,11 +23,7 @@ namespace vne::xwin {
 
 class Window_I;
 
-enum class EventBridgeTouchPhase : std::uint8_t {
-    eDown = 0,
-    eUp = 1,
-    eMove = 2
-};
+enum class EventBridgeTouchPhase : std::uint8_t { eDown = 0, eUp = 1, eMove = 2 };
 
 /**
  * @brief Optional callbacks invoked after vne::events Input/EventManager updates

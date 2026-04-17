@@ -166,7 +166,9 @@ WindowMode_TP WaylandWindow_C::GetWindowMode() const {
 }
 
 void WaylandWindow_C::SetFullscreen(bool enabled) {
-    if (!_toplevel) { return; }
+    if (!_toplevel) {
+        return;
+    }
     if (enabled) {
         xdg_toplevel_set_fullscreen(_toplevel, nullptr);
     } else {
@@ -227,7 +229,9 @@ int WaylandWindow_C::GetHeight() const {
 }
 
 void WaylandWindow_C::Minimize() {
-    if (!_toplevel) { return; }
+    if (!_toplevel) {
+        return;
+    }
     xdg_toplevel_set_minimized(_toplevel);
     if (_surface && _owner && _owner->NativeDisplay()) {
         wl_surface_commit(_surface);
@@ -236,7 +240,9 @@ void WaylandWindow_C::Minimize() {
 }
 
 void WaylandWindow_C::Maximize() {
-    if (!_toplevel) { return; }
+    if (!_toplevel) {
+        return;
+    }
     xdg_toplevel_set_maximized(_toplevel);
     if (_surface && _owner && _owner->NativeDisplay()) {
         wl_surface_commit(_surface);
@@ -245,7 +251,9 @@ void WaylandWindow_C::Maximize() {
 }
 
 void WaylandWindow_C::Restore() {
-    if (!_toplevel) { return; }
+    if (!_toplevel) {
+        return;
+    }
     if (_fullscreen) {
         xdg_toplevel_unset_fullscreen(_toplevel);
         _fullscreen = false;
@@ -259,11 +267,13 @@ void WaylandWindow_C::Restore() {
 
 void WaylandWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
     _desc.limits = limits;
-    if (!_toplevel) { return; }
+    if (!_toplevel) {
+        return;
+    }
     if (limits.has_min_size) {
         xdg_toplevel_set_min_size(_toplevel,
-                                    static_cast<int32_t>(limits.min_size.width),
-                                    static_cast<int32_t>(limits.min_size.height));
+                                  static_cast<int32_t>(limits.min_size.width),
+                                  static_cast<int32_t>(limits.min_size.height));
     } else {
         xdg_toplevel_set_min_size(_toplevel, 0, 0);
     }

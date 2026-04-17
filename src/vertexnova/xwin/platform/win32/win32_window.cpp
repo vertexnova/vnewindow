@@ -222,13 +222,13 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 const bool down =
                     (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
                 eventBridgeMouseButton(this,
-                                         _desc,
-                                         cb,
-                                         btn,
-                                         down,
-                                         static_cast<double>(x),
-                                         static_cast<double>(y),
-                                         mods);
+                                       _desc,
+                                       cb,
+                                       btn,
+                                       down,
+                                       static_cast<double>(x),
+                                       static_cast<double>(y),
+                                       mods);
             }
             return 0;
         }
@@ -311,7 +311,9 @@ WindowMode_TP Win32Window_C::GetWindowMode() const {
 }
 
 void Win32Window_C::SetFullscreen(bool enabled) {
-    if (!_hwnd || enabled == _fullscreen) { return; }
+    if (!_hwnd || enabled == _fullscreen) {
+        return;
+    }
     if (enabled) {
         // Save current style and rect
         _saved_style = static_cast<DWORD>(GetWindowLongW(_hwnd, GWL_STYLE));
@@ -322,16 +324,20 @@ void Win32Window_C::SetFullscreen(bool enabled) {
         mi.cbSize = sizeof(mi);
         GetMonitorInfoW(mon, &mi);
         SetWindowLongW(_hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-        SetWindowPos(_hwnd, HWND_TOP,
-                     mi.rcMonitor.left, mi.rcMonitor.top,
-                     mi.rcMonitor.right  - mi.rcMonitor.left,
+        SetWindowPos(_hwnd,
+                     HWND_TOP,
+                     mi.rcMonitor.left,
+                     mi.rcMonitor.top,
+                     mi.rcMonitor.right - mi.rcMonitor.left,
                      mi.rcMonitor.bottom - mi.rcMonitor.top,
                      SWP_FRAMECHANGED | SWP_NOACTIVATE);
     } else {
         SetWindowLongW(_hwnd, GWL_STYLE, _saved_style);
-        SetWindowPos(_hwnd, nullptr,
-                     _saved_rect.left, _saved_rect.top,
-                     _saved_rect.right  - _saved_rect.left,
+        SetWindowPos(_hwnd,
+                     nullptr,
+                     _saved_rect.left,
+                     _saved_rect.top,
+                     _saved_rect.right - _saved_rect.left,
                      _saved_rect.bottom - _saved_rect.top,
                      SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER);
         ShowWindow(_hwnd, SW_RESTORE);
@@ -344,15 +350,21 @@ bool Win32Window_C::IsFullscreen() const {
 }
 
 void Win32Window_C::Minimize() {
-    if (_hwnd) { ShowWindow(_hwnd, SW_MINIMIZE); }
+    if (_hwnd) {
+        ShowWindow(_hwnd, SW_MINIMIZE);
+    }
 }
 
 void Win32Window_C::Maximize() {
-    if (_hwnd) { ShowWindow(_hwnd, SW_MAXIMIZE); }
+    if (_hwnd) {
+        ShowWindow(_hwnd, SW_MAXIMIZE);
+    }
 }
 
 void Win32Window_C::Restore() {
-    if (_hwnd) { ShowWindow(_hwnd, SW_RESTORE); }
+    if (_hwnd) {
+        ShowWindow(_hwnd, SW_RESTORE);
+    }
 }
 
 void Win32Window_C::SetWindowLimits(const WindowLimits_C& limits) {
@@ -363,11 +375,13 @@ void Win32Window_C::SetWindowLimits(const WindowLimits_C& limits) {
 void Win32Window_C::SetCursor(WindowCursor_TP cursor) {
     switch (cursor) {
         case WindowCursor_TP::HIDDEN:
-            while (ShowCursor(FALSE) >= 0) {}
+            while (ShowCursor(FALSE) >= 0) {
+            }
             ClipCursor(nullptr);
             break;
         case WindowCursor_TP::DISABLED:
-            while (ShowCursor(FALSE) >= 0) {}
+            while (ShowCursor(FALSE) >= 0) {
+            }
             if (_hwnd) {
                 RECT r{};
                 GetClientRect(_hwnd, &r);
@@ -377,7 +391,8 @@ void Win32Window_C::SetCursor(WindowCursor_TP cursor) {
             break;
         case WindowCursor_TP::NORMAL:
         default:
-            while (ShowCursor(TRUE) < 0) {}
+            while (ShowCursor(TRUE) < 0) {
+            }
             ClipCursor(nullptr);
             break;
     }
