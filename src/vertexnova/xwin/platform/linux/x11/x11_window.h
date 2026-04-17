@@ -38,6 +38,7 @@ class X11Window_C final : public Window_I {
     void SetFullscreen(bool enabled) override;
     bool IsFullscreen() const override;
     void Minimize() override;
+    void Maximize() override;
     void Restore() override;
     void SetWindowLimits(const WindowLimits_C& limits) override;
     void SetCursor(WindowCursor_TP cursor) override;

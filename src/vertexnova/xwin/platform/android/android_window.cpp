@@ -64,6 +64,22 @@ void AndroidWindow_C::Resize(uint32_t width, uint32_t height) {
     _desc.size.height = height;
 }
 
+void AndroidWindow_C::Minimize() {
+    // Window state is owned by the Activity; hook via JNI if needed.
+}
+
+void AndroidWindow_C::Maximize() {}
+
+void AndroidWindow_C::Restore() {}
+
+void AndroidWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
+    _desc.limits = limits;
+}
+
+void AndroidWindow_C::SetCursor(WindowCursor_TP cursor) {
+    (void)cursor;
+}
+
 void AndroidWindow_C::Close() {
     _open = false;
     _native = nullptr;

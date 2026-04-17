@@ -21,6 +21,7 @@ struct wl_display;
 struct wl_registry;
 struct wl_compositor;
 struct wl_seat;
+struct wl_surface;
 struct wl_keyboard;
 struct wl_pointer;
 struct wl_touch;
@@ -98,6 +99,13 @@ class WaylandWindowManager_C final : public WindowManager_I {
 
     /** @brief Return the focused window (or primary fallback) for input routing. */
     WaylandWindow_C* focused_window() const;
+
+    WaylandWindow_C* window_for_surface(struct wl_surface* surface) const;
+    void on_keyboard_enter(struct wl_surface* surface);
+    void on_keyboard_leave(struct wl_surface* surface);
+    void notify_window_focus(WaylandWindow_C* win, bool focused);
+
+    wl_surface*    _kbd_focus_surface = nullptr;
 
     wl_display*    _display      = nullptr;
     wl_registry*   _registry     = nullptr;

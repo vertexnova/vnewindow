@@ -136,10 +136,6 @@ KeyCode xwinMapCocoaKeyCode(uint16_t kc) {
         case 0x4C: return KeyCode::eKpEnter;
         case 0x51: return KeyCode::eKpEqual;
         case 0x47: return KeyCode::eNumLock;
-        // Misc
-        case 0x71: return KeyCode::eScrollLock;
-        case 0x69: return KeyCode::ePrintScreen;
-        case 0x6B: return KeyCode::ePause;
         default:   return KeyCode::eUnknown;
     }
 }

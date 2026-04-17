@@ -67,8 +67,15 @@ const wl_seat_listener kSeatListener = { seat_capabilities, seat_name };
 // ---- wl_keyboard ----
 
 void kb_keymap(void*, struct wl_keyboard*, uint32_t, int32_t, uint32_t) {}
-void kb_enter(void*, struct wl_keyboard*, uint32_t, struct wl_surface*, struct wl_array*) {}
-void kb_leave(void*, struct wl_keyboard*, uint32_t, struct wl_surface*) {}
+
+void kb_enter(void* data, struct wl_keyboard*, uint32_t /*serial*/, struct wl_surface* surface,
+              struct wl_array* /*keys*/) {
+    static_cast<WaylandWindowManager_C*>(data)->on_keyboard_enter(surface);
+}
+
+void kb_leave(void* data, struct wl_keyboard*, uint32_t /*serial*/, struct wl_surface* surface) {
+    static_cast<WaylandWindowManager_C*>(data)->on_keyboard_leave(surface);
+}
 
 void kb_key(void* data, struct wl_keyboard*, uint32_t /*serial*/, uint32_t /*time*/,
             uint32_t key, uint32_t state) {
@@ -171,6 +178,10 @@ vne::events::MouseButton linuxButtonToMouse(uint32_t btn) {
 // ---------------------------------------------------------------------------
 
 WaylandWindow_C* WaylandWindowManager_C::focused_window() const {
+    if (_kbd_focus_surface) {
+        WaylandWindow_C* w = window_for_surface(_kbd_focus_surface);
+        if (w) { return w; }
+    }
     if (_focused) {
         return dynamic_cast<WaylandWindow_C*>(_focused.get());
     }
@@ -178,6 +189,54 @@ WaylandWindow_C* WaylandWindowManager_C::focused_window() const {
         return dynamic_cast<WaylandWindow_C*>(_primary.get());
     }
     return nullptr;
+}
+
+WaylandWindow_C* WaylandWindowManager_C::window_for_surface(wl_surface* surface) const {
+    if (!surface) { return nullptr; }
+    for (const auto& w : _windows) {
+        auto* wl = dynamic_cast<WaylandWindow_C*>(w.get());
+        if (wl && wl->native_surface() == surface) {
+            return wl;
+        }
+    }
+    return nullptr;
+}
+
+void WaylandWindowManager_C::on_keyboard_enter(wl_surface* surface) {
+    if (!surface) { return; }
+    if (_kbd_focus_surface == surface) { return; }
+    if (_kbd_focus_surface && _kbd_focus_surface != surface) {
+        WaylandWindow_C* prev = window_for_surface(_kbd_focus_surface);
+        if (prev) { notify_window_focus(prev, false); }
+    }
+    _kbd_focus_surface = surface;
+    WaylandWindow_C* win = window_for_surface(surface);
+    if (win) {
+        for (auto& w : _windows) {
+            if (w.get() == win) {
+                _focused = w;
+                break;
+            }
+        }
+        notify_window_focus(win, true);
+    }
+}
+
+void WaylandWindowManager_C::on_keyboard_leave(wl_surface* surface) {
+    if (!surface) { return; }
+    if (_kbd_focus_surface != surface) { return; }
+    WaylandWindow_C* win = window_for_surface(surface);
+    _kbd_focus_surface = nullptr;
+    if (win) { notify_window_focus(win, false); }
+}
+
+void WaylandWindowManager_C::notify_window_focus(WaylandWindow_C* win, bool focused) {
+    if (!win) { return; }
+    xwinVneBridgeWindowFocus(win, win->descriptor(), _vne_callbacks, focused);
+    WindowEventData_C ev{};
+    ev.type = WindowEventType_TP::FOCUS;
+    ev.focused = focused;
+    NotifyWindowEvent(win, ev);
 }
 
 void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t /*time*/) {
@@ -418,6 +477,7 @@ bool WaylandWindowManager_C::Initialize() {
 }
 
 void WaylandWindowManager_C::teardown_globals() {
+    _kbd_focus_surface = nullptr;
     if (_keyboard)    { wl_keyboard_destroy(_keyboard);   _keyboard  = nullptr; }
     if (_pointer)     { wl_pointer_destroy(_pointer);     _pointer   = nullptr; }
     if (_wl_touch)    { wl_touch_destroy(_wl_touch);      _wl_touch  = nullptr; }

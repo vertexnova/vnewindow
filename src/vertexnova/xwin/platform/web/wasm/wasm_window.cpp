@@ -16,6 +16,7 @@
 #include "xwin_vne_events_bridge.h"
 
 #ifdef __EMSCRIPTEN__
+#include <emscripten/em_asm.h>
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 #endif
@@ -36,7 +37,10 @@ WasmWindow_C::~WasmWindow_C() {
     emscripten_set_touchstart_callback("#canvas", nullptr, 0, nullptr);
     emscripten_set_touchend_callback("#canvas", nullptr, 0, nullptr);
     emscripten_set_touchmove_callback("#canvas", nullptr, 0, nullptr);
+    emscripten_set_touchcancel_callback("#canvas", nullptr, 0, nullptr);
     emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, nullptr);
+    emscripten_set_focus_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, 0, nullptr);
+    emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, 0, nullptr);
 #endif
 }
 
@@ -73,10 +77,15 @@ void WasmWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     emscripten_set_touchstart_callback("#canvas", this, 1, &WasmWindow_C::TouchStartCallback);
     emscripten_set_touchend_callback("#canvas", this, 1, &WasmWindow_C::TouchEndCallback);
     emscripten_set_touchmove_callback("#canvas", this, 1, &WasmWindow_C::TouchMoveCallback);
+    emscripten_set_touchcancel_callback("#canvas", this, 1, &WasmWindow_C::TouchCancelCallback);
 
     // Fullscreen
     emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, this, 1,
                                              &WasmWindow_C::FullscreenChangeCallback);
+
+    // Window / document: focus routing for WindowFocusEvent
+    emscripten_set_focus_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::FocusCallback);
+    emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::BlurCallback);
 #endif
     _initialized = true;
     _should_close = false;
@@ -210,6 +219,47 @@ EM_BOOL WasmWindow_C::TouchMoveCallback(int /*event_type*/, const EmscriptenTouc
     return EM_TRUE;
 }
 
+EM_BOOL WasmWindow_C::TouchCancelCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow_C*>(ud);
+    if (!self || !ev) { return EM_FALSE; }
+    for (int i = 0; i < ev->numTouches; ++i) {
+        const EmscriptenTouchPoint& tp = ev->touches[i];
+        if (!tp.isChanged) { continue; }
+        xwinVneBridgeTouch(self, self->_desc, self->vneCallbacks(),
+                           static_cast<uint32_t>(tp.identifier),
+                           static_cast<double>(tp.targetX),
+                           static_cast<double>(tp.targetY),
+                           XWinTouchPhase_TP::Up);
+    }
+    return EM_TRUE;
+}
+
+EM_BOOL WasmWindow_C::FocusCallback(int /*event_type*/, const EmscriptenFocusEvent*, void* ud) {
+    auto* self = static_cast<WasmWindow_C*>(ud);
+    if (!self) { return EM_FALSE; }
+    xwinVneBridgeWindowFocus(self, self->_desc, self->vneCallbacks(), true);
+    if (self->_owner) {
+        WindowEventData_C data{};
+        data.type = WindowEventType_TP::FOCUS;
+        data.focused = true;
+        self->_owner->NotifyWindowEvent(self, data);
+    }
+    return EM_TRUE;
+}
+
+EM_BOOL WasmWindow_C::BlurCallback(int /*event_type*/, const EmscriptenFocusEvent*, void* ud) {
+    auto* self = static_cast<WasmWindow_C*>(ud);
+    if (!self) { return EM_FALSE; }
+    xwinVneBridgeWindowFocus(self, self->_desc, self->vneCallbacks(), false);
+    if (self->_owner) {
+        WindowEventData_C data{};
+        data.type = WindowEventType_TP::FOCUS;
+        data.focused = false;
+        self->_owner->NotifyWindowEvent(self, data);
+    }
+    return EM_TRUE;
+}
+
 EM_BOOL WasmWindow_C::FullscreenChangeCallback(int /*event_type*/,
                                                 const EmscriptenFullscreenChangeEvent* ev,
                                                 void* ud) {
@@ -321,6 +371,48 @@ uint32_t WasmWindow_C::GetFramebufferHeight() const {
     if (h > 0) { return static_cast<uint32_t>(h); }
 #endif
     return static_cast<uint32_t>(_desc.size.height);
+}
+
+void WasmWindow_C::Minimize() {
+    // Browser tabs cannot be minimized programmatically from canvas.
+}
+
+void WasmWindow_C::Maximize() {
+    // No standard browser API; fullscreen is handled by SetFullscreen.
+}
+
+void WasmWindow_C::Restore() {
+    // See SetFullscreen / Maximize.
+}
+
+void WasmWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
+    _desc.limits = limits;
+}
+
+void WasmWindow_C::SetCursor(WindowCursor_TP cursor) {
+#ifdef __EMSCRIPTEN__
+    const char* css = "auto";
+    switch (cursor) {
+        case WindowCursor_TP::HIDDEN:
+        case WindowCursor_TP::DISABLED:
+            css = "none";
+            break;
+        case WindowCursor_TP::NORMAL:
+        default:
+            css = "auto";
+            break;
+    }
+    EM_ASM(
+        {
+            var s = UTF8ToString($0);
+            if (typeof document !== 'undefined' && document.body) { document.body.style.cursor = s; }
+            var c = document.querySelector('#canvas');
+            if (c) { c.style.cursor = s; }
+        },
+        css);
+#else
+    (void)cursor;
+#endif
 }
 
 }  // namespace vne::xwin

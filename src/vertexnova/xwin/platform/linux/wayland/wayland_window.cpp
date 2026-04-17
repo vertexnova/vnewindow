@@ -12,6 +12,7 @@
 #include "wayland_window.h"
 
 #include "wayland_window_manager.h"
+#include "xwin_vne_events_bridge.h"
 
 #include <cstring>
 
@@ -82,6 +83,8 @@ void WaylandWindow_C::apply_toplevel_configure(uint32_t width, uint32_t height) 
     _desc.size.width = width;
     _desc.size.height = height;
     if (_owner) {
+        const XWinVneEventCallbacks_C& cb = _owner->vneEventCallbacks();
+        xwinVneBridgeWindowResize(this, _desc, cb, width, height);
         WindowEventData_C ev{};
         ev.type = WindowEventType_TP::RESIZE;
         ev.size = _desc.size;
@@ -124,6 +127,9 @@ void WaylandWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     xdg_toplevel_add_listener(_toplevel, &kXdgToplevelListener, this);
     if (!_desc.title.empty()) {
         xdg_toplevel_set_title(_toplevel, _desc.title.c_str());
+    }
+    if (_desc.limits.has_min_size || _desc.limits.has_max_size) {
+        SetWindowLimits(_desc.limits);
     }
     wl_surface_commit(_surface);
     if (_owner->NativeDisplay()) {
@@ -218,6 +224,66 @@ int WaylandWindow_C::GetWidth() const {
 
 int WaylandWindow_C::GetHeight() const {
     return static_cast<int>(_desc.size.height);
+}
+
+void WaylandWindow_C::Minimize() {
+    if (!_toplevel) { return; }
+    xdg_toplevel_set_minimized(_toplevel);
+    if (_surface && _owner && _owner->NativeDisplay()) {
+        wl_surface_commit(_surface);
+        wl_display_flush(_owner->NativeDisplay());
+    }
+}
+
+void WaylandWindow_C::Maximize() {
+    if (!_toplevel) { return; }
+    xdg_toplevel_set_maximized(_toplevel);
+    if (_surface && _owner && _owner->NativeDisplay()) {
+        wl_surface_commit(_surface);
+        wl_display_flush(_owner->NativeDisplay());
+    }
+}
+
+void WaylandWindow_C::Restore() {
+    if (!_toplevel) { return; }
+    if (_fullscreen) {
+        xdg_toplevel_unset_fullscreen(_toplevel);
+        _fullscreen = false;
+    }
+    xdg_toplevel_unset_maximized(_toplevel);
+    if (_surface && _owner && _owner->NativeDisplay()) {
+        wl_surface_commit(_surface);
+        wl_display_flush(_owner->NativeDisplay());
+    }
+}
+
+void WaylandWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
+    _desc.limits = limits;
+    if (!_toplevel) { return; }
+    if (limits.has_min_size) {
+        xdg_toplevel_set_min_size(_toplevel,
+                                    static_cast<int32_t>(limits.min_size.width),
+                                    static_cast<int32_t>(limits.min_size.height));
+    } else {
+        xdg_toplevel_set_min_size(_toplevel, 0, 0);
+    }
+    if (limits.has_max_size) {
+        xdg_toplevel_set_max_size(_toplevel,
+                                  static_cast<int32_t>(limits.max_size.width),
+                                  static_cast<int32_t>(limits.max_size.height));
+    } else {
+        xdg_toplevel_set_max_size(_toplevel, 0, 0);
+    }
+    if (_surface && _owner && _owner->NativeDisplay()) {
+        wl_surface_commit(_surface);
+        wl_display_flush(_owner->NativeDisplay());
+    }
+}
+
+void WaylandWindow_C::SetCursor(WindowCursor_TP cursor) {
+    // Cursor images require wl_shm + wl_cursor; compositors may also offer cursor-shape-v1.
+    // Until those globals are bound, this is a deliberate no-op.
+    (void)cursor;
 }
 
 }  // namespace vne::xwin

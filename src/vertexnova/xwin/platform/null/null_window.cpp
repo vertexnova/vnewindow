@@ -46,6 +46,20 @@ bool NullWindow_C::IsFullscreen() const {
     return _descriptor.mode == WindowMode_TP::FULLSCREEN;
 }
 
+void NullWindow_C::Minimize() {}
+
+void NullWindow_C::Maximize() {}
+
+void NullWindow_C::Restore() {}
+
+void NullWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
+    _descriptor.limits = limits;
+}
+
+void NullWindow_C::SetCursor(WindowCursor_TP cursor) {
+    (void)cursor;
+}
+
 void NullWindow_C::SetPosition(int x, int y) {
     _descriptor.position.x = x;
     _descriptor.position.y = y;

@@ -38,6 +38,11 @@ class WaylandWindow_C final : public Window_I {
     WindowMode_TP GetWindowMode() const override;
     void SetFullscreen(bool enabled) override;
     bool IsFullscreen() const override;
+    void Minimize() override;
+    void Maximize() override;
+    void Restore() override;
+    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetCursor(WindowCursor_TP cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
@@ -52,6 +57,9 @@ class WaylandWindow_C final : public Window_I {
     void apply_toplevel_configure(uint32_t width, uint32_t height);
     void apply_toplevel_close();
     void destroy_surfaces();
+
+    /** @brief Same pointer registered with the compositor (keyboard/pointer focus mapping). */
+    wl_surface* native_surface() const { return _surface; }
 
     WaylandWindowManager_C* _owner = nullptr;
     WindowDescriptor_C _desc{};

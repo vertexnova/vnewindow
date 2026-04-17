@@ -27,6 +27,11 @@ class NullWindow_C final : public Window_I {
     WindowMode_TP GetWindowMode() const override;
     void SetFullscreen(bool enabled) override;
     bool IsFullscreen() const override;
+    void Minimize() override;
+    void Maximize() override;
+    void Restore() override;
+    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetCursor(WindowCursor_TP cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;

@@ -22,6 +22,7 @@ namespace vne::xwin {
 class CocoaWindowManager_C final : public WindowManager_I {
    public:
     void NotifyWindowEvent(Window_I* window, const WindowEventData_C& event);
+    const XWinVneEventCallbacks_C& vneEventCallbacks() const { return _vne_callbacks; }
 
     CocoaWindowManager_C();
     ~CocoaWindowManager_C() override;

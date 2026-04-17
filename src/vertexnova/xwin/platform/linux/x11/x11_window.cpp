@@ -274,6 +274,13 @@ void X11Window_C::Minimize() {
     }
 }
 
+void X11Window_C::Maximize() {
+    if (!_display || !_window) { return; }
+    Atom maxH = XInternAtom(_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+    Atom maxV = XInternAtom(_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+    send_ewmh_state(true, maxH, maxV);
+}
+
 void X11Window_C::Restore() {
     if (_display && _window) {
         // Unset maximized states first, then map

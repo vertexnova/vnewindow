@@ -14,6 +14,7 @@
 #include "vertexnova/xwin/window.h"
 
 #include <vertexnova/events/events.h>
+#include <vertexnova/events/window_event.h>
 
 namespace vne::xwin {
 

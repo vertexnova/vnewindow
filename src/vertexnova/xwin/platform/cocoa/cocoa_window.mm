@@ -247,6 +247,7 @@ void CocoaWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
                                                   backing:NSBackingStoreBuffered
                                                     defer:NO];
     [win setTitle:[NSString stringWithUTF8String:_desc.title.c_str()]];
+    [win setCollectionBehavior:[win collectionBehavior] | NSWindowCollectionBehaviorFullScreenPrimary];
 
     // Custom content view
     VneXWinView* view = [[VneXWinView alloc] initWithFrame:rect xwin:this];

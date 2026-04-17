@@ -137,6 +137,22 @@ bool UIKitWindow_C::IsFullscreen() const {
     return true;  // iOS is always full-screen
 }
 
+void UIKitWindow_C::Minimize() {
+    // iOS does not expose minimizing a view surface like a desktop window.
+}
+
+void UIKitWindow_C::Maximize() {}
+
+void UIKitWindow_C::Restore() {}
+
+void UIKitWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
+    _desc.limits = limits;
+}
+
+void UIKitWindow_C::SetCursor(WindowCursor_TP cursor) {
+    (void)cursor;
+}
+
 void UIKitWindow_C::SetPosition(int x, int y) {
     _desc.position.x = x;
     _desc.position.y = y;

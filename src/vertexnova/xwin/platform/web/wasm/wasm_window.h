@@ -41,6 +41,11 @@ class WasmWindow_C final : public Window_I {
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
+    void Minimize() override;
+    void Maximize() override;
+    void Restore() override;
+    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetCursor(WindowCursor_TP cursor) override;
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
@@ -61,7 +66,10 @@ class WasmWindow_C final : public Window_I {
     static EM_BOOL TouchStartCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
     static EM_BOOL TouchEndCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
     static EM_BOOL TouchMoveCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
+    static EM_BOOL TouchCancelCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
     static EM_BOOL FullscreenChangeCallback(int event_type, const EmscriptenFullscreenChangeEvent* ev, void* ud);
+    static EM_BOOL FocusCallback(int event_type, const EmscriptenFocusEvent* ev, void* ud);
+    static EM_BOOL BlurCallback(int event_type, const EmscriptenFocusEvent* ev, void* ud);
 #endif
 
    private:
