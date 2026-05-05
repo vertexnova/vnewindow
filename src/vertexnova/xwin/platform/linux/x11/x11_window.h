@@ -53,10 +53,14 @@ class X11Window_C final : public Window_I {
     int GetWidth() const override;
     int GetHeight() const override;
     float GetDPIScale() const override;
+    std::string GetClipboardText() const override;
+    void SetClipboardText(const std::string& text) override;
+    void SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) override;
 
    private:
     void destroy();
     void send_ewmh_state(bool add, Atom atom1, Atom atom2 = 0);
+    void handle_selection_request(const XSelectionRequestEvent& req);
 
     Display* _display = nullptr;
     int _screen = 0;
@@ -69,6 +73,7 @@ class X11Window_C final : public Window_I {
     bool _fullscreen = false;
     Atom _wm_delete = 0;
     Cursor _blank_cursor = None;
+    mutable std::string _clipboard_text;  ///< text we own as selection owner
     /** Physical keycodes currently held (for KeyPress repeat detection). */
     std::array<bool, 256> _keycode_down{};
 };

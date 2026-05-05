@@ -62,10 +62,14 @@ class CocoaWindow_C final : public Window_I {
     void handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods);
     void handleMouseMove(double x, double y, uint8_t mods);
     void handleMouseScroll(float dx, float dy);
+    void handleTextInput(const char* utf8_text);
     void handleWindowClose();
     void handleWindowResize(uint32_t w, uint32_t h);
     void handleWindowFocus(bool focused);
     void setFullscreenState(bool fs);
+
+    std::string GetClipboardText() const override;
+    void SetClipboardText(const std::string& text) override;
 
    private:
     void destroy_native();

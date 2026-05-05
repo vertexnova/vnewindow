@@ -260,6 +260,38 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             }
             return 0;
         }
+        case WM_CHAR: {
+            const bool want_text = _desc.enable_events || static_cast<bool>(cb.onTextInput);
+            if (want_text) {
+                // wParam is a UTF-16 code unit; handle surrogate pairs
+                static wchar_t high_surrogate = 0;
+                const wchar_t ch = static_cast<wchar_t>(wParam);
+                if (ch >= 0xD800 && ch <= 0xDBFF) {
+                    high_surrogate = ch;
+                    return 0;
+                }
+                wchar_t wide[3] = {};
+                int wide_len = 0;
+                if (high_surrogate && ch >= 0xDC00 && ch <= 0xDFFF) {
+                    wide[0] = high_surrogate;
+                    wide[1] = ch;
+                    wide_len = 2;
+                } else {
+                    wide[0] = ch;
+                    wide_len = 1;
+                }
+                high_surrogate = 0;
+                if (ch >= 0x20 || ch == '\t') {  // skip control chars except tab
+                    char utf8[5] = {};
+                    const int n = WideCharToMultiByte(CP_UTF8, 0, wide, wide_len, utf8, 4, nullptr, nullptr);
+                    if (n > 0) {
+                        utf8[n] = '\0';
+                        eventBridgeTextInput(this, _desc, cb, utf8);
+                    }
+                }
+            }
+            return 0;
+        }
         case WM_GETMINMAXINFO: {
             auto* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
             if (_desc.limits.has_min_size) {
@@ -505,6 +537,105 @@ float Win32Window_C::GetDPIScale() const {
         return static_cast<float>(fn(_hwnd)) / 96.0F;
     }
     return 1.0F;
+}
+
+std::string Win32Window_C::GetClipboardText() const {
+    if (!OpenClipboard(_hwnd)) {
+        return {};
+    }
+    HANDLE h = GetClipboardData(CF_UNICODETEXT);
+    if (!h) {
+        CloseClipboard();
+        return {};
+    }
+    const auto* wstr = static_cast<const wchar_t*>(GlobalLock(h));
+    if (!wstr) {
+        CloseClipboard();
+        return {};
+    }
+    const int len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
+    std::string result;
+    if (len > 1) {
+        result.resize(static_cast<size_t>(len - 1));
+        WideCharToMultiByte(CP_UTF8, 0, wstr, -1, result.data(), len, nullptr, nullptr);
+    }
+    GlobalUnlock(h);
+    CloseClipboard();
+    return result;
+}
+
+void Win32Window_C::SetClipboardText(const std::string& text) {
+    if (!OpenClipboard(_hwnd)) {
+        return;
+    }
+    EmptyClipboard();
+    const int wlen = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
+    if (wlen <= 0) {
+        CloseClipboard();
+        return;
+    }
+    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, static_cast<SIZE_T>(wlen) * sizeof(wchar_t));
+    if (!hg) {
+        CloseClipboard();
+        return;
+    }
+    auto* wstr = static_cast<wchar_t*>(GlobalLock(hg));
+    if (wstr) {
+        MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wstr, wlen);
+        GlobalUnlock(hg);
+        SetClipboardData(CF_UNICODETEXT, hg);
+    } else {
+        GlobalFree(hg);
+    }
+    CloseClipboard();
+}
+
+void Win32Window_C::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
+    if (!_hwnd || !rgba_pixels || width == 0 || height == 0) {
+        return;
+    }
+    BITMAPV5HEADER bi{};
+    bi.bV5Size        = sizeof(BITMAPV5HEADER);
+    bi.bV5Width       = static_cast<LONG>(width);
+    bi.bV5Height      = -static_cast<LONG>(height);  // top-down
+    bi.bV5Planes      = 1;
+    bi.bV5BitCount    = 32;
+    bi.bV5Compression = BI_BITFIELDS;
+    bi.bV5RedMask     = 0x00FF0000U;
+    bi.bV5GreenMask   = 0x0000FF00U;
+    bi.bV5BlueMask    = 0x000000FFU;
+    bi.bV5AlphaMask   = 0xFF000000U;
+
+    void* bits = nullptr;
+    HDC dc = GetDC(nullptr);
+    HBITMAP color_bm =
+        CreateDIBSection(dc, reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS, &bits, nullptr, 0);
+    ReleaseDC(nullptr, dc);
+    if (!color_bm) {
+        return;
+    }
+    auto* dst = static_cast<uint8_t*>(bits);
+    const uint32_t px_count = width * height;
+    for (uint32_t i = 0; i < px_count; ++i) {
+        dst[i * 4 + 0] = rgba_pixels[i * 4 + 2];  // B
+        dst[i * 4 + 1] = rgba_pixels[i * 4 + 1];  // G
+        dst[i * 4 + 2] = rgba_pixels[i * 4 + 0];  // R
+        dst[i * 4 + 3] = rgba_pixels[i * 4 + 3];  // A
+    }
+    HBITMAP mask_bm = CreateBitmap(static_cast<int>(width), static_cast<int>(height), 1, 1, nullptr);
+    ICONINFO ii{};
+    ii.fIcon    = TRUE;
+    ii.hbmColor = color_bm;
+    ii.hbmMask  = mask_bm;
+    HICON icon = CreateIconIndirect(&ii);
+    DeleteObject(color_bm);
+    DeleteObject(mask_bm);
+    if (!icon) {
+        return;
+    }
+    SendMessageW(_hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
+    SendMessageW(_hwnd, WM_SETICON, ICON_BIG,   reinterpret_cast<LPARAM>(icon));
+    DestroyIcon(icon);
 }
 
 }  // namespace vne::xwin

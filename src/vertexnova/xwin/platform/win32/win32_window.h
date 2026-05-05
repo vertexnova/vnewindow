@@ -52,6 +52,9 @@ class Win32Window_C final : public Window_I {
     int GetWidth() const override;
     int GetHeight() const override;
     float GetDPIScale() const override;
+    std::string GetClipboardText() const override;
+    void SetClipboardText(const std::string& text) override;
+    void SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) override;
 
     /** @brief Used by Win32WindowManager_C to deliver manager-level callbacks. */
     void SetEventOwner(Win32WindowManager_C* owner);

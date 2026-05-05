@@ -28,7 +28,7 @@
 // ---------------------------------------------------------------------------
 // VneXWinView — NSView subclass that routes keyboard + mouse to the bridge
 // ---------------------------------------------------------------------------
-@interface VneXWinView : NSView {
+@interface VneXWinView : NSView <NSTextInputClient> {
     vne::xwin::CocoaWindow_C* _xwin;
 }
 - (instancetype)initWithFrame:(NSRect)frame xwin:(vne::xwin::CocoaWindow_C*)xwin;
@@ -197,6 +197,37 @@
     }
     _xwin->handleMouseScroll(static_cast<float>(ev.scrollingDeltaX), static_cast<float>(ev.scrollingDeltaY));
 }
+
+// ---- Text / IME input ----
+
+- (BOOL)hasMarkedText { return NO; }
+- (NSRange)markedRange { return NSMakeRange(NSNotFound, 0); }
+- (NSRange)selectedRange { return NSMakeRange(NSNotFound, 0); }
+- (void)setMarkedText:(id)string selectedRange:(NSRange)sel replacementRange:(NSRange)rep {
+    (void)string; (void)sel; (void)rep;
+}
+- (void)unmarkText {}
+- (NSArray<NSAttributedStringKey>*)validAttributesForMarkedText { return @[]; }
+- (NSAttributedString*)attributedSubstringForProposedRange:(NSRange)r actualRange:(NSRangePointer)ar {
+    (void)r; (void)ar; return nil;
+}
+- (NSUInteger)characterIndexForPoint:(NSPoint)p { (void)p; return NSNotFound; }
+- (NSRect)firstRectForCharacterRange:(NSRange)r actualRange:(NSRangePointer)ar {
+    (void)r; (void)ar; return NSZeroRect;
+}
+- (void)insertText:(id)string replacementRange:(NSRange)rep {
+    (void)rep;
+    if (!_xwin) { return; }
+    NSString* str = [string isKindOfClass:[NSAttributedString class]]
+        ? [(NSAttributedString*)string string]
+        : (NSString*)string;
+    if (!str || str.length == 0) { return; }
+    const char* utf8 = str.UTF8String;
+    if (utf8) {
+        _xwin->handleTextInput(utf8);
+    }
+}
+- (void)doCommandBySelector:(SEL)sel { (void)sel; }
 
 @end
 
@@ -611,6 +642,27 @@ float CocoaWindow_C::GetDPIScale() const {
     NSWindow* win = (__bridge NSWindow*)_ns_window;
     NSScreen* screen = win.screen ? win.screen : [NSScreen mainScreen];
     return screen ? static_cast<float>(screen.backingScaleFactor) : 1.0F;
+}
+
+void CocoaWindow_C::handleTextInput(const char* utf8_text) {
+    const EventBridgeCallbacks& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
+    eventBridgeTextInput(this, _desc, cb, utf8_text);
+}
+
+std::string CocoaWindow_C::GetClipboardText() const {
+    NSPasteboard* pb = [NSPasteboard generalPasteboard];
+    NSString* str = [pb stringForType:NSPasteboardTypeString];
+    if (!str) {
+        return {};
+    }
+    const char* utf8 = str.UTF8String;
+    return utf8 ? std::string(utf8) : std::string{};
+}
+
+void CocoaWindow_C::SetClipboardText(const std::string& text) {
+    NSPasteboard* pb = [NSPasteboard generalPasteboard];
+    [pb clearContents];
+    [pb setString:[NSString stringWithUTF8String:text.c_str()] forType:NSPasteboardTypeString];
 }
 
 }  // namespace vne::xwin

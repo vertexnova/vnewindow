@@ -119,6 +119,11 @@ void X11Window_C::PollEvents() {
     XEvent ev{};
     while (XPending(_display) > 0) {
         XNextEvent(_display, &ev);
+        // SelectionRequest is addressed to us even when xany.window differs
+        if (ev.type == SelectionRequest) {
+            handle_selection_request(ev.xselectionrequest);
+            continue;
+        }
         if (ev.xany.window != _window) {
             continue;
         }
@@ -151,6 +156,15 @@ void X11Window_C::PollEvents() {
                 _keycode_down[kc] = true;
                 const std::uint8_t mods = mapX11Modifiers(ev.xkey.state);
                 eventBridgeKeyDown(this, _desc, cb, mapped, mods, repeat);
+            }
+            // Text input: decode printable characters via XLookupString
+            if (_desc.enable_events || cb.onTextInput) {
+                char buf[32] = {};
+                const int n = XLookupString(&ev.xkey, buf, static_cast<int>(sizeof(buf) - 1), nullptr, nullptr);
+                if (n > 0 && static_cast<unsigned char>(buf[0]) >= 0x20) {
+                    buf[n] = '\0';
+                    eventBridgeTextInput(this, _desc, cb, buf);
+                }
             }
         } else if (ev.type == KeyRelease) {
             const unsigned int kc = static_cast<unsigned int>(ev.xkey.keycode);
