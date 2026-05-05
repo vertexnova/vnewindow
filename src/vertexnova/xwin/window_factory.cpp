@@ -35,7 +35,7 @@
 #include "platform/web/wasm/wasm_window_manager.h"
 #endif
 #if VNE_XWIN_HAS_UIKIT
-#include "platform/ios/uikit/uikit_window_manager.h"
+#include "platform/uikit/uikit_window_manager.h"
 #endif
 #if VNE_XWIN_HAS_ANDROID
 #include "platform/android/android_window_manager.h"

@@ -117,8 +117,8 @@ endif()
 
 if(_vx_uikit)
     list(APPEND XWIN_SOURCES
-        platform/ios/uikit/uikit_window.mm
-        platform/ios/uikit/uikit_window_manager.mm
+        platform/uikit/uikit_window.mm
+        platform/uikit/uikit_window_manager.mm
     )
 endif()
 
@@ -210,8 +210,8 @@ endif()
 
 if(_vx_uikit)
     set_source_files_properties(
-        platform/ios/uikit/uikit_window.mm
-        platform/ios/uikit/uikit_window_manager.mm
+        platform/uikit/uikit_window.mm
+        platform/uikit/uikit_window_manager.mm
         PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
     )
 endif()
@@ -244,6 +244,7 @@ if(_vx_cocoa)
 endif()
 
 if(_vx_uikit)
+    target_include_directories(vnexwin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit)
     target_link_libraries(vnexwin PRIVATE "-framework UIKit" "-framework QuartzCore")
 endif()
 
