@@ -21,7 +21,7 @@ namespace vne::xwin {
 
 class X11WindowManager_C;
 
-class X11Window_C final : public Window_I {
+class X11Window_C final : public IWindow {
    public:
     X11Window_C();
     ~X11Window_C() override;
@@ -29,7 +29,7 @@ class X11Window_C final : public Window_I {
     void SetEventOwner(X11WindowManager_C* owner);
     void SetDisplay(Display* display, int screen, ::Window root, void* xcb_connection);
 
-    void Initialize(const WindowDescriptor_C& descriptor) override;
+    void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
@@ -40,7 +40,7 @@ class X11Window_C final : public Window_I {
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
-    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor_TP cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
@@ -48,7 +48,7 @@ class X11Window_C final : public Window_I {
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
-    NativeWindowHandle_C GetNativeHandle() const override;
+    NativeWindowHandle GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
@@ -62,20 +62,20 @@ class X11Window_C final : public Window_I {
     void send_ewmh_state(bool add, Atom atom1, Atom atom2 = 0);
     void handle_selection_request(const XSelectionRequestEvent& req);
 
-    Display* _display = nullptr;
-    int _screen = 0;
-    ::Window _root = 0;
-    ::Window _window = 0;
-    void* _xcb_connection = nullptr;
-    X11WindowManager_C* _owner = nullptr;
-    WindowDescriptor_C _desc{};
-    bool _open = false;
-    bool _fullscreen = false;
-    Atom _wm_delete = 0;
-    Cursor _blank_cursor = None;
-    mutable std::string _clipboard_text;  ///< text we own as selection owner
+    Display* display_ = nullptr;
+    int screen_ = 0;
+    ::Window root_ = 0;
+    ::Window window_ = 0;
+    void* xcb_connection_ = nullptr;
+    X11WindowManager_C* owner_ = nullptr;
+    WindowDescriptor desc_{};
+    bool open_ = false;
+    bool fullscreen_ = false;
+    Atom wm_delete_ = 0;
+    Cursor blank_cursor_ = None;
+    mutable std::string clipboard_text_;  ///< text we own as selection owner
     /** Physical keycodes currently held (for KeyPress repeat detection). */
-    std::array<bool, 256> _keycode_down{};
+    std::array<bool, 256> keycode_down_{};
 };
 
 }  // namespace vne::xwin

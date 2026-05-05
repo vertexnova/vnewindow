@@ -10,6 +10,8 @@
  * ----------------------------------------------------------------------
  */
 
+/** @file window_manager.h Multi-window host (vne::xwin::IWindowManager). */
+
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_descriptor.h"
 #include "vertexnova/xwin/monitor_info.h"
@@ -23,27 +25,32 @@
 
 namespace vne::xwin {
 
-using WindowManagerEventCallback_T = std::function<void(Window_I*, const WindowEventData_C&)>;
+using WindowManagerEventCallback_T = std::function<void(IWindow*, const WindowEventData&)>;
 
-class WindowManager_I {
+/**
+ * @brief Owns and dispatches a set of IWindow instances and platform-wide events.
+ *
+ * @warning Not thread-safe unless a platform implementation documents otherwise; use from the main/event thread.
+ */
+class IWindowManager {
    public:
-    virtual ~WindowManager_I() = default;
+    virtual ~IWindowManager() = default;
 
     virtual bool Initialize() = 0;
     virtual void Shutdown() = 0;
     virtual bool IsInitialized() const = 0;
 
-    virtual std::shared_ptr<Window_I> CreateWindow(const WindowDescriptor_C& descriptor) = 0;
-    virtual std::shared_ptr<Window_I> CreateWindow(const std::string& title, uint32_t width, uint32_t height) = 0;
-    virtual void DestroyWindow(std::shared_ptr<Window_I> window) = 0;
+    virtual std::shared_ptr<IWindow> CreateWindow(const WindowDescriptor& descriptor) = 0;
+    virtual std::shared_ptr<IWindow> CreateWindow(const std::string& title, uint32_t width, uint32_t height) = 0;
+    virtual void DestroyWindow(std::shared_ptr<IWindow> window) = 0;
     virtual void DestroyAllWindows() = 0;
 
     virtual size_t GetWindowCount() const = 0;
-    virtual std::vector<std::shared_ptr<Window_I>> GetWindows() const = 0;
-    virtual std::shared_ptr<Window_I> GetPrimaryWindow() const = 0;
-    virtual std::shared_ptr<Window_I> GetFocusedWindow() const = 0;
-    virtual void SetPrimaryWindow(std::shared_ptr<Window_I> window) = 0;
-    virtual void FocusWindow(std::shared_ptr<Window_I> window) = 0;
+    virtual std::vector<std::shared_ptr<IWindow>> GetWindows() const = 0;
+    virtual std::shared_ptr<IWindow> GetPrimaryWindow() const = 0;
+    virtual std::shared_ptr<IWindow> GetFocusedWindow() const = 0;
+    virtual void SetPrimaryWindow(std::shared_ptr<IWindow> window) = 0;
+    virtual void FocusWindow(std::shared_ptr<IWindow> window) = 0;
 
     virtual void ProcessEvents() = 0;
     virtual void SetEventCallback(const WindowManagerEventCallback_T& callback) = 0;
@@ -65,7 +72,7 @@ class WindowManager_I {
     virtual std::string GetProperties() const = 0;
     virtual void SetProperties(const std::string& properties) = 0;
     virtual uint32_t GetMonitorCount() const;
-    virtual MonitorInfo_C GetMonitorInfo(uint32_t index) const;
+    virtual MonitorInfo GetMonitorInfo(uint32_t index) const;
     virtual uint32_t GetPrimaryMonitorIndex() const;
 
     virtual uint64_t GetCurrentTime() const = 0;
@@ -73,14 +80,14 @@ class WindowManager_I {
     virtual double GetPlatformTime() const = 0;
 };
 
-inline uint32_t WindowManager_I::GetMonitorCount() const {
+inline uint32_t IWindowManager::GetMonitorCount() const {
     return 0;
 }
-inline MonitorInfo_C WindowManager_I::GetMonitorInfo(uint32_t index) const {
+inline MonitorInfo IWindowManager::GetMonitorInfo(uint32_t index) const {
     (void)index;
     return {};
 }
-inline uint32_t WindowManager_I::GetPrimaryMonitorIndex() const {
+inline uint32_t IWindowManager::GetPrimaryMonitorIndex() const {
     return 0;
 }
 

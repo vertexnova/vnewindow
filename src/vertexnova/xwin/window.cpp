@@ -17,7 +17,7 @@
 
 namespace vne::xwin {
 
-std::unique_ptr<Window_I> Window_I::Create(const WindowDescriptor_C& descriptor) {
+std::unique_ptr<IWindow> IWindow::Create(const WindowDescriptor& descriptor) {
     auto w = std::make_unique<NullWindow_C>();
     w->Initialize(descriptor);
     return w;

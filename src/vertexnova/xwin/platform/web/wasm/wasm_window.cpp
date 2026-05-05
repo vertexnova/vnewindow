@@ -45,20 +45,20 @@ WasmWindow_C::~WasmWindow_C() {
 }
 
 void WasmWindow_C::SetEventOwner(WasmWindowManager_C* owner) {
-    _owner = owner;
+    owner_ = owner;
 }
 
 const EventBridgeCallbacks& WasmWindow_C::eventBridgeCallbacks() const {
-    return _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
+    return owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
 }
 
-void WasmWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
-    _desc = descriptor;
+void WasmWindow_C::Initialize(const WindowDescriptor& descriptor) {
+    desc_ = descriptor;
 #ifdef __EMSCRIPTEN__
-    _canvas_tag = const_cast<char*>("#canvas");
+    canvas_tag_ = const_cast<char*>("#canvas");
     emscripten_set_canvas_element_size("#canvas",
-                                       static_cast<int>(_desc.size.width),
-                                       static_cast<int>(_desc.size.height));
+                                       static_cast<int>(desc_.size.width),
+                                       static_cast<int>(desc_.size.height));
 
     // Window resize
     emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::ResizeCallback);
@@ -89,8 +89,8 @@ void WasmWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
     emscripten_set_focus_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::FocusCallback);
     emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::BlurCallback);
 #endif
-    _initialized = true;
-    _should_close = false;
+    initialized_ = true;
+    should_close_ = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,21 +104,21 @@ EM_BOOL WasmWindow_C::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent
     if (!self || !event) {
         return EM_FALSE;
     }
-    self->_desc.size.width = static_cast<uint32_t>(event->windowInnerWidth);
-    self->_desc.size.height = static_cast<uint32_t>(event->windowInnerHeight);
+    self->desc_.size.width = static_cast<uint32_t>(event->windowInnerWidth);
+    self->desc_.size.height = static_cast<uint32_t>(event->windowInnerHeight);
     emscripten_set_canvas_element_size("#canvas",
-                                       static_cast<int>(self->_desc.size.width),
-                                       static_cast<int>(self->_desc.size.height));
+                                       static_cast<int>(self->desc_.size.width),
+                                       static_cast<int>(self->desc_.size.height));
     eventBridgeWindowResize(self,
-                            self->_desc,
+                            self->desc_,
                             self->eventBridgeCallbacks(),
-                            self->_desc.size.width,
-                            self->_desc.size.height);
-    if (self->_owner) {
-        WindowEventData_C data{};
+                            self->desc_.size.width,
+                            self->desc_.size.height);
+    if (self->owner_) {
+        WindowEventData data{};
         data.type = WindowEventType_TP::RESIZE;
-        data.size = self->_desc.size;
-        self->_owner->NotifyWindowEvent(self, data);
+        data.size = self->desc_.size;
+        self->owner_->NotifyWindowEvent(self, data);
     }
     return EM_TRUE;
 }
@@ -131,7 +131,7 @@ EM_BOOL WasmWindow_C::KeyDownCallback(int /*event_type*/, const EmscriptenKeyboa
     const vne::events::KeyCode kc = mapEmscriptenKey(ev->code);
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     const bool repeat = ev->repeat;
-    eventBridgeKeyDown(self, self->_desc, self->eventBridgeCallbacks(), kc, mods, repeat);
+    eventBridgeKeyDown(self, self->desc_, self->eventBridgeCallbacks(), kc, mods, repeat);
     return EM_TRUE;
 }
 
@@ -142,7 +142,7 @@ EM_BOOL WasmWindow_C::KeyUpCallback(int /*event_type*/, const EmscriptenKeyboard
     }
     const vne::events::KeyCode kc = mapEmscriptenKey(ev->code);
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    eventBridgeKeyUp(self, self->_desc, self->eventBridgeCallbacks(), kc, mods);
+    eventBridgeKeyUp(self, self->desc_, self->eventBridgeCallbacks(), kc, mods);
     return EM_TRUE;
 }
 
@@ -154,7 +154,7 @@ EM_BOOL WasmWindow_C::MouseDownCallback(int /*event_type*/, const EmscriptenMous
     const vne::events::MouseButton btn = mapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeMouseButton(self,
-                           self->_desc,
+                           self->desc_,
                            self->eventBridgeCallbacks(),
                            btn,
                            true,
@@ -172,7 +172,7 @@ EM_BOOL WasmWindow_C::MouseUpCallback(int /*event_type*/, const EmscriptenMouseE
     const vne::events::MouseButton btn = mapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeMouseButton(self,
-                           self->_desc,
+                           self->desc_,
                            self->eventBridgeCallbacks(),
                            btn,
                            false,
@@ -189,7 +189,7 @@ EM_BOOL WasmWindow_C::MouseMoveCallback(int /*event_type*/, const EmscriptenMous
     }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeMouseMove(self,
-                         self->_desc,
+                         self->desc_,
                          self->eventBridgeCallbacks(),
                          static_cast<double>(ev->targetX),
                          static_cast<double>(ev->targetY),
@@ -204,7 +204,7 @@ EM_BOOL WasmWindow_C::WheelCallback(int /*event_type*/, const EmscriptenWheelEve
     }
     // deltaX/deltaY are in CSS pixels (deltaMode=0); normalise to scroll steps
     eventBridgeMouseScroll(self,
-                           self->_desc,
+                           self->desc_,
                            self->eventBridgeCallbacks(),
                            static_cast<float>(-ev->deltaX / 100.0),
                            static_cast<float>(-ev->deltaY / 100.0));
@@ -222,7 +222,7 @@ EM_BOOL WasmWindow_C::TouchStartCallback(int /*event_type*/, const EmscriptenTou
             continue;
         }
         eventBridgeTouch(self,
-                         self->_desc,
+                         self->desc_,
                          self->eventBridgeCallbacks(),
                          static_cast<uint32_t>(tp.identifier),
                          static_cast<double>(tp.targetX),
@@ -243,7 +243,7 @@ EM_BOOL WasmWindow_C::TouchEndCallback(int /*event_type*/, const EmscriptenTouch
             continue;
         }
         eventBridgeTouch(self,
-                         self->_desc,
+                         self->desc_,
                          self->eventBridgeCallbacks(),
                          static_cast<uint32_t>(tp.identifier),
                          static_cast<double>(tp.targetX),
@@ -264,7 +264,7 @@ EM_BOOL WasmWindow_C::TouchMoveCallback(int /*event_type*/, const EmscriptenTouc
             continue;
         }
         eventBridgeTouch(self,
-                         self->_desc,
+                         self->desc_,
                          self->eventBridgeCallbacks(),
                          static_cast<uint32_t>(tp.identifier),
                          static_cast<double>(tp.targetX),
@@ -285,7 +285,7 @@ EM_BOOL WasmWindow_C::TouchCancelCallback(int /*event_type*/, const EmscriptenTo
             continue;
         }
         eventBridgeTouch(self,
-                         self->_desc,
+                         self->desc_,
                          self->eventBridgeCallbacks(),
                          static_cast<uint32_t>(tp.identifier),
                          static_cast<double>(tp.targetX),
@@ -300,12 +300,12 @@ EM_BOOL WasmWindow_C::FocusCallback(int /*event_type*/, const EmscriptenFocusEve
     if (!self) {
         return EM_FALSE;
     }
-    eventBridgeWindowFocus(self, self->_desc, self->eventBridgeCallbacks(), true);
-    if (self->_owner) {
-        WindowEventData_C data{};
+    eventBridgeWindowFocus(self, self->desc_, self->eventBridgeCallbacks(), true);
+    if (self->owner_) {
+        WindowEventData data{};
         data.type = WindowEventType_TP::FOCUS;
         data.focused = true;
-        self->_owner->NotifyWindowEvent(self, data);
+        self->owner_->NotifyWindowEvent(self, data);
     }
     return EM_TRUE;
 }
@@ -315,12 +315,12 @@ EM_BOOL WasmWindow_C::BlurCallback(int /*event_type*/, const EmscriptenFocusEven
     if (!self) {
         return EM_FALSE;
     }
-    eventBridgeWindowFocus(self, self->_desc, self->eventBridgeCallbacks(), false);
-    if (self->_owner) {
-        WindowEventData_C data{};
+    eventBridgeWindowFocus(self, self->desc_, self->eventBridgeCallbacks(), false);
+    if (self->owner_) {
+        WindowEventData data{};
         data.type = WindowEventType_TP::FOCUS;
         data.focused = false;
-        self->_owner->NotifyWindowEvent(self, data);
+        self->owner_->NotifyWindowEvent(self, data);
     }
     return EM_TRUE;
 }
@@ -332,14 +332,14 @@ EM_BOOL WasmWindow_C::FullscreenChangeCallback(int /*event_type*/,
     if (!self || !ev) {
         return EM_FALSE;
     }
-    self->_fullscreen = ev->isFullscreen;
+    self->fullscreen_ = ev->isFullscreen;
     return EM_TRUE;
 }
 
 #endif  // __EMSCRIPTEN__
 
 // ---------------------------------------------------------------------------
-// Window_I interface
+// IWindow interface
 // ---------------------------------------------------------------------------
 
 void WasmWindow_C::PollEvents() {
@@ -350,14 +350,14 @@ void WasmWindow_C::PollEvents() {
 void WasmWindow_C::SwapBuffers() {}
 
 void WasmWindow_C::SetTitle(const std::string& title) {
-    _desc.title = title;
+    desc_.title = title;
 #ifdef __EMSCRIPTEN__
     emscripten_set_window_title(title.c_str());
 #endif
 }
 
 void WasmWindow_C::SetWindowMode(WindowMode_TP mode) {
-    _desc.mode = mode;
+    desc_.mode = mode;
 }
 
 WindowMode_TP WasmWindow_C::GetWindowMode() const {
@@ -377,41 +377,41 @@ void WasmWindow_C::SetFullscreen(bool enabled) {
 }
 
 bool WasmWindow_C::IsFullscreen() const {
-    return _fullscreen;
+    return fullscreen_;
 }
 
 void WasmWindow_C::SetPosition(int x, int y) {
-    _desc.position.x = x;
-    _desc.position.y = y;
+    desc_.position.x = x;
+    desc_.position.y = y;
 }
 
 void WasmWindow_C::GetPosition(int& x, int& y) const {
-    x = _desc.position.x;
-    y = _desc.position.y;
+    x = desc_.position.x;
+    y = desc_.position.y;
 }
 
 void WasmWindow_C::Resize(uint32_t width, uint32_t height) {
-    _desc.size.width = width;
-    _desc.size.height = height;
+    desc_.size.width = width;
+    desc_.size.height = height;
 #ifdef __EMSCRIPTEN__
     emscripten_set_canvas_element_size("#canvas", static_cast<int>(width), static_cast<int>(height));
 #endif
 }
 
 void WasmWindow_C::Close() {
-    _should_close = true;
+    should_close_ = true;
 }
 
 bool WasmWindow_C::IsOpen() const {
-    return !_should_close && _initialized;
+    return !should_close_ && initialized_;
 }
 
 void* WasmWindow_C::GetNativeWindow() const {
-    return _canvas_tag;
+    return canvas_tag_;
 }
 
-NativeWindowHandle_C WasmWindow_C::GetNativeHandle() const {
-    NativeWindowHandle_C handle{};
+NativeWindowHandle WasmWindow_C::GetNativeHandle() const {
+    NativeWindowHandle handle{};
     handle.api = WindowAPI_TP::WASM_WINDOW;
     handle.canvas_id = "#canvas";
     return handle;
@@ -422,11 +422,11 @@ WindowAPI_TP WasmWindow_C::GetWindowAPI() const {
 }
 
 int WasmWindow_C::GetWidth() const {
-    return static_cast<int>(_desc.size.width);
+    return static_cast<int>(desc_.size.width);
 }
 
 int WasmWindow_C::GetHeight() const {
-    return static_cast<int>(_desc.size.height);
+    return static_cast<int>(desc_.size.height);
 }
 
 uint32_t WasmWindow_C::GetFramebufferWidth() const {
@@ -437,7 +437,7 @@ uint32_t WasmWindow_C::GetFramebufferWidth() const {
         return static_cast<uint32_t>(w);
     }
 #endif
-    return static_cast<uint32_t>(_desc.size.width);
+    return static_cast<uint32_t>(desc_.size.width);
 }
 
 uint32_t WasmWindow_C::GetFramebufferHeight() const {
@@ -448,7 +448,7 @@ uint32_t WasmWindow_C::GetFramebufferHeight() const {
         return static_cast<uint32_t>(h);
     }
 #endif
-    return static_cast<uint32_t>(_desc.size.height);
+    return static_cast<uint32_t>(desc_.size.height);
 }
 
 float WasmWindow_C::GetDPIScale() const {
@@ -471,8 +471,8 @@ void WasmWindow_C::Restore() {
     // See SetFullscreen / Maximize.
 }
 
-void WasmWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
-    _desc.limits = limits;
+void WasmWindow_C::SetWindowLimits(const WindowLimits& limits) {
+    desc_.limits = limits;
 }
 
 void WasmWindow_C::SetCursor(WindowCursor_TP cursor) {

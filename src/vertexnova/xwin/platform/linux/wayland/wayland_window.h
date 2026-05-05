@@ -22,15 +22,15 @@ namespace vne::xwin {
 
 class WaylandWindowManager_C;
 
-class WaylandWindow_C final : public Window_I {
+class WaylandWindow_C final : public IWindow {
    public:
     WaylandWindow_C();
     ~WaylandWindow_C() override;
 
     void SetOwner(WaylandWindowManager_C* owner);
-    const WindowDescriptor_C& descriptor() const { return _desc; }
+    const WindowDescriptor& descriptor() const { return desc_; }
 
-    void Initialize(const WindowDescriptor_C& descriptor) override;
+    void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
@@ -41,7 +41,7 @@ class WaylandWindow_C final : public Window_I {
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
-    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor_TP cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
@@ -49,7 +49,7 @@ class WaylandWindow_C final : public Window_I {
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
-    NativeWindowHandle_C GetNativeHandle() const override;
+    NativeWindowHandle GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
@@ -61,15 +61,15 @@ class WaylandWindow_C final : public Window_I {
     void destroy_surfaces();
 
     /** @brief Same pointer registered with the compositor (keyboard/pointer focus mapping). */
-    wl_surface* native_surface() const { return _surface; }
+    wl_surface* native_surface() const { return surface_; }
 
-    WaylandWindowManager_C* _owner = nullptr;
-    WindowDescriptor_C _desc{};
-    bool _open = false;
-    bool _fullscreen = false;
-    wl_surface* _surface = nullptr;
-    xdg_surface* _xdg_surface = nullptr;
-    xdg_toplevel* _toplevel = nullptr;
+    WaylandWindowManager_C* owner_ = nullptr;
+    WindowDescriptor desc_{};
+    bool open_ = false;
+    bool fullscreen_ = false;
+    wl_surface* surface_ = nullptr;
+    xdg_surface* xdg_surface_ = nullptr;
+    xdg_toplevel* toplevel_ = nullptr;
 };
 
 }  // namespace vne::xwin

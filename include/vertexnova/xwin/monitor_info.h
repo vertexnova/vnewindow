@@ -10,6 +10,8 @@
  * ----------------------------------------------------------------------
  */
 
+/** @file monitor_info.h Per-monitor geometry and DPI metadata. */
+
 #include "vertexnova/xwin/xwin_types.h"
 
 #include <cstdint>
@@ -17,10 +19,10 @@
 
 namespace vne::xwin {
 
-struct MonitorInfo_C {
+struct MonitorInfo {
     std::string name;
-    WindowBounds_C bounds;
-    WindowBounds_C work_area;
+    WindowBounds bounds;
+    WindowBounds work_area;
     float dpi_scale = 1.0F;
     bool is_primary = false;
     uint32_t index = 0;

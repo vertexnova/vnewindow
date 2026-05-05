@@ -16,12 +16,12 @@
 int main() {
     vne::xwin::examples::LoggingGuard logging_guard;
 
-    using vne::xwin::WindowFactory_C;
+    using vne::xwin::WindowFactory;
 
-    VNE_LOG_INFO << "vne::xwin " << WindowFactory_C::GetBuildInfo();
+    VNE_LOG_INFO << "vne::xwin " << WindowFactory::GetBuildInfo();
     VNE_LOG_INFO << "Version: " << vne::xwin::get_version();
 
-    auto mgr = WindowFactory_C::CreateWindowManager(vne::xwin::WindowAPI_TP::NULL_WINDOW);
+    auto mgr = WindowFactory::CreateWindowManager(vne::xwin::WindowAPI_TP::NULL_WINDOW);
     if (mgr && mgr->Initialize()) {
         auto w = mgr->CreateWindow("hello_xwin", 320, 240);
         if (w) {

@@ -17,115 +17,115 @@
 
 namespace vne::xwin {
 
-TimeStep_C::TimeStep_C() noexcept
-    : _last_frame_time(Clock_T::now())
-    , _start_time(_last_frame_time)
-    , _last_render_time(_last_frame_time) {
-    std::fill(_delta_time_history, _delta_time_history + SMOOTHING_SAMPLES, 0.016);
+TimeStep::TimeStep() noexcept
+    : last_frame_time_(Clock_T::now())
+    , start_time_(last_frame_time_)
+    , last_render_time_(last_frame_time_) {
+    std::fill(delta_time_history_, delta_time_history_ + SMOOTHING_SAMPLES, 0.016);
 }
 
-TimeStep_C::TimeStep_C(double target_fps) noexcept
-    : _last_frame_time(Clock_T::now())
-    , _start_time(_last_frame_time)
-    , _target_fps(target_fps)
-    , _target_frame_time(target_fps > 0.0 ? 1.0 / target_fps : 0.0)
-    , _last_render_time(_last_frame_time) {
-    std::fill(_delta_time_history, _delta_time_history + SMOOTHING_SAMPLES, 0.016);
+TimeStep::TimeStep(double target_fps) noexcept
+    : last_frame_time_(Clock_T::now())
+    , start_time_(last_frame_time_)
+    , target_fps_(target_fps)
+    , target_frame_time_(target_fps > 0.0 ? 1.0 / target_fps : 0.0)
+    , last_render_time_(last_frame_time_) {
+    std::fill(delta_time_history_, delta_time_history_ + SMOOTHING_SAMPLES, 0.016);
 }
 
-bool TimeStep_C::Update() noexcept {
+bool TimeStep::Update() noexcept {
     const auto now = Clock_T::now();
 
-    if (_frame_rate_limit_enabled && _target_fps > 0.0) {
-        const double since_last_render = std::chrono::duration<double>(now - _last_render_time).count();
-        const double remain = _target_frame_time - since_last_render;
+    if (frame_rate_limit_enabled_ && target_fps_ > 0.0) {
+        const double since_last_render = std::chrono::duration<double>(now - last_render_time_).count();
+        const double remain = target_frame_time_ - since_last_render;
         if (remain > 0.0) {
-            if (_sleep_pacing_enabled) {
+            if (sleep_pacing_enabled_) {
                 SleepRemainder(remain);
             }
             return false;
         }
     }
 
-    double raw_delta = std::chrono::duration<double>(now - _last_frame_time).count();
+    double raw_delta = std::chrono::duration<double>(now - last_frame_time_).count();
     raw_delta = ClampDeltaTime(raw_delta);
-    _delta_time = _smoothing_enabled ? CalculateSmoothedDeltaTime(raw_delta) : raw_delta;
+    delta_time_ = smoothing_enabled_ ? CalculateSmoothedDeltaTime(raw_delta) : raw_delta;
 
-    _last_frame_time = now;
-    _last_render_time = now;
-    _elapsed_time += _delta_time;
-    _frame_count++;
+    last_frame_time_ = now;
+    last_render_time_ = now;
+    elapsed_time_ += delta_time_;
+    frame_count_++;
 
-    _min_delta_time = std::min(_min_delta_time, _delta_time);
-    _max_delta_time = std::max(_max_delta_time, _delta_time);
+    min_delta_time_ = std::min(min_delta_time_, delta_time_);
+    max_delta_time_ = std::max(max_delta_time_, delta_time_);
     return true;
 }
 
-void TimeStep_C::Reset() noexcept {
-    _last_frame_time = Clock_T::now();
-    _start_time = _last_frame_time;
-    _last_render_time = _last_frame_time;
-    _delta_time = 0.016;
-    _elapsed_time = 0.0;
-    _frame_count = 0;
-    _min_delta_time = std::numeric_limits<double>::max();
-    _max_delta_time = 0.0;
-    std::fill(_delta_time_history, _delta_time_history + SMOOTHING_SAMPLES, 0.016);
-    _history_index = 0;
-    _history_filled = false;
+void TimeStep::Reset() noexcept {
+    last_frame_time_ = Clock_T::now();
+    start_time_ = last_frame_time_;
+    last_render_time_ = last_frame_time_;
+    delta_time_ = 0.016;
+    elapsed_time_ = 0.0;
+    frame_count_ = 0;
+    min_delta_time_ = std::numeric_limits<double>::max();
+    max_delta_time_ = 0.0;
+    std::fill(delta_time_history_, delta_time_history_ + SMOOTHING_SAMPLES, 0.016);
+    history_index_ = 0;
+    history_filled_ = false;
 }
 
-double TimeStep_C::GetElapsedTime() const noexcept {
+double TimeStep::GetElapsedTime() const noexcept {
     const auto now = Clock_T::now();
-    return std::chrono::duration<double>(now - _start_time).count();
+    return std::chrono::duration<double>(now - start_time_).count();
 }
 
-double TimeStep_C::GetFrameRate() const noexcept {
-    return _delta_time > 0.0 ? 1.0 / _delta_time : 0.0;
+double TimeStep::GetFrameRate() const noexcept {
+    return delta_time_ > 0.0 ? 1.0 / delta_time_ : 0.0;
 }
 
-double TimeStep_C::GetAverageFrameRate(uint32_t frame_count) const noexcept {
+double TimeStep::GetAverageFrameRate(uint32_t frame_count) const noexcept {
     if (frame_count == 0) {
         return 0.0;
     }
     double total_time = 0.0;
     uint32_t samples = std::min(frame_count, static_cast<uint32_t>(SMOOTHING_SAMPLES));
     for (uint32_t i = 0; i < samples; ++i) {
-        total_time += _delta_time_history[i];
+        total_time += delta_time_history_[i];
     }
     return samples > 0 ? samples / total_time : 0.0;
 }
 
-void TimeStep_C::SetTargetFrameRate(double target_fps) noexcept {
-    _target_fps = target_fps;
-    _target_frame_time = target_fps > 0.0 ? 1.0 / target_fps : 0.0;
+void TimeStep::SetTargetFrameRate(double target_fps) noexcept {
+    target_fps_ = target_fps;
+    target_frame_time_ = target_fps > 0.0 ? 1.0 / target_fps : 0.0;
 }
 
-bool TimeStep_C::ShouldRender() const noexcept {
-    if (!_frame_rate_limit_enabled || _target_fps <= 0.0) {
+bool TimeStep::ShouldRender() const noexcept {
+    if (!frame_rate_limit_enabled_ || target_fps_ <= 0.0) {
         return true;
     }
     const auto now = Clock_T::now();
-    const double time_since_last_render = std::chrono::duration<double>(now - _last_render_time).count();
-    return time_since_last_render >= _target_frame_time;
+    const double time_since_last_render = std::chrono::duration<double>(now - last_render_time_).count();
+    return time_since_last_render >= target_frame_time_;
 }
 
-double TimeStep_C::CalculateSmoothedDeltaTime(double raw_delta) noexcept {
-    _delta_time_history[_history_index] = raw_delta;
-    _history_index = (_history_index + 1) % SMOOTHING_SAMPLES;
-    if (!_history_filled && _history_index == 0) {
-        _history_filled = true;
+double TimeStep::CalculateSmoothedDeltaTime(double raw_delta) noexcept {
+    delta_time_history_[history_index_] = raw_delta;
+    history_index_ = (history_index_ + 1) % SMOOTHING_SAMPLES;
+    if (!history_filled_ && history_index_ == 0) {
+        history_filled_ = true;
     }
-    size_t sample_count = _history_filled ? SMOOTHING_SAMPLES : _history_index;
-    double sum = std::accumulate(_delta_time_history, _delta_time_history + sample_count, 0.0);
+    size_t sample_count = history_filled_ ? SMOOTHING_SAMPLES : history_index_;
+    double sum = std::accumulate(delta_time_history_, delta_time_history_ + sample_count, 0.0);
     return sum / static_cast<double>(sample_count);
 }
 
-double TimeStep_C::ClampDeltaTime(double delta) const noexcept {
-    return std::clamp(delta, 0.0, _max_delta_time_limit);
+double TimeStep::ClampDeltaTime(double delta) const noexcept {
+    return std::clamp(delta, 0.0, max_delta_time_limit_);
 }
 
-void TimeStep_C::SleepRemainder(double seconds) const noexcept {
+void TimeStep::SleepRemainder(double seconds) const noexcept {
     using namespace std::chrono;
     if (seconds <= 0.0) {
         return;

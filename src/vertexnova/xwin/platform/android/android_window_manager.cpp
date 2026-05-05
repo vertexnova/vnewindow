@@ -25,28 +25,28 @@ AndroidWindowManager_C::~AndroidWindowManager_C() {
     Shutdown();
 }
 
-void AndroidWindowManager_C::NotifyWindowEvent(Window_I* window, const WindowEventData_C& event) {
-    if (_callback && window) {
-        _callback(window, event);
+void AndroidWindowManager_C::NotifyWindowEvent(IWindow* window, const WindowEventData& event) {
+    if (callback_ && window) {
+        callback_(window, event);
     }
 }
 
 bool AndroidWindowManager_C::Initialize() {
-    _initialized = true;
+    initialized_ = true;
     return true;
 }
 
 void AndroidWindowManager_C::Shutdown() {
     DestroyAllWindows();
-    _initialized = false;
+    initialized_ = false;
 }
 
 bool AndroidWindowManager_C::IsInitialized() const {
-    return _initialized;
+    return initialized_;
 }
 
-std::shared_ptr<Window_I> AndroidWindowManager_C::CreateWindow(const WindowDescriptor_C& descriptor) {
-    if (!_initialized) {
+std::shared_ptr<IWindow> AndroidWindowManager_C::CreateWindow(const WindowDescriptor& descriptor) {
+    if (!initialized_) {
         return nullptr;
     }
     auto w = std::make_shared<AndroidWindow_C>();
@@ -54,85 +54,85 @@ std::shared_ptr<Window_I> AndroidWindowManager_C::CreateWindow(const WindowDescr
     if (!w->IsOpen()) {
         return nullptr;
     }
-    _windows.push_back(w);
-    if (!_primary) {
-        _primary = w;
+    windows_.push_back(w);
+    if (!primary_) {
+        primary_ = w;
     }
-    _focused = w;
+    focused_ = w;
     return w;
 }
 
-std::shared_ptr<Window_I> AndroidWindowManager_C::CreateWindow(const std::string& title,
-                                                               uint32_t width,
-                                                               uint32_t height) {
-    WindowDescriptor_C d(title, width, height);
+std::shared_ptr<IWindow> AndroidWindowManager_C::CreateWindow(const std::string& title,
+                                                              uint32_t width,
+                                                              uint32_t height) {
+    WindowDescriptor d(title, width, height);
     return CreateWindow(d);
 }
 
-void AndroidWindowManager_C::DestroyWindow(std::shared_ptr<Window_I> window) {
+void AndroidWindowManager_C::DestroyWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
     window->Close();
-    auto it = std::find(_windows.begin(), _windows.end(), window);
-    if (it != _windows.end()) {
-        _windows.erase(it);
+    auto it = std::find(windows_.begin(), windows_.end(), window);
+    if (it != windows_.end()) {
+        windows_.erase(it);
     }
-    if (_primary == window) {
-        _primary = _windows.empty() ? nullptr : _windows.front();
+    if (primary_ == window) {
+        primary_ = windows_.empty() ? nullptr : windows_.front();
     }
-    if (_focused == window) {
-        _focused = _primary;
+    if (focused_ == window) {
+        focused_ = primary_;
     }
 }
 
 void AndroidWindowManager_C::DestroyAllWindows() {
-    for (auto& w : _windows) {
+    for (auto& w : windows_) {
         if (w) {
             w->Close();
         }
     }
-    _windows.clear();
-    _primary.reset();
-    _focused.reset();
+    windows_.clear();
+    primary_.reset();
+    focused_.reset();
 }
 
 size_t AndroidWindowManager_C::GetWindowCount() const {
-    return _windows.size();
+    return windows_.size();
 }
 
-std::vector<std::shared_ptr<Window_I>> AndroidWindowManager_C::GetWindows() const {
-    return _windows;
+std::vector<std::shared_ptr<IWindow>> AndroidWindowManager_C::GetWindows() const {
+    return windows_;
 }
 
-std::shared_ptr<Window_I> AndroidWindowManager_C::GetPrimaryWindow() const {
-    return _primary;
+std::shared_ptr<IWindow> AndroidWindowManager_C::GetPrimaryWindow() const {
+    return primary_;
 }
 
-std::shared_ptr<Window_I> AndroidWindowManager_C::GetFocusedWindow() const {
-    return _focused;
+std::shared_ptr<IWindow> AndroidWindowManager_C::GetFocusedWindow() const {
+    return focused_;
 }
 
-void AndroidWindowManager_C::SetPrimaryWindow(std::shared_ptr<Window_I> window) {
-    _primary = std::move(window);
+void AndroidWindowManager_C::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
+    primary_ = std::move(window);
 }
 
-void AndroidWindowManager_C::FocusWindow(std::shared_ptr<Window_I> window) {
-    _focused = std::move(window);
+void AndroidWindowManager_C::FocusWindow(std::shared_ptr<IWindow> window) {
+    focused_ = std::move(window);
 }
 
 void AndroidWindowManager_C::ProcessEvents() {}
 
 void AndroidWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& callback) {
-    _callback = callback;
+    callback_ = callback;
 }
 
 void AndroidWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    _event_bridge_callbacks = std::move(callbacks);
+    event_bridge_callbacks_ = std::move(callbacks);
 }
 
 bool AndroidWindowManager_C::ShouldClose() const {
-    for (const auto& w : _windows) {
+    for (const auto& w : windows_) {
         if (w && !w->IsOpen()) {
             return true;
         }
@@ -141,10 +141,10 @@ bool AndroidWindowManager_C::ShouldClose() const {
 }
 
 bool AndroidWindowManager_C::ShouldCloseAll() const {
-    if (_windows.empty()) {
+    if (windows_.empty()) {
         return false;
     }
-    for (const auto& w : _windows) {
+    for (const auto& w : windows_) {
         if (w && w->IsOpen()) {
             return false;
         }
@@ -165,11 +165,11 @@ bool AndroidWindowManager_C::IsFeatureSupported(const std::string& feature) cons
 }
 
 std::string AndroidWindowManager_C::GetProperties() const {
-    return _properties;
+    return properties_;
 }
 
 void AndroidWindowManager_C::SetProperties(const std::string& properties) {
-    _properties = properties;
+    properties_ = properties;
 }
 
 uint64_t AndroidWindowManager_C::GetCurrentTime() const {

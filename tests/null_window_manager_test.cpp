@@ -20,12 +20,12 @@
 
 using vne::xwin::EventBridgeCallbacks;
 using vne::xwin::WindowAPI_TP;
-using vne::xwin::WindowFactory_C;
+using vne::xwin::WindowFactory;
 
 namespace {
 
-std::shared_ptr<vne::xwin::WindowManager_I> MakeInitializedNullManager() {
-    auto mgr = WindowFactory_C::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
+std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
+    auto mgr = WindowFactory::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
     EXPECT_NE(mgr, nullptr);
     if (!mgr) {
         return nullptr;
@@ -55,7 +55,7 @@ TEST_F(NullWindowManager_CTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
 
     bool called = false;
     EventBridgeCallbacks cb{};
-    cb.onWindowFocus = [&called](vne::xwin::Window_I*, bool) { called = true; };
+    cb.onWindowFocus = [&called](vne::xwin::IWindow*, bool) { called = true; };
 
     mgr->setEventBridgeCallbacks(std::move(cb));
     mgr->ProcessEvents();

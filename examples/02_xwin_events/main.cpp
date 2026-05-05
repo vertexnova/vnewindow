@@ -27,15 +27,15 @@
 int main() {
     vne::xwin::examples::LoggingGuard logging_guard;
 
-    using vne::xwin::WindowFactory_C;
+    using vne::xwin::WindowFactory;
 
-    auto mgr = WindowFactory_C::CreateWindowManager();
+    auto mgr = WindowFactory::CreateWindowManager();
     if (!mgr || !mgr->Initialize()) {
-        VNE_LOG_ERROR << "No window manager (see WindowFactory_C::GetLastError)";
+        VNE_LOG_ERROR << "No window manager (see WindowFactory::GetLastError)";
         return 1;
     }
 
-    vne::xwin::WindowDescriptor_C desc("xwin_events", 640, 480);
+    vne::xwin::WindowDescriptor desc("xwin_events", 640, 480);
     desc.enable_events = true;
     desc.enable_input = true;
 
@@ -47,7 +47,7 @@ int main() {
     }
 
     vne::xwin::EventBridgeCallbacks hooks{};
-    hooks.onKeyDown = [](vne::xwin::Window_I* win, vne::events::KeyCode key, std::uint8_t /*mods*/, bool repeat) {
+    hooks.onKeyDown = [](vne::xwin::IWindow* win, vne::events::KeyCode key, std::uint8_t /*mods*/, bool repeat) {
         VNE_LOG_INFO << "onKeyDown window=" << win << " key=" << static_cast<int>(key) << " repeat=" << repeat;
     };
 

@@ -10,6 +10,8 @@
  * ----------------------------------------------------------------------
  */
 
+/** @file xwin_types.h Shared enums and plain structs for window state and events. */
+
 #include <cstdint>
 #include <string>
 
@@ -81,32 +83,32 @@ enum class WindowEventType_TP {
 
 enum class EventAction_TP { BEGAN = 0, CHANGED = 1, ENDED = 2, CANCELLED = 3 };
 
-struct WindowPosition_C {
+struct WindowPosition {
     int32_t x = 0;
     int32_t y = 0;
 };
 
-struct WindowSize_C {
+struct WindowSize {
     uint32_t width = 0;
     uint32_t height = 0;
 };
 
-struct WindowBounds_C {
-    WindowPosition_C position;
-    WindowSize_C size;
+struct WindowBounds {
+    WindowPosition position;
+    WindowSize size;
 };
 
-struct WindowLimits_C {
-    WindowSize_C min_size;
-    WindowSize_C max_size;
+struct WindowLimits {
+    WindowSize min_size;
+    WindowSize max_size;
     bool has_min_size = false;
     bool has_max_size = false;
 };
 
-struct WindowEventData_C {
+struct WindowEventData {
     WindowEventType_TP type{};
-    WindowSize_C size{};
-    WindowPosition_C position{};
+    WindowSize size{};
+    WindowPosition position{};
     bool focused = false;
     bool minimized = false;
     bool maximized = false;
@@ -120,10 +122,10 @@ struct WindowEventData_C {
     float status_bar_height = 0.0F;
 };
 
-struct WindowProperties_C {
+struct WindowProperties {
     std::string title;
-    WindowSize_C size;
-    WindowPosition_C position;
+    WindowSize size;
+    WindowPosition position;
     WindowMode_TP mode = WindowMode_TP::WINDOWED;
     WindowState_TP state = WindowState_TP::NORMAL;
     WindowVisibility_TP visibility = WindowVisibility_TP::VISIBLE;
@@ -132,7 +134,7 @@ struct WindowProperties_C {
     WindowDecoration_TP decoration = WindowDecoration_TP::DECORATED;
     WindowTransparency_TP transparency = WindowTransparency_TP::OPAQUE;
     WindowCursor_TP cursor = WindowCursor_TP::NORMAL;
-    WindowLimits_C limits;
+    WindowLimits limits;
     bool vsync_enabled = true;
     bool always_on_top = false;
     bool resizable = true;

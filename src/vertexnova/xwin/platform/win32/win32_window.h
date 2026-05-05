@@ -23,12 +23,12 @@ namespace vne::xwin {
 
 class Win32WindowManager_C;
 
-class Win32Window_C final : public Window_I {
+class Win32Window_C final : public IWindow {
    public:
     Win32Window_C();
     ~Win32Window_C() override;
 
-    void Initialize(const WindowDescriptor_C& descriptor) override;
+    void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
@@ -39,7 +39,7 @@ class Win32Window_C final : public Window_I {
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
-    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor_TP cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
@@ -47,7 +47,7 @@ class Win32Window_C final : public Window_I {
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
-    NativeWindowHandle_C GetNativeHandle() const override;
+    NativeWindowHandle GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
@@ -63,19 +63,19 @@ class Win32Window_C final : public Window_I {
 
    private:
     static LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-    void create_window(const WindowDescriptor_C& descriptor);
+    void create_window(const WindowDescriptor& descriptor);
     void destroy_window();
 
-    HWND _hwnd = nullptr;
-    Win32WindowManager_C* _event_owner = nullptr;
-    WindowDescriptor_C _desc{};
-    bool _open = false;
-    bool _fullscreen = false;
-    WindowMode_TP _mode = WindowMode_TP::WINDOWED;
+    HWND hwnd_ = nullptr;
+    Win32WindowManager_C* event_owner_ = nullptr;
+    WindowDescriptor desc_{};
+    bool open_ = false;
+    bool fullscreen_ = false;
+    WindowMode_TP mode_ = WindowMode_TP::WINDOWED;
 
     // Saved pre-fullscreen state
-    DWORD _saved_style = 0;
-    RECT _saved_rect = {};
+    DWORD saved_style_ = 0;
+    RECT saved_rect_ = {};
 };
 
 }  // namespace vne::xwin

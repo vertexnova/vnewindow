@@ -10,6 +10,8 @@
  * ----------------------------------------------------------------------
  */
 
+/** @file xwin_version.h Library version string accessor. */
+
 #include "vertexnova/xwin/xwin_export.h"
 
 namespace vne::xwin {

@@ -19,7 +19,7 @@
 
 namespace vne::xwin {
 
-class NullWindowManager_C final : public WindowManager_I {
+class NullWindowManager_C final : public IWindowManager {
    public:
     NullWindowManager_C() = default;
     ~NullWindowManager_C() override;
@@ -28,17 +28,17 @@ class NullWindowManager_C final : public WindowManager_I {
     void Shutdown() override;
     bool IsInitialized() const override;
 
-    std::shared_ptr<Window_I> CreateWindow(const WindowDescriptor_C& descriptor) override;
-    std::shared_ptr<Window_I> CreateWindow(const std::string& title, uint32_t width, uint32_t height) override;
-    void DestroyWindow(std::shared_ptr<Window_I> window) override;
+    std::shared_ptr<IWindow> CreateWindow(const WindowDescriptor& descriptor) override;
+    std::shared_ptr<IWindow> CreateWindow(const std::string& title, uint32_t width, uint32_t height) override;
+    void DestroyWindow(std::shared_ptr<IWindow> window) override;
     void DestroyAllWindows() override;
 
     size_t GetWindowCount() const override;
-    std::vector<std::shared_ptr<Window_I>> GetWindows() const override;
-    std::shared_ptr<Window_I> GetPrimaryWindow() const override;
-    std::shared_ptr<Window_I> GetFocusedWindow() const override;
-    void SetPrimaryWindow(std::shared_ptr<Window_I> window) override;
-    void FocusWindow(std::shared_ptr<Window_I> window) override;
+    std::vector<std::shared_ptr<IWindow>> GetWindows() const override;
+    std::shared_ptr<IWindow> GetPrimaryWindow() const override;
+    std::shared_ptr<IWindow> GetFocusedWindow() const override;
+    void SetPrimaryWindow(std::shared_ptr<IWindow> window) override;
+    void FocusWindow(std::shared_ptr<IWindow> window) override;
 
     void ProcessEvents() override;
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
@@ -57,13 +57,13 @@ class NullWindowManager_C final : public WindowManager_I {
     double GetPlatformTime() const override;
 
    private:
-    std::vector<std::shared_ptr<Window_I>> _windows;
-    std::shared_ptr<Window_I> _primary;
-    std::shared_ptr<Window_I> _focused;
-    WindowManagerEventCallback_T _callback{};
-    EventBridgeCallbacks _event_bridge_callbacks{};
-    bool _initialized = false;
-    std::string _properties;
+    std::vector<std::shared_ptr<IWindow>> windows_;
+    std::shared_ptr<IWindow> primary_;
+    std::shared_ptr<IWindow> focused_;
+    WindowManagerEventCallback_T callback_{};
+    EventBridgeCallbacks event_bridge_callbacks_{};
+    bool initialized_ = false;
+    std::string properties_;
 };
 
 }  // namespace vne::xwin

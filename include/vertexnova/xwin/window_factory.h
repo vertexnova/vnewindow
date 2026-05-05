@@ -10,6 +10,8 @@
  * ----------------------------------------------------------------------
  */
 
+/** @file window_factory.h Entry points to construct IWindowManager for a build and platform. */
+
 #include "vertexnova/xwin/window_manager.h"
 #include "vertexnova/xwin/xwin_export.h"
 #include "vertexnova/xwin/xwin_types.h"
@@ -19,11 +21,14 @@
 
 namespace vne::xwin {
 
-class VNE_XWIN_API WindowFactory_C {
+/**
+ * @brief Selects and constructs an IWindowManager for the requested or default WindowAPI_TP.
+ */
+class VNE_XWIN_API WindowFactory {
    public:
-    static std::shared_ptr<WindowManager_I> CreateWindowManager(WindowAPI_TP window_api);
-    static std::shared_ptr<WindowManager_I> CreateWindowManager(WindowAPI_TP window_api, const std::string& properties);
-    static std::shared_ptr<WindowManager_I> CreateWindowManager();
+    static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI_TP window_api);
+    static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI_TP window_api, const std::string& properties);
+    static std::shared_ptr<IWindowManager> CreateWindowManager();
 
    private:
     static WindowAPI_TP GetBestWindowAPIForPlatform();
@@ -40,7 +45,7 @@ class VNE_XWIN_API WindowFactory_C {
     static void ClearLastError();
 
    private:
-    static std::string _last_error;
+    static std::string last_error_;
 };
 
 }  // namespace vne::xwin

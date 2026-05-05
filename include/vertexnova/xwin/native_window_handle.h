@@ -10,13 +10,15 @@
  * ----------------------------------------------------------------------
  */
 
+/** @file native_window_handle.h Low-level native surface/window handles per API. */
+
 #include "vertexnova/xwin/xwin_types.h"
 
 #include <cstdint>
 
 namespace vne::xwin {
 
-struct NativeWindowHandle_C {
+struct NativeWindowHandle {
     WindowAPI_TP api = WindowAPI_TP::NULL_WINDOW;
 
     void* hwnd = nullptr;

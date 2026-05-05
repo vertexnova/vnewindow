@@ -10,47 +10,49 @@
  * ----------------------------------------------------------------------
  */
 
+/** @file time_step.h Fixed timestep helper for polling loops. */
+
 #include <chrono>
 #include <cstdint>
 #include <limits>
 
 namespace vne::xwin {
 
-class TimeStep_C {
+class TimeStep {
    public:
-    TimeStep_C() noexcept;
-    explicit TimeStep_C(double target_fps) noexcept;
-    ~TimeStep_C() noexcept = default;
+    TimeStep() noexcept;
+    explicit TimeStep(double target_fps) noexcept;
+    ~TimeStep() noexcept = default;
 
-    TimeStep_C(const TimeStep_C&) = delete;
-    TimeStep_C& operator=(const TimeStep_C&) = delete;
-    TimeStep_C(TimeStep_C&&) = delete;
-    TimeStep_C& operator=(TimeStep_C&&) = delete;
+    TimeStep(const TimeStep&) = delete;
+    TimeStep& operator=(const TimeStep&) = delete;
+    TimeStep(TimeStep&&) = delete;
+    TimeStep& operator=(TimeStep&&) = delete;
 
     [[nodiscard]] bool Update() noexcept;
     void Reset() noexcept;
 
-    [[nodiscard]] double GetDeltaTime() const noexcept { return _delta_time; }
-    [[nodiscard]] double GetDeltaTimeMs() const noexcept { return _delta_time * 1000.0; }
+    [[nodiscard]] double GetDeltaTime() const noexcept { return delta_time_; }
+    [[nodiscard]] double GetDeltaTimeMs() const noexcept { return delta_time_ * 1000.0; }
     [[nodiscard]] double GetElapsedTime() const noexcept;
     [[nodiscard]] double GetFrameRate() const noexcept;
     [[nodiscard]] double GetAverageFrameRate(uint32_t frame_count = 60) const noexcept;
 
     void SetTargetFrameRate(double target_fps) noexcept;
-    [[nodiscard]] double GetTargetFrameRate() const noexcept { return _target_fps; }
+    [[nodiscard]] double GetTargetFrameRate() const noexcept { return target_fps_; }
     [[nodiscard]] bool ShouldRender() const noexcept;
-    void SetFrameRateLimitEnabled(bool enabled) noexcept { _frame_rate_limit_enabled = enabled; }
-    [[nodiscard]] bool IsFrameRateLimitEnabled() const noexcept { return _frame_rate_limit_enabled; }
+    void SetFrameRateLimitEnabled(bool enabled) noexcept { frame_rate_limit_enabled_ = enabled; }
+    [[nodiscard]] bool IsFrameRateLimitEnabled() const noexcept { return frame_rate_limit_enabled_; }
 
-    [[nodiscard]] double GetMinDeltaTime() const noexcept { return _min_delta_time; }
-    [[nodiscard]] double GetMaxDeltaTime() const noexcept { return _max_delta_time; }
-    [[nodiscard]] uint64_t GetFrameCount() const noexcept { return _frame_count; }
+    [[nodiscard]] double GetMinDeltaTime() const noexcept { return min_delta_time_; }
+    [[nodiscard]] double GetMaxDeltaTime() const noexcept { return max_delta_time_; }
+    [[nodiscard]] uint64_t GetFrameCount() const noexcept { return frame_count_; }
 
-    void SetMaxDeltaTime(double max_delta) noexcept { _max_delta_time_limit = max_delta; }
-    void SetSmoothingEnabled(bool enabled) noexcept { _smoothing_enabled = enabled; }
-    [[nodiscard]] bool IsSmoothingEnabled() const noexcept { return _smoothing_enabled; }
-    void SetSleepPacingEnabled(bool enabled) noexcept { _sleep_pacing_enabled = enabled; }
-    [[nodiscard]] bool IsSleepPacingEnabled() const noexcept { return _sleep_pacing_enabled; }
+    void SetMaxDeltaTime(double max_delta) noexcept { max_delta_time_limit_ = max_delta; }
+    void SetSmoothingEnabled(bool enabled) noexcept { smoothing_enabled_ = enabled; }
+    [[nodiscard]] bool IsSmoothingEnabled() const noexcept { return smoothing_enabled_; }
+    void SetSleepPacingEnabled(bool enabled) noexcept { sleep_pacing_enabled_ = enabled; }
+    [[nodiscard]] bool IsSleepPacingEnabled() const noexcept { return sleep_pacing_enabled_; }
 
    private:
     [[nodiscard]] double CalculateSmoothedDeltaTime(double raw_delta) noexcept;
@@ -58,24 +60,24 @@ class TimeStep_C {
     void SleepRemainder(double seconds) const noexcept;
 
     using Clock_T = std::chrono::steady_clock;
-    Clock_T::time_point _last_frame_time;
-    Clock_T::time_point _start_time;
-    double _delta_time = 0.016;
-    double _elapsed_time = 0.0;
-    double _target_fps = 60.0;
-    double _target_frame_time = 1.0 / 60.0;
-    bool _frame_rate_limit_enabled = true;
-    Clock_T::time_point _last_render_time;
-    double _min_delta_time = std::numeric_limits<double>::max();
-    double _max_delta_time = 0.0;
-    uint64_t _frame_count = 0;
-    double _max_delta_time_limit = 0.1;
-    bool _smoothing_enabled = true;
-    bool _sleep_pacing_enabled = false;
+    Clock_T::time_point last_frame_time_;
+    Clock_T::time_point start_time_;
+    double delta_time_ = 0.016;
+    double elapsed_time_ = 0.0;
+    double target_fps_ = 60.0;
+    double target_frame_time_ = 1.0 / 60.0;
+    bool frame_rate_limit_enabled_ = true;
+    Clock_T::time_point last_render_time_;
+    double min_delta_time_ = std::numeric_limits<double>::max();
+    double max_delta_time_ = 0.0;
+    uint64_t frame_count_ = 0;
+    double max_delta_time_limit_ = 0.1;
+    bool smoothing_enabled_ = true;
+    bool sleep_pacing_enabled_ = false;
     static constexpr size_t SMOOTHING_SAMPLES = 10;
-    double _delta_time_history[SMOOTHING_SAMPLES];
-    size_t _history_index = 0;
-    bool _history_filled = false;
+    double delta_time_history_[SMOOTHING_SAMPLES];
+    size_t history_index_ = 0;
+    bool history_filled_ = false;
 };
 
 }  // namespace vne::xwin

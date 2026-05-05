@@ -18,13 +18,13 @@
 #include "vertexnova/xwin/xwin_types.h"
 
 using vne::xwin::WindowAPI_TP;
-using vne::xwin::WindowFactory_C;
+using vne::xwin::WindowFactory;
 using vne::xwin::WindowMode_TP;
 
 namespace {
 
-std::shared_ptr<vne::xwin::WindowManager_I> MakeInitializedNullManager() {
-    auto mgr = WindowFactory_C::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
+std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
+    auto mgr = WindowFactory::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
     EXPECT_NE(mgr, nullptr);
     if (!mgr) {
         return nullptr;

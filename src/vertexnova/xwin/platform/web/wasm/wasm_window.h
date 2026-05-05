@@ -23,14 +23,14 @@ namespace vne::xwin {
 
 class WasmWindowManager_C;
 
-class WasmWindow_C final : public Window_I {
+class WasmWindow_C final : public IWindow {
    public:
     WasmWindow_C();
     ~WasmWindow_C() override;
 
     void SetEventOwner(WasmWindowManager_C* owner);
 
-    void Initialize(const WindowDescriptor_C& descriptor) override;
+    void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
@@ -44,12 +44,12 @@ class WasmWindow_C final : public Window_I {
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
-    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor_TP cursor) override;
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
-    NativeWindowHandle_C GetNativeHandle() const override;
+    NativeWindowHandle GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
@@ -77,14 +77,14 @@ class WasmWindow_C final : public Window_I {
    private:
     const EventBridgeCallbacks& eventBridgeCallbacks() const;
 
-    WasmWindowManager_C* _owner = nullptr;
-    WindowDescriptor_C _desc{};
-    bool _initialized = false;
-    bool _should_close = false;
-    bool _fullscreen = false;
-    void* _canvas_tag = nullptr;
+    WasmWindowManager_C* owner_ = nullptr;
+    WindowDescriptor desc_{};
+    bool initialized_ = false;
+    bool should_close_ = false;
+    bool fullscreen_ = false;
+    void* canvas_tag_ = nullptr;
 
-    EventBridgeCallbacks _empty_callbacks{};
+    EventBridgeCallbacks empty_callbacks_{};
 };
 
 }  // namespace vne::xwin

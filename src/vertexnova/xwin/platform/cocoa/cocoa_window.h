@@ -24,14 +24,14 @@ namespace vne::xwin {
 
 class CocoaWindowManager_C;
 
-class CocoaWindow_C final : public Window_I {
+class CocoaWindow_C final : public IWindow {
    public:
     CocoaWindow_C();
     ~CocoaWindow_C() override;
 
     void SetEventOwner(CocoaWindowManager_C* owner);
 
-    void Initialize(const WindowDescriptor_C& descriptor) override;
+    void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
@@ -45,12 +45,12 @@ class CocoaWindow_C final : public Window_I {
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
-    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor_TP cursor) override;
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
-    NativeWindowHandle_C GetNativeHandle() const override;
+    NativeWindowHandle GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
@@ -74,15 +74,15 @@ class CocoaWindow_C final : public Window_I {
    private:
     void destroy_native();
 
-    CocoaWindowManager_C* _owner = nullptr;
-    WindowDescriptor_C _desc{};
-    bool _open = false;
-    bool _fullscreen = false;
-    void* _ns_window = nullptr;
-    void* _ns_view = nullptr;
-    void* _ns_delegate = nullptr;
+    CocoaWindowManager_C* owner_ = nullptr;
+    WindowDescriptor desc_{};
+    bool open_ = false;
+    bool fullscreen_ = false;
+    void* ns_window_ = nullptr;
+    void* ns_view_ = nullptr;
+    void* ns_delegate_ = nullptr;
 
-    EventBridgeCallbacks _empty_callbacks{};
+    EventBridgeCallbacks empty_callbacks_{};
 };
 
 }  // namespace vne::xwin

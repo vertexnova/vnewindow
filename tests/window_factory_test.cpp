@@ -21,17 +21,17 @@
 #endif
 
 using vne::xwin::WindowAPI_TP;
-using vne::xwin::WindowFactory_C;
+using vne::xwin::WindowFactory;
 
-class WindowFactory_CTest : public ::testing::Test {};
+class WindowFactoryTest : public ::testing::Test {};
 
-TEST_F(WindowFactory_CTest, GetBuildInfo) {
-    const std::string info = WindowFactory_C::GetBuildInfo();
+TEST_F(WindowFactoryTest, GetBuildInfo) {
+    const std::string info = WindowFactory::GetBuildInfo();
     EXPECT_FALSE(info.empty());
 }
 
-TEST_F(WindowFactory_CTest, NullBackendCreatesOpenWindow) {
-    auto mgr = WindowFactory_C::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
+TEST_F(WindowFactoryTest, NullBackendCreatesOpenWindow) {
+    auto mgr = WindowFactory::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
     ASSERT_NE(mgr, nullptr);
     EXPECT_TRUE(mgr->Initialize());
     auto w = mgr->CreateWindow("test", 64, 48);
@@ -44,7 +44,7 @@ TEST_F(WindowFactory_CTest, NullBackendCreatesOpenWindow) {
 namespace {
 
 bool try_desktop_smoke(WindowAPI_TP api) {
-    auto mgr = WindowFactory_C::CreateWindowManager(api);
+    auto mgr = WindowFactory::CreateWindowManager(api);
     if (!mgr) {
         return false;
     }
@@ -73,7 +73,7 @@ bool try_desktop_smoke(WindowAPI_TP api) {
 
 }  // namespace
 
-TEST_F(WindowFactory_CTest, DesktopLifecycleWhenBackendAvailable) {
+TEST_F(WindowFactoryTest, DesktopLifecycleWhenBackendAvailable) {
 #if defined(__APPLE__) && TARGET_OS_IPHONE
     GTEST_SKIP() << "Desktop smoke targets macOS/Win/Linux hosts; iOS uses UIKit.";
 #endif

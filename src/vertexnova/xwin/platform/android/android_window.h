@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Pass ANativeWindow* via WindowDescriptor_C::platform_data from JNI / GameActivity.
+ * Pass ANativeWindow* via WindowDescriptor::platform_data from JNI / GameActivity.
  *
  * Input delivery pattern
  * ----------------------
@@ -30,12 +30,12 @@
 
 namespace vne::xwin {
 
-class AndroidWindow_C final : public Window_I {
+class AndroidWindow_C final : public IWindow {
    public:
     AndroidWindow_C();
     ~AndroidWindow_C() override;
 
-    void Initialize(const WindowDescriptor_C& descriptor) override;
+    void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
@@ -49,12 +49,12 @@ class AndroidWindow_C final : public Window_I {
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
-    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor_TP cursor) override;
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
-    NativeWindowHandle_C GetNativeHandle() const override;
+    NativeWindowHandle GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
@@ -79,10 +79,10 @@ class AndroidWindow_C final : public Window_I {
     void setEventBridgeCallbacks(EventBridgeCallbacks callbacks);
 
    private:
-    WindowDescriptor_C _desc{};
-    bool _open = false;
-    void* _native = nullptr;
-    EventBridgeCallbacks _event_bridge_callbacks{};
+    WindowDescriptor desc_{};
+    bool open_ = false;
+    void* native_ = nullptr;
+    EventBridgeCallbacks event_bridge_callbacks_{};
 };
 
 }  // namespace vne::xwin

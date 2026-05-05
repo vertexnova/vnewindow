@@ -60,147 +60,147 @@ WaylandWindow_C::~WaylandWindow_C() {
 }
 
 void WaylandWindow_C::SetOwner(WaylandWindowManager_C* owner) {
-    _owner = owner;
+    owner_ = owner;
 }
 
 void WaylandWindow_C::destroy_surfaces() {
-    if (_toplevel) {
-        xdg_toplevel_destroy(_toplevel);
-        _toplevel = nullptr;
+    if (toplevel_) {
+        xdg_toplevel_destroy(toplevel_);
+        toplevel_ = nullptr;
     }
-    if (_xdg_surface) {
-        xdg_surface_destroy(_xdg_surface);
-        _xdg_surface = nullptr;
+    if (xdg_surface_) {
+        xdg_surface_destroy(xdg_surface_);
+        xdg_surface_ = nullptr;
     }
-    if (_surface) {
-        wl_surface_destroy(_surface);
-        _surface = nullptr;
+    if (surface_) {
+        wl_surface_destroy(surface_);
+        surface_ = nullptr;
     }
-    _open = false;
+    open_ = false;
 }
 
 void WaylandWindow_C::apply_toplevel_configure(uint32_t width, uint32_t height) {
-    _desc.size.width = width;
-    _desc.size.height = height;
-    if (_owner) {
-        const EventBridgeCallbacks& cb = _owner->eventBridgeCallbacks();
-        eventBridgeWindowResize(this, _desc, cb, width, height);
-        WindowEventData_C ev{};
+    desc_.size.width = width;
+    desc_.size.height = height;
+    if (owner_) {
+        const EventBridgeCallbacks& cb = owner_->eventBridgeCallbacks();
+        eventBridgeWindowResize(this, desc_, cb, width, height);
+        WindowEventData ev{};
         ev.type = WindowEventType_TP::RESIZE;
-        ev.size = _desc.size;
-        _owner->NotifyWindowEvent(this, ev);
+        ev.size = desc_.size;
+        owner_->NotifyWindowEvent(this, ev);
     }
 }
 
 void WaylandWindow_C::apply_toplevel_close() {
-    _open = false;
-    if (_owner) {
-        WindowEventData_C ev{};
+    open_ = false;
+    if (owner_) {
+        WindowEventData ev{};
         ev.type = WindowEventType_TP::CLOSE;
-        _owner->NotifyWindowEvent(this, ev);
+        owner_->NotifyWindowEvent(this, ev);
     }
 }
 
-void WaylandWindow_C::Initialize(const WindowDescriptor_C& descriptor) {
+void WaylandWindow_C::Initialize(const WindowDescriptor& descriptor) {
     destroy_surfaces();
-    _desc = descriptor;
-    if (!_owner || !_owner->NativeCompositor() || !_owner->NativeXdgWmBase()) {
+    desc_ = descriptor;
+    if (!owner_ || !owner_->NativeCompositor() || !owner_->NativeXdgWmBase()) {
         return;
     }
-    _surface = wl_compositor_create_surface(_owner->NativeCompositor());
-    if (!_surface) {
+    surface_ = wl_compositor_create_surface(owner_->NativeCompositor());
+    if (!surface_) {
         return;
     }
-    _xdg_surface = xdg_wm_base_get_xdg_surface(_owner->NativeXdgWmBase(), _surface);
-    if (!_xdg_surface) {
-        wl_surface_destroy(_surface);
-        _surface = nullptr;
+    xdg_surface_ = xdg_wm_base_get_xdg_surface(owner_->NativeXdgWmBase(), surface_);
+    if (!xdg_surface_) {
+        wl_surface_destroy(surface_);
+        surface_ = nullptr;
         return;
     }
-    xdg_surface_add_listener(_xdg_surface, &kXdgSurfaceListener, this);
+    xdg_surface_add_listener(xdg_surface_, &kXdgSurfaceListener, this);
 
-    _toplevel = xdg_surface_get_toplevel(_xdg_surface);
-    if (!_toplevel) {
+    toplevel_ = xdg_surface_get_toplevel(xdg_surface_);
+    if (!toplevel_) {
         destroy_surfaces();
         return;
     }
-    xdg_toplevel_add_listener(_toplevel, &kXdgToplevelListener, this);
-    if (!_desc.title.empty()) {
-        xdg_toplevel_set_title(_toplevel, _desc.title.c_str());
+    xdg_toplevel_add_listener(toplevel_, &kXdgToplevelListener, this);
+    if (!desc_.title.empty()) {
+        xdg_toplevel_set_title(toplevel_, desc_.title.c_str());
     }
-    if (_desc.limits.has_min_size || _desc.limits.has_max_size) {
-        SetWindowLimits(_desc.limits);
+    if (desc_.limits.has_min_size || desc_.limits.has_max_size) {
+        SetWindowLimits(desc_.limits);
     }
-    wl_surface_commit(_surface);
-    if (_owner->NativeDisplay()) {
-        wl_display_roundtrip(_owner->NativeDisplay());
+    wl_surface_commit(surface_);
+    if (owner_->NativeDisplay()) {
+        wl_display_roundtrip(owner_->NativeDisplay());
     }
-    _open = true;
+    open_ = true;
 }
 
 void WaylandWindow_C::PollEvents() {
-    if (_owner && _owner->NativeDisplay()) {
-        wl_display_dispatch_pending(_owner->NativeDisplay());
+    if (owner_ && owner_->NativeDisplay()) {
+        wl_display_dispatch_pending(owner_->NativeDisplay());
     }
 }
 
 void WaylandWindow_C::SwapBuffers() {}
 
 void WaylandWindow_C::SetTitle(const std::string& title) {
-    _desc.title = title;
-    if (_toplevel) {
-        xdg_toplevel_set_title(_toplevel, title.c_str());
-        if (_surface && _owner && _owner->NativeDisplay()) {
-            wl_surface_commit(_surface);
-            wl_display_flush(_owner->NativeDisplay());
+    desc_.title = title;
+    if (toplevel_) {
+        xdg_toplevel_set_title(toplevel_, title.c_str());
+        if (surface_ && owner_ && owner_->NativeDisplay()) {
+            wl_surface_commit(surface_);
+            wl_display_flush(owner_->NativeDisplay());
         }
     }
 }
 
 void WaylandWindow_C::SetWindowMode(WindowMode_TP mode) {
-    _desc.mode = mode;
+    desc_.mode = mode;
 }
 
 WindowMode_TP WaylandWindow_C::GetWindowMode() const {
-    return _desc.mode;
+    return desc_.mode;
 }
 
 void WaylandWindow_C::SetFullscreen(bool enabled) {
-    if (!_toplevel) {
+    if (!toplevel_) {
         return;
     }
     if (enabled) {
-        xdg_toplevel_set_fullscreen(_toplevel, nullptr);
+        xdg_toplevel_set_fullscreen(toplevel_, nullptr);
     } else {
-        xdg_toplevel_unset_fullscreen(_toplevel);
+        xdg_toplevel_unset_fullscreen(toplevel_);
     }
-    if (_surface && _owner && _owner->NativeDisplay()) {
-        wl_surface_commit(_surface);
-        wl_display_flush(_owner->NativeDisplay());
+    if (surface_ && owner_ && owner_->NativeDisplay()) {
+        wl_surface_commit(surface_);
+        wl_display_flush(owner_->NativeDisplay());
     }
-    _fullscreen = enabled;
+    fullscreen_ = enabled;
 }
 
 bool WaylandWindow_C::IsFullscreen() const {
-    return _fullscreen;
+    return fullscreen_;
 }
 
 void WaylandWindow_C::SetPosition(int x, int y) {
-    _desc.position.x = x;
-    _desc.position.y = y;
+    desc_.position.x = x;
+    desc_.position.y = y;
 }
 
 void WaylandWindow_C::GetPosition(int& x, int& y) const {
-    x = _desc.position.x;
-    y = _desc.position.y;
+    x = desc_.position.x;
+    y = desc_.position.y;
 }
 
 void WaylandWindow_C::Resize(uint32_t width, uint32_t height) {
-    _desc.size.width = width;
-    _desc.size.height = height;
-    if (_surface && _owner && _owner->NativeDisplay()) {
-        wl_surface_commit(_surface);
-        wl_display_flush(_owner->NativeDisplay());
+    desc_.size.width = width;
+    desc_.size.height = height;
+    if (surface_ && owner_ && owner_->NativeDisplay()) {
+        wl_surface_commit(surface_);
+        wl_display_flush(owner_->NativeDisplay());
     }
 }
 
@@ -209,18 +209,18 @@ void WaylandWindow_C::Close() {
 }
 
 bool WaylandWindow_C::IsOpen() const {
-    return _open && _surface != nullptr;
+    return open_ && surface_ != nullptr;
 }
 
 void* WaylandWindow_C::GetNativeWindow() const {
-    return _surface;
+    return surface_;
 }
 
-NativeWindowHandle_C WaylandWindow_C::GetNativeHandle() const {
-    NativeWindowHandle_C handle{};
+NativeWindowHandle WaylandWindow_C::GetNativeHandle() const {
+    NativeWindowHandle handle{};
     handle.api = WindowAPI_TP::WAYLAND_WINDOW;
-    handle.wl_display = _owner ? _owner->NativeDisplay() : nullptr;
-    handle.wl_surface = _surface;
+    handle.wl_display = owner_ ? owner_->NativeDisplay() : nullptr;
+    handle.wl_surface = surface_;
     return handle;
 }
 
@@ -229,76 +229,76 @@ WindowAPI_TP WaylandWindow_C::GetWindowAPI() const {
 }
 
 int WaylandWindow_C::GetWidth() const {
-    return static_cast<int>(_desc.size.width);
+    return static_cast<int>(desc_.size.width);
 }
 
 int WaylandWindow_C::GetHeight() const {
-    return static_cast<int>(_desc.size.height);
+    return static_cast<int>(desc_.size.height);
 }
 
 float WaylandWindow_C::GetDPIScale() const {
-    return _owner ? _owner->OutputScale() : 1.0F;
+    return owner_ ? owner_->OutputScale() : 1.0F;
 }
 
 void WaylandWindow_C::Minimize() {
-    if (!_toplevel) {
+    if (!toplevel_) {
         return;
     }
-    xdg_toplevel_set_minimized(_toplevel);
-    if (_surface && _owner && _owner->NativeDisplay()) {
-        wl_surface_commit(_surface);
-        wl_display_flush(_owner->NativeDisplay());
+    xdg_toplevel_set_minimized(toplevel_);
+    if (surface_ && owner_ && owner_->NativeDisplay()) {
+        wl_surface_commit(surface_);
+        wl_display_flush(owner_->NativeDisplay());
     }
 }
 
 void WaylandWindow_C::Maximize() {
-    if (!_toplevel) {
+    if (!toplevel_) {
         return;
     }
-    xdg_toplevel_set_maximized(_toplevel);
-    if (_surface && _owner && _owner->NativeDisplay()) {
-        wl_surface_commit(_surface);
-        wl_display_flush(_owner->NativeDisplay());
+    xdg_toplevel_set_maximized(toplevel_);
+    if (surface_ && owner_ && owner_->NativeDisplay()) {
+        wl_surface_commit(surface_);
+        wl_display_flush(owner_->NativeDisplay());
     }
 }
 
 void WaylandWindow_C::Restore() {
-    if (!_toplevel) {
+    if (!toplevel_) {
         return;
     }
-    if (_fullscreen) {
-        xdg_toplevel_unset_fullscreen(_toplevel);
-        _fullscreen = false;
+    if (fullscreen_) {
+        xdg_toplevel_unset_fullscreen(toplevel_);
+        fullscreen_ = false;
     }
-    xdg_toplevel_unset_maximized(_toplevel);
-    if (_surface && _owner && _owner->NativeDisplay()) {
-        wl_surface_commit(_surface);
-        wl_display_flush(_owner->NativeDisplay());
+    xdg_toplevel_unset_maximized(toplevel_);
+    if (surface_ && owner_ && owner_->NativeDisplay()) {
+        wl_surface_commit(surface_);
+        wl_display_flush(owner_->NativeDisplay());
     }
 }
 
-void WaylandWindow_C::SetWindowLimits(const WindowLimits_C& limits) {
-    _desc.limits = limits;
-    if (!_toplevel) {
+void WaylandWindow_C::SetWindowLimits(const WindowLimits& limits) {
+    desc_.limits = limits;
+    if (!toplevel_) {
         return;
     }
     if (limits.has_min_size) {
-        xdg_toplevel_set_min_size(_toplevel,
+        xdg_toplevel_set_min_size(toplevel_,
                                   static_cast<int32_t>(limits.min_size.width),
                                   static_cast<int32_t>(limits.min_size.height));
     } else {
-        xdg_toplevel_set_min_size(_toplevel, 0, 0);
+        xdg_toplevel_set_min_size(toplevel_, 0, 0);
     }
     if (limits.has_max_size) {
-        xdg_toplevel_set_max_size(_toplevel,
+        xdg_toplevel_set_max_size(toplevel_,
                                   static_cast<int32_t>(limits.max_size.width),
                                   static_cast<int32_t>(limits.max_size.height));
     } else {
-        xdg_toplevel_set_max_size(_toplevel, 0, 0);
+        xdg_toplevel_set_max_size(toplevel_, 0, 0);
     }
-    if (_surface && _owner && _owner->NativeDisplay()) {
-        wl_surface_commit(_surface);
-        wl_display_flush(_owner->NativeDisplay());
+    if (surface_ && owner_ && owner_->NativeDisplay()) {
+        wl_surface_commit(surface_);
+        wl_display_flush(owner_->NativeDisplay());
     }
 }
 

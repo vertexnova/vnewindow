@@ -47,11 +47,11 @@ Win32Window_C::~Win32Window_C() {
 }
 
 void Win32Window_C::SetEventOwner(Win32WindowManager_C* owner) {
-    _event_owner = owner;
+    event_owner_ = owner;
 }
 
-void Win32Window_C::create_window(const WindowDescriptor_C& descriptor) {
-    _desc = descriptor;
+void Win32Window_C::create_window(const WindowDescriptor& descriptor) {
+    desc_ = descriptor;
     HINSTANCE hinst = GetModuleHandleW(nullptr);
 
     WNDCLASSEXW info{};
@@ -68,39 +68,39 @@ void Win32Window_C::create_window(const WindowDescriptor_C& descriptor) {
         }
     }
 
-    RECT r{0, 0, static_cast<LONG>(_desc.size.width), static_cast<LONG>(_desc.size.height)};
+    RECT r{0, 0, static_cast<LONG>(desc_.size.width), static_cast<LONG>(desc_.size.height)};
     DWORD style = WS_OVERLAPPEDWINDOW;
-    if (!_desc.decorated) {
+    if (!desc_.decorated) {
         style = WS_POPUP;
     }
     AdjustWindowRect(&r, style, FALSE);
 
-    const std::wstring title = Utf8ToWide(_desc.title);
-    _hwnd = CreateWindowExW(0,
+    const std::wstring title = Utf8ToWide(desc_.title);
+    hwnd_ = CreateWindowExW(0,
                             kClassName,
                             title.c_str(),
                             style,
-                            _desc.position.x,
-                            _desc.position.y,
+                            desc_.position.x,
+                            desc_.position.y,
                             r.right - r.left,
                             r.bottom - r.top,
                             nullptr,
                             nullptr,
                             hinst,
                             this);
-    if (_hwnd) {
-        _open = true;
-        ShowWindow(_hwnd, _desc.visible ? SW_SHOW : SW_HIDE);
-        UpdateWindow(_hwnd);
+    if (hwnd_) {
+        open_ = true;
+        ShowWindow(hwnd_, desc_.visible ? SW_SHOW : SW_HIDE);
+        UpdateWindow(hwnd_);
     }
 }
 
 void Win32Window_C::destroy_window() {
-    if (_hwnd) {
-        DestroyWindow(_hwnd);
-        _hwnd = nullptr;
+    if (hwnd_) {
+        DestroyWindow(hwnd_);
+        hwnd_ = nullptr;
     }
-    _open = false;
+    open_ = false;
 }
 
 LRESULT CALLBACK Win32Window_C::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -109,7 +109,7 @@ LRESULT CALLBACK Win32Window_C::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
         auto* cs = reinterpret_cast<CREATESTRUCTW*>(lParam);
         self = static_cast<Win32Window_C*>(cs->lpCreateParams);
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
-        self->_hwnd = hwnd;
+        self->hwnd_ = hwnd;
     } else {
         self = reinterpret_cast<Win32Window_C*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
     }
@@ -119,70 +119,70 @@ LRESULT CALLBACK Win32Window_C::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
     const LRESULT out = self->HandleMessage(hwnd, msg, wParam, lParam);
     if (msg == WM_NCDESTROY) {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
-        self->_hwnd = nullptr;
+        self->hwnd_ = nullptr;
     }
     return out;
 }
 
 LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     const EventBridgeCallbacks empty_callbacks{};
-    const EventBridgeCallbacks& cb = _event_owner ? _event_owner->eventBridgeCallbacks() : empty_callbacks;
+    const EventBridgeCallbacks& cb = event_owner_ ? event_owner_->eventBridgeCallbacks() : empty_callbacks;
 
     switch (msg) {
         case WM_CLOSE:
-            eventBridgeWindowClose(this, _desc, cb);
-            _open = false;
-            if (_event_owner) {
-                WindowEventData_C ev{};
+            eventBridgeWindowClose(this, desc_, cb);
+            open_ = false;
+            if (event_owner_) {
+                WindowEventData ev{};
                 ev.type = WindowEventType_TP::CLOSE;
-                _event_owner->NotifyWindowEvent(this, ev);
+                event_owner_->NotifyWindowEvent(this, ev);
             }
             DestroyWindow(hwnd);
             return 0;
         case WM_SIZE: {
             if (wParam != SIZE_MINIMIZED) {
-                _desc.size.width = static_cast<uint32_t>(LOWORD(lParam));
-                _desc.size.height = static_cast<uint32_t>(HIWORD(lParam));
-                eventBridgeWindowResize(this, _desc, cb, _desc.size.width, _desc.size.height);
-                if (_event_owner) {
-                    WindowEventData_C ev{};
+                desc_.size.width = static_cast<uint32_t>(LOWORD(lParam));
+                desc_.size.height = static_cast<uint32_t>(HIWORD(lParam));
+                eventBridgeWindowResize(this, desc_, cb, desc_.size.width, desc_.size.height);
+                if (event_owner_) {
+                    WindowEventData ev{};
                     ev.type = WindowEventType_TP::RESIZE;
-                    ev.size = _desc.size;
-                    _event_owner->NotifyWindowEvent(this, ev);
+                    ev.size = desc_.size;
+                    event_owner_->NotifyWindowEvent(this, ev);
                 }
             }
             return 0;
         }
         case WM_DESTROY:
-            _open = false;
+            open_ = false;
             return 0;
         case WM_SETFOCUS:
-            eventBridgeWindowFocus(this, _desc, cb, true);
-            if (_event_owner) {
-                WindowEventData_C ev{};
+            eventBridgeWindowFocus(this, desc_, cb, true);
+            if (event_owner_) {
+                WindowEventData ev{};
                 ev.type = WindowEventType_TP::FOCUS;
                 ev.focused = true;
-                _event_owner->NotifyWindowEvent(this, ev);
+                event_owner_->NotifyWindowEvent(this, ev);
             }
             return 0;
         case WM_KILLFOCUS:
-            eventBridgeWindowFocus(this, _desc, cb, false);
-            if (_event_owner) {
-                WindowEventData_C ev{};
+            eventBridgeWindowFocus(this, desc_, cb, false);
+            if (event_owner_) {
+                WindowEventData ev{};
                 ev.type = WindowEventType_TP::FOCUS;
                 ev.focused = false;
-                _event_owner->NotifyWindowEvent(this, ev);
+                event_owner_->NotifyWindowEvent(this, ev);
             }
             return 0;
         case WM_KEYDOWN:
         case WM_SYSKEYDOWN: {
-            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.onKeyDown);
+            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onKeyDown);
             if (want_vne) {
                 const vne::events::KeyCode kc = mapWin32Key(wParam, lParam);
                 if (kc != vne::events::KeyCode::eUnknown) {
                     const std::uint8_t mods = mapWin32ModifierFlags();
                     const bool repeat = (lParam & (1 << 30)) != 0;
-                    eventBridgeKeyDown(this, _desc, cb, kc, mods, repeat);
+                    eventBridgeKeyDown(this, desc_, cb, kc, mods, repeat);
                 }
             }
             if (msg == WM_SYSKEYDOWN) {
@@ -192,12 +192,12 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         }
         case WM_KEYUP:
         case WM_SYSKEYUP: {
-            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.onKeyUp);
+            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onKeyUp);
             if (want_vne) {
                 const vne::events::KeyCode kc = mapWin32Key(wParam, lParam);
                 if (kc != vne::events::KeyCode::eUnknown) {
                     const std::uint8_t mods = mapWin32ModifierFlags();
-                    eventBridgeKeyUp(this, _desc, cb, kc, mods);
+                    eventBridgeKeyUp(this, desc_, cb, kc, mods);
                 }
             }
             if (msg == WM_SYSKEYUP) {
@@ -213,7 +213,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         case WM_MBUTTONUP:
         case WM_XBUTTONDOWN:
         case WM_XBUTTONUP: {
-            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.onMouseButton);
+            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onMouseButton);
             if (want_vne) {
                 const int x = GET_X_LPARAM(lParam);
                 const int y = GET_Y_LPARAM(lParam);
@@ -222,7 +222,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 const bool down =
                     (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
                 eventBridgeMouseButton(this,
-                                       _desc,
+                                       desc_,
                                        cb,
                                        btn,
                                        down,
@@ -233,35 +233,35 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             return 0;
         }
         case WM_MOUSEMOVE: {
-            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.onMouseMove);
+            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onMouseMove);
             if (want_vne) {
                 const int x = GET_X_LPARAM(lParam);
                 const int y = GET_Y_LPARAM(lParam);
                 const std::uint8_t mods = mapWin32ModifierFlags();
-                eventBridgeMouseMove(this, _desc, cb, static_cast<double>(x), static_cast<double>(y), mods);
+                eventBridgeMouseMove(this, desc_, cb, static_cast<double>(x), static_cast<double>(y), mods);
             }
             return 0;
         }
         case WM_MOUSEWHEEL: {
-            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.onMouseScroll);
+            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onMouseScroll);
             if (want_vne) {
                 const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
                 const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-                eventBridgeMouseScroll(this, _desc, cb, 0.0F, step);
+                eventBridgeMouseScroll(this, desc_, cb, 0.0F, step);
             }
             return 0;
         }
         case WM_MOUSEHWHEEL: {
-            const bool want_vne = _desc.enable_input || _desc.enable_events || static_cast<bool>(cb.onMouseScroll);
+            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onMouseScroll);
             if (want_vne) {
                 const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
                 const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-                eventBridgeMouseScroll(this, _desc, cb, step, 0.0F);
+                eventBridgeMouseScroll(this, desc_, cb, step, 0.0F);
             }
             return 0;
         }
         case WM_CHAR: {
-            const bool want_text = _desc.enable_events || static_cast<bool>(cb.onTextInput);
+            const bool want_text = desc_.enable_events || static_cast<bool>(cb.onTextInput);
             if (want_text) {
                 // wParam is a UTF-16 code unit; handle surrogate pairs
                 static wchar_t high_surrogate = 0;
@@ -286,7 +286,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                     const int n = WideCharToMultiByte(CP_UTF8, 0, wide, wide_len, utf8, 4, nullptr, nullptr);
                     if (n > 0) {
                         utf8[n] = '\0';
-                        eventBridgeTextInput(this, _desc, cb, utf8);
+                        eventBridgeTextInput(this, desc_, cb, utf8);
                     }
                 }
             }
@@ -294,13 +294,13 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         }
         case WM_GETMINMAXINFO: {
             auto* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
-            if (_desc.limits.has_min_size) {
-                mmi->ptMinTrackSize.x = static_cast<LONG>(_desc.limits.min_size.width);
-                mmi->ptMinTrackSize.y = static_cast<LONG>(_desc.limits.min_size.height);
+            if (desc_.limits.has_min_size) {
+                mmi->ptMinTrackSize.x = static_cast<LONG>(desc_.limits.min_size.width);
+                mmi->ptMinTrackSize.y = static_cast<LONG>(desc_.limits.min_size.height);
             }
-            if (_desc.limits.has_max_size) {
-                mmi->ptMaxTrackSize.x = static_cast<LONG>(_desc.limits.max_size.width);
-                mmi->ptMaxTrackSize.y = static_cast<LONG>(_desc.limits.max_size.height);
+            if (desc_.limits.has_max_size) {
+                mmi->ptMaxTrackSize.x = static_cast<LONG>(desc_.limits.max_size.width);
+                mmi->ptMaxTrackSize.y = static_cast<LONG>(desc_.limits.max_size.height);
             }
             return 0;
         }
@@ -309,17 +309,17 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
     }
 }
 
-void Win32Window_C::Initialize(const WindowDescriptor_C& descriptor) {
+void Win32Window_C::Initialize(const WindowDescriptor& descriptor) {
     destroy_window();
     create_window(descriptor);
 }
 
 void Win32Window_C::PollEvents() {
-    if (!_hwnd) {
+    if (!hwnd_) {
         return;
     }
     MSG msg{};
-    while (PeekMessageW(&msg, _hwnd, 0, 0, PM_REMOVE)) {
+    while (PeekMessageW(&msg, hwnd_, 0, 0, PM_REMOVE)) {
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
     }
@@ -328,31 +328,31 @@ void Win32Window_C::PollEvents() {
 void Win32Window_C::SwapBuffers() {}
 
 void Win32Window_C::SetTitle(const std::string& title) {
-    _desc.title = title;
-    if (_hwnd) {
-        SetWindowTextW(_hwnd, Utf8ToWide(title).c_str());
+    desc_.title = title;
+    if (hwnd_) {
+        SetWindowTextW(hwnd_, Utf8ToWide(title).c_str());
     }
 }
 
 void Win32Window_C::SetWindowMode(WindowMode_TP mode) {
-    _mode = mode;
-    if (!_hwnd) {
+    mode_ = mode;
+    if (!hwnd_) {
         return;
     }
     if (mode == WindowMode_TP::FULLSCREEN) {
         SetFullscreen(true);
         return;
     }
-    if (_fullscreen) {
+    if (fullscreen_) {
         SetFullscreen(false);
     }
     if (mode == WindowMode_TP::BORDERLESS) {
-        HMONITOR mon = MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST);
+        HMONITOR mon = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
         MONITORINFO mi{};
         mi.cbSize = sizeof(mi);
         GetMonitorInfoW(mon, &mi);
-        SetWindowLongW(_hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-        SetWindowPos(_hwnd,
+        SetWindowLongW(hwnd_, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+        SetWindowPos(hwnd_,
                      HWND_TOP,
                      mi.rcMonitor.left,
                      mi.rcMonitor.top,
@@ -361,29 +361,29 @@ void Win32Window_C::SetWindowMode(WindowMode_TP mode) {
                      SWP_FRAMECHANGED | SWP_NOACTIVATE);
         return;
     }
-    SetWindowLongW(_hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-    SetWindowPos(_hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER);
+    SetWindowLongW(hwnd_, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+    SetWindowPos(hwnd_, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER);
 }
 
 WindowMode_TP Win32Window_C::GetWindowMode() const {
-    return _mode;
+    return mode_;
 }
 
 void Win32Window_C::SetFullscreen(bool enabled) {
-    if (!_hwnd || enabled == _fullscreen) {
+    if (!hwnd_ || enabled == fullscreen_) {
         return;
     }
     if (enabled) {
         // Save current style and rect
-        _saved_style = static_cast<DWORD>(GetWindowLongW(_hwnd, GWL_STYLE));
-        GetWindowRect(_hwnd, &_saved_rect);
+        saved_style_ = static_cast<DWORD>(GetWindowLongW(hwnd_, GWL_STYLE));
+        GetWindowRect(hwnd_, &saved_rect_);
         // Get monitor covering the window
-        HMONITOR mon = MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST);
+        HMONITOR mon = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
         MONITORINFO mi{};
         mi.cbSize = sizeof(mi);
         GetMonitorInfoW(mon, &mi);
-        SetWindowLongW(_hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-        SetWindowPos(_hwnd,
+        SetWindowLongW(hwnd_, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+        SetWindowPos(hwnd_,
                      HWND_TOP,
                      mi.rcMonitor.left,
                      mi.rcMonitor.top,
@@ -391,43 +391,43 @@ void Win32Window_C::SetFullscreen(bool enabled) {
                      mi.rcMonitor.bottom - mi.rcMonitor.top,
                      SWP_FRAMECHANGED | SWP_NOACTIVATE);
     } else {
-        SetWindowLongW(_hwnd, GWL_STYLE, _saved_style);
-        SetWindowPos(_hwnd,
+        SetWindowLongW(hwnd_, GWL_STYLE, saved_style_);
+        SetWindowPos(hwnd_,
                      nullptr,
-                     _saved_rect.left,
-                     _saved_rect.top,
-                     _saved_rect.right - _saved_rect.left,
-                     _saved_rect.bottom - _saved_rect.top,
+                     saved_rect_.left,
+                     saved_rect_.top,
+                     saved_rect_.right - saved_rect_.left,
+                     saved_rect_.bottom - saved_rect_.top,
                      SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER);
-        ShowWindow(_hwnd, SW_RESTORE);
+        ShowWindow(hwnd_, SW_RESTORE);
     }
-    _fullscreen = enabled;
+    fullscreen_ = enabled;
 }
 
 bool Win32Window_C::IsFullscreen() const {
-    return _fullscreen;
+    return fullscreen_;
 }
 
 void Win32Window_C::Minimize() {
-    if (_hwnd) {
-        ShowWindow(_hwnd, SW_MINIMIZE);
+    if (hwnd_) {
+        ShowWindow(hwnd_, SW_MINIMIZE);
     }
 }
 
 void Win32Window_C::Maximize() {
-    if (_hwnd) {
-        ShowWindow(_hwnd, SW_MAXIMIZE);
+    if (hwnd_) {
+        ShowWindow(hwnd_, SW_MAXIMIZE);
     }
 }
 
 void Win32Window_C::Restore() {
-    if (_hwnd) {
-        ShowWindow(_hwnd, SW_RESTORE);
+    if (hwnd_) {
+        ShowWindow(hwnd_, SW_RESTORE);
     }
 }
 
-void Win32Window_C::SetWindowLimits(const WindowLimits_C& limits) {
-    _desc.limits = limits;
+void Win32Window_C::SetWindowLimits(const WindowLimits& limits) {
+    desc_.limits = limits;
     // Limits are enforced in WM_GETMINMAXINFO inside HandleMessage
 }
 
@@ -441,10 +441,10 @@ void Win32Window_C::SetCursor(WindowCursor_TP cursor) {
         case WindowCursor_TP::DISABLED:
             while (ShowCursor(FALSE) >= 0) {
             }
-            if (_hwnd) {
+            if (hwnd_) {
                 RECT r{};
-                GetClientRect(_hwnd, &r);
-                MapWindowPoints(_hwnd, nullptr, reinterpret_cast<POINT*>(&r), 2);
+                GetClientRect(hwnd_, &r);
+                MapWindowPoints(hwnd_, nullptr, reinterpret_cast<POINT*>(&r), 2);
                 ClipCursor(&r);
             }
             break;
@@ -458,19 +458,19 @@ void Win32Window_C::SetCursor(WindowCursor_TP cursor) {
 }
 
 void Win32Window_C::SetPosition(int x, int y) {
-    _desc.position.x = x;
-    _desc.position.y = y;
-    if (_hwnd) {
-        SetWindowPos(_hwnd, nullptr, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+    desc_.position.x = x;
+    desc_.position.y = y;
+    if (hwnd_) {
+        SetWindowPos(hwnd_, nullptr, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
     }
 }
 
 void Win32Window_C::GetPosition(int& x, int& y) const {
-    x = _desc.position.x;
-    y = _desc.position.y;
-    if (_hwnd) {
+    x = desc_.position.x;
+    y = desc_.position.y;
+    if (hwnd_) {
         RECT r{};
-        if (GetWindowRect(_hwnd, &r)) {
+        if (GetWindowRect(hwnd_, &r)) {
             x = r.left;
             y = r.top;
         }
@@ -478,10 +478,10 @@ void Win32Window_C::GetPosition(int& x, int& y) const {
 }
 
 void Win32Window_C::Resize(uint32_t width, uint32_t height) {
-    _desc.size.width = width;
-    _desc.size.height = height;
-    if (_hwnd) {
-        SetWindowPos(_hwnd,
+    desc_.size.width = width;
+    desc_.size.height = height;
+    if (hwnd_) {
+        SetWindowPos(hwnd_,
                      nullptr,
                      0,
                      0,
@@ -492,25 +492,25 @@ void Win32Window_C::Resize(uint32_t width, uint32_t height) {
 }
 
 void Win32Window_C::Close() {
-    if (_hwnd) {
-        DestroyWindow(_hwnd);
-        _hwnd = nullptr;
+    if (hwnd_) {
+        DestroyWindow(hwnd_);
+        hwnd_ = nullptr;
     }
-    _open = false;
+    open_ = false;
 }
 
 bool Win32Window_C::IsOpen() const {
-    return _open && _hwnd != nullptr;
+    return open_ && hwnd_ != nullptr;
 }
 
 void* Win32Window_C::GetNativeWindow() const {
-    return _hwnd;
+    return hwnd_;
 }
 
-NativeWindowHandle_C Win32Window_C::GetNativeHandle() const {
-    NativeWindowHandle_C handle{};
+NativeWindowHandle Win32Window_C::GetNativeHandle() const {
+    NativeWindowHandle handle{};
     handle.api = WindowAPI_TP::WIN32_WINDOW;
-    handle.hwnd = _hwnd;
+    handle.hwnd = hwnd_;
     return handle;
 }
 
@@ -519,28 +519,28 @@ WindowAPI_TP Win32Window_C::GetWindowAPI() const {
 }
 
 int Win32Window_C::GetWidth() const {
-    return static_cast<int>(_desc.size.width);
+    return static_cast<int>(desc_.size.width);
 }
 
 int Win32Window_C::GetHeight() const {
-    return static_cast<int>(_desc.size.height);
+    return static_cast<int>(desc_.size.height);
 }
 
 float Win32Window_C::GetDPIScale() const {
-    if (!_hwnd) {
+    if (!hwnd_) {
         return 1.0F;
     }
     using GetDpiForWindowFn = UINT(WINAPI*)(HWND);
     static auto fn =
         reinterpret_cast<GetDpiForWindowFn>(GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetDpiForWindow"));
     if (fn) {
-        return static_cast<float>(fn(_hwnd)) / 96.0F;
+        return static_cast<float>(fn(hwnd_)) / 96.0F;
     }
     return 1.0F;
 }
 
 std::string Win32Window_C::GetClipboardText() const {
-    if (!OpenClipboard(_hwnd)) {
+    if (!OpenClipboard(hwnd_)) {
         return {};
     }
     HANDLE h = GetClipboardData(CF_UNICODETEXT);
@@ -565,7 +565,7 @@ std::string Win32Window_C::GetClipboardText() const {
 }
 
 void Win32Window_C::SetClipboardText(const std::string& text) {
-    if (!OpenClipboard(_hwnd)) {
+    if (!OpenClipboard(hwnd_)) {
         return;
     }
     EmptyClipboard();
@@ -591,7 +591,7 @@ void Win32Window_C::SetClipboardText(const std::string& text) {
 }
 
 void Win32Window_C::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
-    if (!_hwnd || !rgba_pixels || width == 0 || height == 0) {
+    if (!hwnd_ || !rgba_pixels || width == 0 || height == 0) {
         return;
     }
     BITMAPV5HEADER bi{};
@@ -632,8 +632,8 @@ void Win32Window_C::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, ui
     if (!icon) {
         return;
     }
-    SendMessageW(_hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
-    SendMessageW(_hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
+    SendMessageW(hwnd_, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
+    SendMessageW(hwnd_, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
     DestroyIcon(icon);
 }
 

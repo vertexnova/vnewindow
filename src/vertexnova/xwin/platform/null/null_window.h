@@ -14,12 +14,12 @@
 
 namespace vne::xwin {
 
-class NullWindow_C final : public Window_I {
+class NullWindow_C final : public IWindow {
    public:
     NullWindow_C() = default;
     ~NullWindow_C() override = default;
 
-    void Initialize(const WindowDescriptor_C& descriptor) override;
+    void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
@@ -30,7 +30,7 @@ class NullWindow_C final : public Window_I {
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
-    void SetWindowLimits(const WindowLimits_C& limits) override;
+    void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor_TP cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
@@ -38,14 +38,14 @@ class NullWindow_C final : public Window_I {
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
-    NativeWindowHandle_C GetNativeHandle() const override;
+    NativeWindowHandle GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
 
    private:
-    WindowDescriptor_C _descriptor{};
-    bool _open = false;
+    WindowDescriptor descriptor_{};
+    bool open_ = false;
 };
 
 }  // namespace vne::xwin

@@ -1,9 +1,3 @@
-/*
- * Bridges native xwin paths to vne::events (Input + EventManager) and optional
- * per-window callbacks. Application should call vne::events::Input::nextFrame()
- * once per frame after game logic; call EventManager::processEvents() when
- * draining the queue is desired.
- */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -13,6 +7,12 @@
  *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
+ */
+
+/* Bridges native xwin paths to vne::events (Input + EventManager) and optional
+ * per-window callbacks. Application should call vne::events::Input::nextFrame()
+ * once per frame after game logic; call EventManager::processEvents() when
+ * draining the queue is desired.
  */
 
 #include "event_bridge.h"
@@ -41,8 +41,8 @@ void pushKeyReleased(vne::events::KeyCode key, uint8_t modifiers) {
 
 }  // namespace
 
-void eventBridgeKeyDown(Window_I* window,
-                        const WindowDescriptor_C& descriptor,
+void eventBridgeKeyDown(IWindow* window,
+                        const WindowDescriptor& descriptor,
                         const EventBridgeCallbacks& callbacks,
                         vne::events::KeyCode key,
                         uint8_t modifiers,
@@ -66,8 +66,8 @@ void eventBridgeKeyDown(Window_I* window,
     }
 }
 
-void eventBridgeKeyUp(Window_I* window,
-                      const WindowDescriptor_C& descriptor,
+void eventBridgeKeyUp(IWindow* window,
+                      const WindowDescriptor& descriptor,
                       const EventBridgeCallbacks& callbacks,
                       vne::events::KeyCode key,
                       uint8_t modifiers) {
@@ -86,8 +86,8 @@ void eventBridgeKeyUp(Window_I* window,
     }
 }
 
-void eventBridgeMouseButton(Window_I* window,
-                            const WindowDescriptor_C& descriptor,
+void eventBridgeMouseButton(IWindow* window,
+                            const WindowDescriptor& descriptor,
                             const EventBridgeCallbacks& callbacks,
                             vne::events::MouseButton button,
                             bool pressed,
@@ -112,8 +112,8 @@ void eventBridgeMouseButton(Window_I* window,
     }
 }
 
-void eventBridgeMouseMove(Window_I* window,
-                          const WindowDescriptor_C& descriptor,
+void eventBridgeMouseMove(IWindow* window,
+                          const WindowDescriptor& descriptor,
                           const EventBridgeCallbacks& callbacks,
                           double x,
                           double y,
@@ -130,8 +130,8 @@ void eventBridgeMouseMove(Window_I* window,
     }
 }
 
-void eventBridgeMouseScroll(Window_I* window,
-                            const WindowDescriptor_C& descriptor,
+void eventBridgeMouseScroll(IWindow* window,
+                            const WindowDescriptor& descriptor,
                             const EventBridgeCallbacks& callbacks,
                             float x_offset,
                             float y_offset) {
@@ -148,8 +148,8 @@ void eventBridgeMouseScroll(Window_I* window,
     }
 }
 
-void eventBridgeTouch(Window_I* window,
-                      const WindowDescriptor_C& descriptor,
+void eventBridgeTouch(IWindow* window,
+                      const WindowDescriptor& descriptor,
                       const EventBridgeCallbacks& callbacks,
                       uint32_t touch_id,
                       double x,
@@ -179,8 +179,8 @@ void eventBridgeTouch(Window_I* window,
     }
 }
 
-void eventBridgeWindowResize(Window_I* window,
-                             const WindowDescriptor_C& descriptor,
+void eventBridgeWindowResize(IWindow* window,
+                             const WindowDescriptor& descriptor,
                              const EventBridgeCallbacks& callbacks,
                              uint32_t width,
                              uint32_t height) {
@@ -195,8 +195,8 @@ void eventBridgeWindowResize(Window_I* window,
     (void)callbacks;
 }
 
-void eventBridgeWindowClose(Window_I* window,
-                            const WindowDescriptor_C& descriptor,
+void eventBridgeWindowClose(IWindow* window,
+                            const WindowDescriptor& descriptor,
                             const EventBridgeCallbacks& callbacks) {
     if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::WindowCloseEvent>());
@@ -205,8 +205,8 @@ void eventBridgeWindowClose(Window_I* window,
     (void)callbacks;
 }
 
-void eventBridgeWindowFocus(Window_I* window,
-                            const WindowDescriptor_C& descriptor,
+void eventBridgeWindowFocus(IWindow* window,
+                            const WindowDescriptor& descriptor,
                             const EventBridgeCallbacks& callbacks,
                             bool focused) {
     if (descriptor.enable_events) {
@@ -217,8 +217,8 @@ void eventBridgeWindowFocus(Window_I* window,
     }
 }
 
-void eventBridgeTextInput(Window_I* window,
-                          const WindowDescriptor_C& descriptor,
+void eventBridgeTextInput(IWindow* window,
+                          const WindowDescriptor& descriptor,
                           const EventBridgeCallbacks& callbacks,
                           const char* utf8_text) {
     if (!utf8_text || utf8_text[0] == '\0') {
