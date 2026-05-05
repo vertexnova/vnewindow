@@ -307,7 +307,7 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
                                            0x69,
                                            0x6f,
                                            0x70,  // q w e r t y u i o p
-                                           // 20: brackets, enter, ctrl, home row
+                                                  // 20: brackets, enter, ctrl, home row
                                            0x5b,
                                            0x5d,
                                            0xff0d,
@@ -318,7 +318,7 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
                                            0x66,
                                            0x67,
                                            0x68,  // [ ] enter ctrl a s d f g h
-                                           // 30: j k l ; ' ` lshift \ z x
+                                                  // 30: j k l ; ' ` lshift \ z x
                                            0x6a,
                                            0x6b,
                                            0x6c,
@@ -329,7 +329,7 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
                                            0x5c,
                                            0x7a,
                                            0x78,  // j k l ; ' ` lshift \ z x
-                                           // 40: c v b n m , . / rshift kp*
+                                                  // 40: c v b n m , . / rshift kp*
                                            0x63,
                                            0x76,
                                            0x62,
@@ -340,7 +340,7 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
                                            0x2f,
                                            0,
                                            0,  // c v b n m , . / rshift kp*
-                                           // 50: alt space caps f1-f10
+                                               // 50: alt space caps f1-f10
                                            0,
                                            0x20,
                                            0xffe5,
@@ -351,7 +351,7 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
                                            0xffc2,
                                            0xffc3,
                                            0xffc4,  // alt sp caps f1-f9
-                                           // 60: f10 numlock scroll 7 8 9 kp- 4 5 6
+                                                    // 60: f10 numlock scroll 7 8 9 kp- 4 5 6
                                            0xffc9,
                                            0xff7f,
                                            0xff14,
