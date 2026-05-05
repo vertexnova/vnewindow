@@ -304,6 +304,33 @@ void Win32Window_C::SetTitle(const std::string& title) {
 
 void Win32Window_C::SetWindowMode(WindowMode_TP mode) {
     _mode = mode;
+    if (!_hwnd) {
+        return;
+    }
+    if (mode == WindowMode_TP::FULLSCREEN) {
+        SetFullscreen(true);
+        return;
+    }
+    if (_fullscreen) {
+        SetFullscreen(false);
+    }
+    if (mode == WindowMode_TP::BORDERLESS) {
+        HMONITOR mon = MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi{};
+        mi.cbSize = sizeof(mi);
+        GetMonitorInfoW(mon, &mi);
+        SetWindowLongW(_hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+        SetWindowPos(_hwnd,
+                     HWND_TOP,
+                     mi.rcMonitor.left,
+                     mi.rcMonitor.top,
+                     mi.rcMonitor.right - mi.rcMonitor.left,
+                     mi.rcMonitor.bottom - mi.rcMonitor.top,
+                     SWP_FRAMECHANGED | SWP_NOACTIVATE);
+        return;
+    }
+    SetWindowLongW(_hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+    SetWindowPos(_hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER);
 }
 
 WindowMode_TP Win32Window_C::GetWindowMode() const {
@@ -446,6 +473,13 @@ bool Win32Window_C::IsOpen() const {
 
 void* Win32Window_C::GetNativeWindow() const {
     return _hwnd;
+}
+
+NativeWindowHandle_C Win32Window_C::GetNativeHandle() const {
+    NativeWindowHandle_C handle{};
+    handle.api = WindowAPI_TP::WIN32_WINDOW;
+    handle.hwnd = _hwnd;
+    return handle;
 }
 
 WindowAPI_TP Win32Window_C::GetWindowAPI() const {

@@ -12,6 +12,7 @@
 
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_descriptor.h"
+#include "vertexnova/xwin/monitor_info.h"
 #include "vertexnova/xwin/xwin_types.h"
 #include "vertexnova/xwin/event_bridge_callbacks.h"
 
@@ -63,10 +64,24 @@ class WindowManager_I {
 
     virtual std::string GetProperties() const = 0;
     virtual void SetProperties(const std::string& properties) = 0;
+    virtual uint32_t GetMonitorCount() const;
+    virtual MonitorInfo_C GetMonitorInfo(uint32_t index) const;
+    virtual uint32_t GetPrimaryMonitorIndex() const;
 
     virtual uint64_t GetCurrentTime() const = 0;
     virtual void Sleep(uint32_t milliseconds) const = 0;
     virtual double GetPlatformTime() const = 0;
 };
+
+inline uint32_t WindowManager_I::GetMonitorCount() const {
+    return 0;
+}
+inline MonitorInfo_C WindowManager_I::GetMonitorInfo(uint32_t index) const {
+    (void)index;
+    return {};
+}
+inline uint32_t WindowManager_I::GetPrimaryMonitorIndex() const {
+    return 0;
+}
 
 }  // namespace vne::xwin

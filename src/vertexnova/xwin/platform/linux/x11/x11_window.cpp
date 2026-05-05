@@ -20,6 +20,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
+#include <cstdint>
 
 namespace vne::xwin {
 
@@ -50,10 +51,11 @@ void X11Window_C::SetEventOwner(X11WindowManager_C* owner) {
     _owner = owner;
 }
 
-void X11Window_C::SetDisplay(Display* display, int screen, ::Window root) {
+void X11Window_C::SetDisplay(Display* display, int screen, ::Window root, void* xcb_connection) {
     _display = display;
     _screen = screen;
     _root = root;
+    _xcb_connection = xcb_connection;
 }
 
 void X11Window_C::destroy() {
@@ -234,6 +236,34 @@ void X11Window_C::SetTitle(const std::string& title) {
 
 void X11Window_C::SetWindowMode(WindowMode_TP mode) {
     _desc.mode = mode;
+    if (!_display || !_window) {
+        return;
+    }
+    if (mode == WindowMode_TP::FULLSCREEN) {
+        SetFullscreen(true);
+        return;
+    }
+    if (_fullscreen) {
+        SetFullscreen(false);
+    }
+    if (mode == WindowMode_TP::BORDERLESS) {
+        struct MotifWmHints {
+            uint32_t flags;
+            uint32_t functions;
+            uint32_t decorations;
+            int32_t input_mode;
+            uint32_t status;
+        } hints{2U, 0U, 0U, 0, 0U};
+        Atom hints_atom = XInternAtom(_display, "_MOTIF_WM_HINTS", False);
+        XChangeProperty(_display,
+                        _window,
+                        hints_atom,
+                        hints_atom,
+                        32,
+                        PropModeReplace,
+                        reinterpret_cast<unsigned char*>(&hints),
+                        5);
+    }
 }
 
 WindowMode_TP X11Window_C::GetWindowMode() const {
@@ -383,6 +413,16 @@ void* X11Window_C::GetNativeWindow() const {
     return reinterpret_cast<void*>(static_cast<uintptr_t>(_window));
 }
 
+NativeWindowHandle_C X11Window_C::GetNativeHandle() const {
+    NativeWindowHandle_C handle{};
+    handle.api = WindowAPI_TP::X11_WINDOW;
+    handle.x11_display = _display;
+    handle.x11_window_id = static_cast<uint32_t>(_window);
+    handle.xcb_connection = _xcb_connection;
+    handle.xcb_window_id = static_cast<uint32_t>(_window);
+    return handle;
+}
+
 WindowAPI_TP X11Window_C::GetWindowAPI() const {
     return WindowAPI_TP::X11_WINDOW;
 }
@@ -393,6 +433,19 @@ int X11Window_C::GetWidth() const {
 
 int X11Window_C::GetHeight() const {
     return static_cast<int>(_desc.size.height);
+}
+
+float X11Window_C::GetDPIScale() const {
+    if (!_display) {
+        return 1.0F;
+    }
+    const int width_px = DisplayWidth(_display, _screen);
+    const int width_mm = DisplayWidthMM(_display, _screen);
+    if (width_px <= 0 || width_mm <= 0) {
+        return 1.0F;
+    }
+    const float dpi = (static_cast<float>(width_px) * 25.4F) / static_cast<float>(width_mm);
+    return dpi / 96.0F;
 }
 
 }  // namespace vne::xwin

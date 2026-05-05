@@ -47,6 +47,24 @@ const wl_registry_listener kRegistryListener = {
     registry_global_remove,
 };
 
+void output_geometry(void*,
+                     struct wl_output*,
+                     int32_t,
+                     int32_t,
+                     int32_t,
+                     int32_t,
+                     int32_t,
+                     const char*,
+                     const char*,
+                     int32_t) {}
+void output_mode(void*, struct wl_output*, uint32_t, int32_t, int32_t, int32_t) {}
+void output_done(void*, struct wl_output*) {}
+void output_scale(void* data, struct wl_output*, int32_t factor) {
+    auto* self = static_cast<WaylandWindowManager_C*>(data);
+    self->on_output_scale(factor);
+}
+const wl_output_listener kOutputListener = {output_geometry, output_mode, output_done, output_scale};
+
 // ---- xdg_wm_base ping ----
 
 void xdg_ping(void*, struct xdg_wm_base* base, uint32_t serial) {
@@ -547,6 +565,12 @@ void WaylandWindowManager_C::on_pointer_axis(double x_off, double y_off) {
                            static_cast<float>(y_off));
 }
 
+void WaylandWindowManager_C::on_output_scale(int32_t factor) {
+    if (factor > 0) {
+        _output_scale = factor;
+    }
+}
+
 void WaylandWindowManager_C::on_touch_down(uint32_t id, double x, double y) {
     WaylandWindow_C* win = focused_window();
     if (!win) {
@@ -621,6 +645,12 @@ void WaylandWindowManager_C::on_registry_global(struct wl_registry* registry,
         bind_xdg_wm_base(registry, name, version);
     } else if (std::strcmp(interface, wl_seat_interface.name) == 0) {
         bind_seat(registry, name, version);
+    } else if (std::strcmp(interface, wl_output_interface.name) == 0 && !_output) {
+        const uint32_t ver = version < 2U ? version : 2U;
+        _output = static_cast<wl_output*>(wl_registry_bind(registry, name, &wl_output_interface, ver));
+        if (_output) {
+            wl_output_add_listener(_output, &kOutputListener, this);
+        }
     }
 }
 
@@ -700,6 +730,10 @@ void WaylandWindowManager_C::teardown_globals() {
     if (_wl_touch) {
         wl_touch_destroy(_wl_touch);
         _wl_touch = nullptr;
+    }
+    if (_output) {
+        wl_output_destroy(_output);
+        _output = nullptr;
     }
     if (_seat) {
         wl_seat_destroy(_seat);

@@ -38,6 +38,7 @@ class NullWindow_C final : public Window_I {
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
+    NativeWindowHandle_C GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;

@@ -31,6 +31,19 @@ TEST(VneXWin, FactoryNullBackend) {
     mgr->Shutdown();
 }
 
+TEST(VneXWin, NativeHandleFields) {
+    auto mgr = vne::xwin::WindowFactory_C::CreateWindowManager(vne::xwin::WindowAPI_TP::NULL_WINDOW);
+    ASSERT_NE(mgr, nullptr);
+    ASSERT_TRUE(mgr->Initialize());
+    auto w = mgr->CreateWindow("test", 64, 48);
+    ASSERT_NE(w, nullptr);
+    const auto handle = w->GetNativeHandle();
+    EXPECT_EQ(handle.api, vne::xwin::WindowAPI_TP::NULL_WINDOW);
+    EXPECT_EQ(handle.hwnd, nullptr);
+    EXPECT_EQ(handle.canvas_id, nullptr);
+    mgr->Shutdown();
+}
+
 TEST(VneXWin, FactoryGetBuildInfo) {
     const std::string info = vne::xwin::WindowFactory_C::GetBuildInfo();
     EXPECT_FALSE(info.empty());

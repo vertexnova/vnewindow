@@ -11,6 +11,7 @@
  */
 
 #include "vertexnova/xwin/window_descriptor.h"
+#include "vertexnova/xwin/native_window_handle.h"
 #include "vertexnova/xwin/xwin_types.h"
 
 #include <functional>
@@ -60,9 +61,13 @@ class Window_I {
     virtual void Close() = 0;
     virtual bool IsOpen() const = 0;
     virtual void* GetNativeWindow() const = 0;
+    virtual NativeWindowHandle_C GetNativeHandle() const;
     virtual WindowAPI_TP GetWindowAPI() const = 0;
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
+    virtual std::string GetClipboardText() const;
+    virtual void SetClipboardText(const std::string& text);
+    virtual void SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height);
 
     static std::unique_ptr<Window_I> Create(const WindowDescriptor_C& descriptor);
 };
@@ -103,5 +108,19 @@ inline bool Window_I::IsVSyncEnabled() const {
 inline void Window_I::Minimize() {}
 inline void Window_I::Maximize() {}
 inline void Window_I::Restore() {}
+inline NativeWindowHandle_C Window_I::GetNativeHandle() const {
+    return {};
+}
+inline std::string Window_I::GetClipboardText() const {
+    return {};
+}
+inline void Window_I::SetClipboardText(const std::string& text) {
+    (void)text;
+}
+inline void Window_I::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
+    (void)rgba_pixels;
+    (void)width;
+    (void)height;
+}
 
 }  // namespace vne::xwin

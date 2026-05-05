@@ -38,6 +38,7 @@ struct EventBridgeCallbacks {
     std::function<void(Window_I*, float x_offset, float y_offset)> onMouseScroll;
     std::function<void(Window_I*, uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase)> onTouch;
     std::function<void(Window_I*, bool focused)> onWindowFocus;
+    std::function<void(Window_I*, const char*)> onTextInput;
 };
 
 }  // namespace vne::xwin

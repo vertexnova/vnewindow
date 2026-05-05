@@ -217,4 +217,17 @@ void eventBridgeWindowFocus(Window_I* window,
     }
 }
 
+void eventBridgeTextInput(Window_I* window,
+                          const WindowDescriptor_C& descriptor,
+                          const EventBridgeCallbacks& callbacks,
+                          const char* utf8_text) {
+    if (!utf8_text || utf8_text[0] == '\0') {
+        return;
+    }
+    (void)descriptor;
+    if (callbacks.onTextInput) {
+        callbacks.onTextInput(window, utf8_text);
+    }
+}
+
 }  // namespace vne::xwin

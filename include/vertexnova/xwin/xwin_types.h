@@ -27,6 +27,7 @@ enum class WindowAPI_TP {
     WAYLAND_WINDOW = 31,
 
     IOS_UIKIT_WINDOW = 40,
+    TVOS_UIKIT_WINDOW = 41,
     ANDROID_SURFACE_WINDOW = 50,
 
     WASM_WINDOW = 60,

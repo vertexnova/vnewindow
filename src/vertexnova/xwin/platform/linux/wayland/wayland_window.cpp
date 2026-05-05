@@ -216,6 +216,14 @@ void* WaylandWindow_C::GetNativeWindow() const {
     return _surface;
 }
 
+NativeWindowHandle_C WaylandWindow_C::GetNativeHandle() const {
+    NativeWindowHandle_C handle{};
+    handle.api = WindowAPI_TP::WAYLAND_WINDOW;
+    handle.wl_display = _owner ? _owner->NativeDisplay() : nullptr;
+    handle.wl_surface = _surface;
+    return handle;
+}
+
 WindowAPI_TP WaylandWindow_C::GetWindowAPI() const {
     return WindowAPI_TP::WAYLAND_WINDOW;
 }
@@ -226,6 +234,10 @@ int WaylandWindow_C::GetWidth() const {
 
 int WaylandWindow_C::GetHeight() const {
     return static_cast<int>(_desc.size.height);
+}
+
+float WaylandWindow_C::GetDPIScale() const {
+    return _owner ? _owner->OutputScale() : 1.0F;
 }
 
 void WaylandWindow_C::Minimize() {

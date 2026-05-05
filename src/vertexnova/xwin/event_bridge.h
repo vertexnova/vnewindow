@@ -77,5 +77,9 @@ void eventBridgeWindowFocus(Window_I* window,
                             const WindowDescriptor_C& descriptor,
                             const EventBridgeCallbacks& callbacks,
                             bool focused);
+void eventBridgeTextInput(Window_I* window,
+                          const WindowDescriptor_C& descriptor,
+                          const EventBridgeCallbacks& callbacks,
+                          const char* utf8_text);
 
 }  // namespace vne::xwin

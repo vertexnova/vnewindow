@@ -15,6 +15,7 @@
 #include "event_bridge.h"
 
 #import <UIKit/UIKit.h>
+#import <QuartzCore/CAMetalLayer.h>
 
 // ---------------------------------------------------------------------------
 // VneXWinUIView — UIView subclass that routes multi-touch to the bridge
@@ -26,6 +27,10 @@
 @end
 
 @implementation VneXWinUIView
+
++ (Class)layerClass {
+    return [CAMetalLayer class];
+}
 
 - (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow_C*)xwin {
     self = [super initWithFrame:frame];
@@ -198,7 +203,22 @@ bool UIKitWindow_C::IsOpen() const {
 }
 
 void* UIKitWindow_C::GetNativeWindow() const {
-    return _ui_view;
+    if (!_ui_view) {
+        return nullptr;
+    }
+    UIView* view = (__bridge UIView*)_ui_view;
+    return (__bridge void*)view.layer;
+}
+
+NativeWindowHandle_C UIKitWindow_C::GetNativeHandle() const {
+    NativeWindowHandle_C handle{};
+    handle.api = WindowAPI_TP::IOS_UIKIT_WINDOW;
+    handle.ui_view = _ui_view;
+    if (_ui_view) {
+        UIView* view = (__bridge UIView*)_ui_view;
+        handle.ca_layer = (__bridge void*)view.layer;
+    }
+    return handle;
 }
 
 WindowAPI_TP UIKitWindow_C::GetWindowAPI() const {

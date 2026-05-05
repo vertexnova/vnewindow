@@ -93,6 +93,13 @@ void* AndroidWindow_C::GetNativeWindow() const {
     return _native;
 }
 
+NativeWindowHandle_C AndroidWindow_C::GetNativeHandle() const {
+    NativeWindowHandle_C handle{};
+    handle.api = WindowAPI_TP::ANDROID_SURFACE_WINDOW;
+    handle.a_native_window = _native;
+    return handle;
+}
+
 WindowAPI_TP AndroidWindow_C::GetWindowAPI() const {
     return WindowAPI_TP::ANDROID_SURFACE_WINDOW;
 }
@@ -103,6 +110,10 @@ int AndroidWindow_C::GetWidth() const {
 
 int AndroidWindow_C::GetHeight() const {
     return static_cast<int>(_desc.size.height);
+}
+
+float AndroidWindow_C::GetDPIScale() const {
+    return 1.0F;
 }
 
 void AndroidWindow_C::InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {

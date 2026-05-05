@@ -410,6 +410,13 @@ void* WasmWindow_C::GetNativeWindow() const {
     return _canvas_tag;
 }
 
+NativeWindowHandle_C WasmWindow_C::GetNativeHandle() const {
+    NativeWindowHandle_C handle{};
+    handle.api = WindowAPI_TP::WASM_WINDOW;
+    handle.canvas_id = "#canvas";
+    return handle;
+}
+
 WindowAPI_TP WasmWindow_C::GetWindowAPI() const {
     return WindowAPI_TP::WASM_WINDOW;
 }
@@ -442,6 +449,14 @@ uint32_t WasmWindow_C::GetFramebufferHeight() const {
     }
 #endif
     return static_cast<uint32_t>(_desc.size.height);
+}
+
+float WasmWindow_C::GetDPIScale() const {
+#ifdef __EMSCRIPTEN__
+    return static_cast<float>(emscripten_get_device_pixel_ratio());
+#else
+    return 1.0F;
+#endif
 }
 
 void WasmWindow_C::Minimize() {

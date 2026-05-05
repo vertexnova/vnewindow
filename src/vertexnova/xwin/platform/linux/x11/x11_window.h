@@ -27,7 +27,7 @@ class X11Window_C final : public Window_I {
     ~X11Window_C() override;
 
     void SetEventOwner(X11WindowManager_C* owner);
-    void SetDisplay(Display* display, int screen, ::Window root);
+    void SetDisplay(Display* display, int screen, ::Window root, void* xcb_connection);
 
     void Initialize(const WindowDescriptor_C& descriptor) override;
     void PollEvents() override;
@@ -48,9 +48,11 @@ class X11Window_C final : public Window_I {
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
+    NativeWindowHandle_C GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
+    float GetDPIScale() const override;
 
    private:
     void destroy();
@@ -60,6 +62,7 @@ class X11Window_C final : public Window_I {
     int _screen = 0;
     ::Window _root = 0;
     ::Window _window = 0;
+    void* _xcb_connection = nullptr;
     X11WindowManager_C* _owner = nullptr;
     WindowDescriptor_C _desc{};
     bool _open = false;

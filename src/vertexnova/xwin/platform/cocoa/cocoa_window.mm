@@ -440,6 +440,27 @@ void CocoaWindow_C::SetTitle(const std::string& title) {
 
 void CocoaWindow_C::SetWindowMode(WindowMode_TP mode) {
     _desc.mode = mode;
+    if (!_ns_window) {
+        return;
+    }
+    NSWindow* win = (__bridge NSWindow*)_ns_window;
+    if (mode == WindowMode_TP::FULLSCREEN) {
+        SetFullscreen(true);
+        return;
+    }
+    if (_fullscreen) {
+        SetFullscreen(false);
+    }
+    if (mode == WindowMode_TP::BORDERLESS) {
+        [win setStyleMask:NSWindowStyleMaskBorderless];
+        NSScreen* screen = win.screen ? win.screen : [NSScreen mainScreen];
+        if (screen) {
+            [win setFrame:screen.frame display:YES];
+        }
+        return;
+    }
+    [win setStyleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
+                       | NSWindowStyleMaskResizable)];
 }
 
 WindowMode_TP CocoaWindow_C::GetWindowMode() const {
@@ -561,6 +582,14 @@ bool CocoaWindow_C::IsOpen() const {
 
 void* CocoaWindow_C::GetNativeWindow() const {
     return _ns_view;
+}
+
+NativeWindowHandle_C CocoaWindow_C::GetNativeHandle() const {
+    NativeWindowHandle_C handle{};
+    handle.api = WindowAPI_TP::COCOA_WINDOW;
+    handle.ns_view = _ns_view;
+    handle.ns_window = _ns_window;
+    return handle;
 }
 
 WindowAPI_TP CocoaWindow_C::GetWindowAPI() const {

@@ -25,6 +25,7 @@ struct wl_surface;
 struct wl_keyboard;
 struct wl_pointer;
 struct wl_touch;
+struct wl_output;
 struct xdg_wm_base;
 
 namespace vne::xwin {
@@ -48,6 +49,7 @@ class WaylandWindowManager_C final : public WindowManager_I {
     void on_pointer_button(uint32_t button, uint32_t state, double x, double y);
     void on_pointer_motion(double x, double y);
     void on_pointer_axis(double x_offset, double y_offset);
+    void on_output_scale(int32_t factor);
     void on_touch_down(uint32_t id, double x, double y);
     void on_touch_up(uint32_t id, double x, double y);
     void on_touch_motion(uint32_t id, double x, double y);
@@ -55,6 +57,7 @@ class WaylandWindowManager_C final : public WindowManager_I {
     wl_display* NativeDisplay() const { return _display; }
     wl_compositor* NativeCompositor() const { return _compositor; }
     xdg_wm_base* NativeXdgWmBase() const { return _xdg_wm_base; }
+    float OutputScale() const { return _output_scale; }
 
     WaylandWindowManager_C();
     ~WaylandWindowManager_C() override;
@@ -115,6 +118,8 @@ class WaylandWindowManager_C final : public WindowManager_I {
     wl_keyboard* _keyboard = nullptr;
     wl_pointer* _pointer = nullptr;
     wl_touch* _wl_touch = nullptr;
+    wl_output* _output = nullptr;
+    int32_t _output_scale = 1;
 
     // Modifier state accumulated from wl_keyboard::modifiers event
     uint32_t _mod_depressed = 0;

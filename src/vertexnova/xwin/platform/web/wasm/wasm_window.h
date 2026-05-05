@@ -49,11 +49,13 @@ class WasmWindow_C final : public Window_I {
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
+    NativeWindowHandle_C GetNativeHandle() const override;
     WindowAPI_TP GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
     uint32_t GetFramebufferWidth() const override;
     uint32_t GetFramebufferHeight() const override;
+    float GetDPIScale() const override;
 
 #ifdef __EMSCRIPTEN__
     static EM_BOOL ResizeCallback(int event_type, const EmscriptenUiEvent* event, void* user_data);

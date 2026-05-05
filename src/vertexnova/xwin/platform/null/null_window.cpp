@@ -87,6 +87,10 @@ void* NullWindow_C::GetNativeWindow() const {
     return nullptr;
 }
 
+NativeWindowHandle_C NullWindow_C::GetNativeHandle() const {
+    return {};
+}
+
 WindowAPI_TP NullWindow_C::GetWindowAPI() const {
     return WindowAPI_TP::NULL_WINDOW;
 }

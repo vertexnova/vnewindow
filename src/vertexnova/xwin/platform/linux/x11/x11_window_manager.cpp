@@ -16,6 +16,10 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#if __has_include(<X11/Xlib-xcb.h>)
+#include <X11/Xlib-xcb.h>
+#define VNE_X11_HAS_XLIB_XCB 1
+#endif
 
 namespace vne::xwin {
 
@@ -38,6 +42,9 @@ bool X11WindowManager_C::Initialize() {
     }
     _screen = DefaultScreen(_display);
     _root = RootWindow(_display, _screen);
+#if defined(VNE_X11_HAS_XLIB_XCB)
+    _xcb_connection = XGetXCBConnection(_display);
+#endif
     _initialized = true;
     return true;
 }
@@ -48,6 +55,7 @@ void X11WindowManager_C::Shutdown() {
         XCloseDisplay(_display);
         _display = nullptr;
     }
+    _xcb_connection = nullptr;
     _initialized = false;
 }
 
@@ -61,7 +69,7 @@ std::shared_ptr<Window_I> X11WindowManager_C::CreateWindow(const WindowDescripto
     }
     auto w = std::make_shared<X11Window_C>();
     w->SetEventOwner(this);
-    w->SetDisplay(_display, _screen, _root);
+    w->SetDisplay(_display, _screen, _root, _xcb_connection);
     w->Initialize(descriptor);
     if (!w->IsOpen()) {
         return nullptr;

@@ -61,9 +61,11 @@ class X11WindowManager_C final : public WindowManager_I {
     uint64_t GetCurrentTime() const override;
     void Sleep(uint32_t milliseconds) const override;
     double GetPlatformTime() const override;
+    void* NativeXcbConnection() const { return _xcb_connection; }
 
    private:
     Display* _display = nullptr;
+    void* _xcb_connection = nullptr;
     int _screen = 0;
     ::Window _root = 0;
     std::vector<std::shared_ptr<Window_I>> _windows;
