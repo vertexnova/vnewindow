@@ -239,8 +239,8 @@
         return;
     }
     NSString* str = [string isKindOfClass:[NSAttributedString class]]
-                          ? [static_cast<NSAttributedString*>(string) string]
-                          : static_cast<NSString*>(string);
+                        ? [static_cast<NSAttributedString*>(string) string]
+                        : static_cast<NSString*>(string);
     if (!str || str.length == 0) {
         return;
     }
