@@ -48,7 +48,9 @@ endif()
 # Test sources
 #==============================================================================
 set(TEST_SOURCES
-    xwin_test.cpp
+    window_factory_test.cpp
+    null_window_test.cpp
+    null_window_manager_test.cpp
 )
 
 #==============================================================================

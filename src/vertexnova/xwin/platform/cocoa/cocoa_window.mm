@@ -668,7 +668,7 @@ float CocoaWindow_C::GetDPIScale() const {
 }
 
 void CocoaWindow_C::handleTextInput(const char* utf8_text) {
-    const EventBridgeCallbacks& cb = _owner ? _owner->vneEventCallbacks() : _empty_callbacks;
+    const EventBridgeCallbacks& cb = _owner ? _owner->eventBridgeCallbacks() : _empty_callbacks;
     eventBridgeTextInput(this, _desc, cb, utf8_text);
 }
 

@@ -34,7 +34,7 @@ Cross-platform **native windowing** library (`vne::xwin`): Win32, Cocoa, X11, op
 | `include/` | Public API headers (`vertexnova/xwin/`) |
 | `src/` | Implementation |
 | `tests/` | Unit tests (Google Test) |
-| `docs/` | Doxygen input (`doxyfile.in`) and extra docs |
+| `docs/` | Doxygen input (`doxyfile.in`), [testing strategy](docs/TESTING.md), and extra docs |
 | `scripts/` | Helper scripts (build, format, generate-docs) |
 
 ## Prerequisites
@@ -91,6 +91,8 @@ Or use the platform scripts (they use `build/<lib_type>/...`):
 Options: `-t` / `-BuildType` build type, `-a` / `-Action` action, `-l` / `-LibType` lib type (`static` | `shared`, default `shared`), `-clean` / `-Clean`, `-j N` / `-Jobs N`. macOS script also supports `-xcode` for Xcode project.
 
 ## Test
+
+Strategy (layers, CI matrix, desktop smoke vs **`vnetestbed`**): **[docs/TESTING.md](docs/TESTING.md)**.
 
 ```bash
 ctest -C Debug --test-dir build/shared
