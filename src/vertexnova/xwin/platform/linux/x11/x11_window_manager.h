@@ -52,7 +52,7 @@ class X11WindowManager_C final : public IWindowManager {
     bool ShouldClose() const override;
     bool ShouldCloseAll() const override;
 
-    WindowAPI_TP GetWindowAPI() const override;
+    WindowAPI GetWindowAPI() const override;
     std::string GetPlatformInfo() const override;
     bool IsFeatureSupported(const std::string& feature) const override;
     std::string GetProperties() const override;

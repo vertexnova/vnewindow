@@ -32,15 +32,15 @@ class Win32Window_C final : public IWindow {
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
-    void SetWindowMode(WindowMode_TP mode) override;
-    WindowMode_TP GetWindowMode() const override;
+    void SetWindowMode(WindowMode mode) override;
+    WindowMode GetWindowMode() const override;
     void SetFullscreen(bool enabled) override;
     bool IsFullscreen() const override;
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
     void SetWindowLimits(const WindowLimits& limits) override;
-    void SetCursor(WindowCursor_TP cursor) override;
+    void SetCursor(WindowCursor cursor) override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
@@ -48,7 +48,7 @@ class Win32Window_C final : public IWindow {
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
     NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI_TP GetWindowAPI() const override;
+    WindowAPI GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
     float GetDPIScale() const override;
@@ -71,7 +71,7 @@ class Win32Window_C final : public IWindow {
     WindowDescriptor desc_{};
     bool open_ = false;
     bool fullscreen_ = false;
-    WindowMode_TP mode_ = WindowMode_TP::WINDOWED;
+    WindowMode mode_ = WindowMode::eWindowed;
 
     // Saved pre-fullscreen state
     DWORD saved_style_ = 0;

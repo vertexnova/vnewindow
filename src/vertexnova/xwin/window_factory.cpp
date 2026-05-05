@@ -1,6 +1,6 @@
 /*
  * Linux: if WAYLAND_DISPLAY is set and the Wayland backend is compiled, it is preferred
- * over X11; otherwise DISPLAY selects X11. Headless CI uses NULL_WINDOW.
+ * over X11; otherwise DISPLAY selects X11. Headless CI uses WindowAPI::eNullWindow.
  */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
@@ -50,50 +50,50 @@ namespace vne::xwin {
 
 std::string WindowFactory::last_error_;
 
-std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI_TP window_api) {
+std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI window_api) {
     ClearLastError();
     if (!IsWindowAPISupported(window_api)) {
         last_error_ = "Requested window API is not supported in this build.";
         return nullptr;
     }
     switch (window_api) {
-        case WindowAPI_TP::NULL_WINDOW:
+        case WindowAPI::eNullWindow:
             return std::make_shared<NullWindowManager_C>();
 #if VNE_XWIN_HAS_WIN32
-        case WindowAPI_TP::WIN32_WINDOW:
+        case WindowAPI::eWin32Window:
             return std::make_shared<Win32WindowManager_C>();
 #endif
 #if VNE_XWIN_HAS_COCOA
-        case WindowAPI_TP::COCOA_WINDOW:
+        case WindowAPI::eCocoaWindow:
             return std::make_shared<CocoaWindowManager_C>();
 #endif
 #if VNE_XWIN_HAS_X11
-        case WindowAPI_TP::X11_WINDOW:
+        case WindowAPI::eX11Window:
             return std::make_shared<X11WindowManager_C>();
 #endif
 #if VNE_XWIN_HAS_WAYLAND
-        case WindowAPI_TP::WAYLAND_WINDOW:
+        case WindowAPI::eWaylandWindow:
             return std::make_shared<WaylandWindowManager_C>();
 #endif
 #if VNE_XWIN_HAS_WASM
-        case WindowAPI_TP::WASM_WINDOW:
+        case WindowAPI::eWasmWindow:
             return std::make_shared<WasmWindowManager_C>();
 #endif
 #if VNE_XWIN_HAS_UIKIT
-        case WindowAPI_TP::IOS_UIKIT_WINDOW:
+        case WindowAPI::eIosUikitWindow:
             return std::make_shared<UIKitWindowManager_C>();
 #endif
 #if VNE_XWIN_HAS_ANDROID
-        case WindowAPI_TP::ANDROID_SURFACE_WINDOW:
+        case WindowAPI::eAndroidSurfaceWindow:
             return std::make_shared<AndroidWindowManager_C>();
 #endif
         default:
-            last_error_ = "No factory mapping for this WindowAPI_TP value.";
+            last_error_ = "No factory mapping for this WindowAPI value.";
             return nullptr;
     }
 }
 
-std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI_TP window_api,
+std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI window_api,
                                                                    const std::string& properties) {
     auto mgr = CreateWindowManager(window_api);
     if (mgr) {
@@ -103,7 +103,7 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI_TP 
 }
 
 std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager() {
-    const WindowAPI_TP api = GetBestWindowAPIForPlatform();
+    const WindowAPI api = GetBestWindowAPIForPlatform();
     auto mgr = CreateWindowManager(api);
     if (mgr) {
         return mgr;
@@ -111,73 +111,73 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager() {
     return std::make_shared<NullWindowManager_C>();
 }
 
-WindowAPI_TP WindowFactory::GetBestWindowAPIForPlatform() {
+WindowAPI WindowFactory::GetBestWindowAPIForPlatform() {
 #if VNE_XWIN_HAS_WASM
-    return WindowAPI_TP::WASM_WINDOW;
+    return WindowAPI::eWasmWindow;
 #elif VNE_XWIN_HAS_WIN32
-    return WindowAPI_TP::WIN32_WINDOW;
+    return WindowAPI::eWin32Window;
 #elif VNE_XWIN_HAS_ANDROID
-    return WindowAPI_TP::ANDROID_SURFACE_WINDOW;
+    return WindowAPI::eAndroidSurfaceWindow;
 #elif VNE_XWIN_HAS_UIKIT
-    return WindowAPI_TP::IOS_UIKIT_WINDOW;
+    return WindowAPI::eIosUikitWindow;
 #elif VNE_XWIN_HAS_COCOA
-    return WindowAPI_TP::COCOA_WINDOW;
+    return WindowAPI::eCocoaWindow;
 #elif defined(__linux__)
     const auto env_nonempty = [](const char* v) { return v != nullptr && v[0] != '\0'; };
     const bool prefer_wl = env_nonempty(std::getenv("WAYLAND_DISPLAY"));
     const bool prefer_x = env_nonempty(std::getenv("DISPLAY"));
 #if VNE_XWIN_HAS_WAYLAND
     if (prefer_wl) {
-        return WindowAPI_TP::WAYLAND_WINDOW;
+        return WindowAPI::eWaylandWindow;
     }
 #endif
 #if VNE_XWIN_HAS_X11
     if (prefer_x) {
-        return WindowAPI_TP::X11_WINDOW;
+        return WindowAPI::eX11Window;
     }
 #endif
 #if VNE_XWIN_HAS_WAYLAND
-    return WindowAPI_TP::WAYLAND_WINDOW;
+    return WindowAPI::eWaylandWindow;
 #elif VNE_XWIN_HAS_X11
-    return WindowAPI_TP::X11_WINDOW;
+    return WindowAPI::eX11Window;
 #else
-    return WindowAPI_TP::NULL_WINDOW;
+    return WindowAPI::eNullWindow;
 #endif
 #else
-    return WindowAPI_TP::NULL_WINDOW;
+    return WindowAPI::eNullWindow;
 #endif
 }
 
-bool WindowFactory::IsWindowAPISupported(WindowAPI_TP window_api) {
+bool WindowFactory::IsWindowAPISupported(WindowAPI window_api) {
     switch (window_api) {
-        case WindowAPI_TP::NULL_WINDOW:
+        case WindowAPI::eNullWindow:
             return VNE_XWIN_HAS_NULL != 0;
 #if VNE_XWIN_HAS_WIN32
-        case WindowAPI_TP::WIN32_WINDOW:
+        case WindowAPI::eWin32Window:
             return true;
 #endif
 #if VNE_XWIN_HAS_COCOA
-        case WindowAPI_TP::COCOA_WINDOW:
+        case WindowAPI::eCocoaWindow:
             return true;
 #endif
 #if VNE_XWIN_HAS_X11
-        case WindowAPI_TP::X11_WINDOW:
+        case WindowAPI::eX11Window:
             return true;
 #endif
 #if VNE_XWIN_HAS_WAYLAND
-        case WindowAPI_TP::WAYLAND_WINDOW:
+        case WindowAPI::eWaylandWindow:
             return true;
 #endif
 #if VNE_XWIN_HAS_WASM
-        case WindowAPI_TP::WASM_WINDOW:
+        case WindowAPI::eWasmWindow:
             return true;
 #endif
 #if VNE_XWIN_HAS_UIKIT
-        case WindowAPI_TP::IOS_UIKIT_WINDOW:
+        case WindowAPI::eIosUikitWindow:
             return true;
 #endif
 #if VNE_XWIN_HAS_ANDROID
-        case WindowAPI_TP::ANDROID_SURFACE_WINDOW:
+        case WindowAPI::eAndroidSurfaceWindow:
             return true;
 #endif
         default:
@@ -196,56 +196,56 @@ std::string WindowFactory::GetSupportedWindowAPIs() {
         o << name;
     };
     if (VNE_XWIN_HAS_NULL) {
-        add("NULL_WINDOW");
+        add("eNullWindow");
     }
 #if VNE_XWIN_HAS_WIN32
-    add("WIN32_WINDOW");
+    add("eWin32Window");
 #endif
 #if VNE_XWIN_HAS_COCOA
-    add("COCOA_WINDOW");
+    add("eCocoaWindow");
 #endif
 #if VNE_XWIN_HAS_X11
-    add("X11_WINDOW");
+    add("eX11Window");
 #endif
 #if VNE_XWIN_HAS_WAYLAND
-    add("WAYLAND_WINDOW");
+    add("eWaylandWindow");
 #endif
 #if VNE_XWIN_HAS_WASM
-    add("WASM_WINDOW");
+    add("eWasmWindow");
 #endif
 #if VNE_XWIN_HAS_UIKIT
-    add("IOS_UIKIT_WINDOW");
+    add("eIosUikitWindow");
 #endif
 #if VNE_XWIN_HAS_ANDROID
-    add("ANDROID_SURFACE_WINDOW");
+    add("eAndroidSurfaceWindow");
 #endif
     return o.str();
 }
 
-std::string WindowFactory::GetWindowAPIInfo(WindowAPI_TP window_api) {
+std::string WindowFactory::GetWindowAPIInfo(WindowAPI window_api) {
     switch (window_api) {
-        case WindowAPI_TP::NULL_WINDOW:
+        case WindowAPI::eNullWindow:
             return "Null backend for headless tests and CI.";
-        case WindowAPI_TP::WIN32_WINDOW:
+        case WindowAPI::eWin32Window:
             return "Microsoft Win32 HWND window.";
-        case WindowAPI_TP::COCOA_WINDOW:
+        case WindowAPI::eCocoaWindow:
             return "macOS AppKit NSWindow / NSView.";
-        case WindowAPI_TP::X11_WINDOW:
+        case WindowAPI::eX11Window:
             return "Linux X11 (Xlib) window.";
-        case WindowAPI_TP::WAYLAND_WINDOW:
+        case WindowAPI::eWaylandWindow:
             return "Linux Wayland wl_surface + xdg-shell toplevel.";
-        case WindowAPI_TP::IOS_UIKIT_WINDOW:
+        case WindowAPI::eIosUikitWindow:
             return "iOS UIKit UIView surface host.";
-        case WindowAPI_TP::ANDROID_SURFACE_WINDOW:
+        case WindowAPI::eAndroidSurfaceWindow:
             return "Android ANativeWindow via descriptor.platform_data.";
-        case WindowAPI_TP::WASM_WINDOW:
+        case WindowAPI::eWasmWindow:
             return "Emscripten HTML5 canvas host.";
         default:
             return "Unknown or unimplemented window API.";
     }
 }
 
-std::string WindowFactory::GetWindowAPICapabilities(WindowAPI_TP window_api) {
+std::string WindowFactory::GetWindowAPICapabilities(WindowAPI window_api) {
     return GetWindowAPIInfo(window_api);
 }
 

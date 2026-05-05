@@ -157,8 +157,8 @@ bool Win32WindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI_TP Win32WindowManager_C::GetWindowAPI() const {
-    return WindowAPI_TP::WIN32_WINDOW;
+WindowAPI Win32WindowManager_C::GetWindowAPI() const {
+    return WindowAPI::eWin32Window;
 }
 
 std::string Win32WindowManager_C::GetPlatformInfo() const {

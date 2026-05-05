@@ -22,20 +22,20 @@
 namespace vne::xwin {
 
 /**
- * @brief Selects and constructs an IWindowManager for the requested or default WindowAPI_TP.
+ * @brief Selects and constructs an IWindowManager for the requested or default WindowAPI.
  */
 class VNE_XWIN_API WindowFactory {
    public:
-    static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI_TP window_api);
-    static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI_TP window_api, const std::string& properties);
+    static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI window_api);
+    static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI window_api, const std::string& properties);
     static std::shared_ptr<IWindowManager> CreateWindowManager();
 
    private:
-    static WindowAPI_TP GetBestWindowAPIForPlatform();
-    static bool IsWindowAPISupported(WindowAPI_TP window_api);
+    static WindowAPI GetBestWindowAPIForPlatform();
+    static bool IsWindowAPISupported(WindowAPI window_api);
     static std::string GetSupportedWindowAPIs();
-    static std::string GetWindowAPIInfo(WindowAPI_TP window_api);
-    static std::string GetWindowAPICapabilities(WindowAPI_TP window_api);
+    static std::string GetWindowAPIInfo(WindowAPI window_api);
+    static std::string GetWindowAPICapabilities(WindowAPI window_api);
 
    public:
     static std::string GetVersion();

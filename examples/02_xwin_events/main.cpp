@@ -53,7 +53,7 @@ int main() {
 
     mgr->setEventBridgeCallbacks(std::move(hooks));
 
-    if (w->GetWindowAPI() == vne::xwin::WindowAPI_TP::NULL_WINDOW) {
+    if (w->GetWindowAPI() == vne::xwin::WindowAPI::eNullWindow) {
         VNE_LOG_INFO << "Null backend has no native input; closing window for a clean smoke run.";
         mgr->DestroyWindow(w);
     }

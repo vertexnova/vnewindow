@@ -19,7 +19,7 @@
 namespace vne::xwin {
 
 struct NativeWindowHandle {
-    WindowAPI_TP api = WindowAPI_TP::NULL_WINDOW;
+    WindowAPI api = WindowAPI::eNullWindow;
 
     void* hwnd = nullptr;
 

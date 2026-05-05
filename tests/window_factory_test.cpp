@@ -20,7 +20,7 @@
 #include <TargetConditionals.h>
 #endif
 
-using vne::xwin::WindowAPI_TP;
+using vne::xwin::WindowAPI;
 using vne::xwin::WindowFactory;
 
 class WindowFactoryTest : public ::testing::Test {};
@@ -31,19 +31,19 @@ TEST_F(WindowFactoryTest, GetBuildInfo) {
 }
 
 TEST_F(WindowFactoryTest, NullBackendCreatesOpenWindow) {
-    auto mgr = WindowFactory::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
+    auto mgr = WindowFactory::CreateWindowManager(WindowAPI::eNullWindow);
     ASSERT_NE(mgr, nullptr);
     EXPECT_TRUE(mgr->Initialize());
     auto w = mgr->CreateWindow("test", 64, 48);
     ASSERT_NE(w, nullptr);
     EXPECT_TRUE(w->IsOpen());
-    EXPECT_EQ(w->GetWindowAPI(), WindowAPI_TP::NULL_WINDOW);
+    EXPECT_EQ(w->GetWindowAPI(), WindowAPI::eNullWindow);
     mgr->Shutdown();
 }
 
 namespace {
 
-bool try_desktop_smoke(WindowAPI_TP api) {
+bool try_desktop_smoke(WindowAPI api) {
     auto mgr = WindowFactory::CreateWindowManager(api);
     if (!mgr) {
         return false;
@@ -79,30 +79,30 @@ TEST_F(WindowFactoryTest, DesktopLifecycleWhenBackendAvailable) {
 #endif
 
 #if defined(__APPLE__) && TARGET_OS_OSX
-    if (try_desktop_smoke(WindowAPI_TP::COCOA_WINDOW)) {
+    if (try_desktop_smoke(WindowAPI::eCocoaWindow)) {
         return;
     }
 #elif defined(_WIN32)
-    if (try_desktop_smoke(WindowAPI_TP::WIN32_WINDOW)) {
+    if (try_desktop_smoke(WindowAPI::eWin32Window)) {
         return;
     }
 #elif defined(__linux__)
     const char* display = std::getenv("DISPLAY");
     const char* wayland = std::getenv("WAYLAND_DISPLAY");
     if (display != nullptr && display[0] != '\0') {
-        if (try_desktop_smoke(WindowAPI_TP::X11_WINDOW)) {
+        if (try_desktop_smoke(WindowAPI::eX11Window)) {
             return;
         }
     }
     if (wayland != nullptr && wayland[0] != '\0') {
-        if (try_desktop_smoke(WindowAPI_TP::WAYLAND_WINDOW)) {
+        if (try_desktop_smoke(WindowAPI::eWaylandWindow)) {
             return;
         }
     }
-    if (try_desktop_smoke(WindowAPI_TP::X11_WINDOW)) {
+    if (try_desktop_smoke(WindowAPI::eX11Window)) {
         return;
     }
-    if (try_desktop_smoke(WindowAPI_TP::WAYLAND_WINDOW)) {
+    if (try_desktop_smoke(WindowAPI::eWaylandWindow)) {
         return;
     }
 #endif

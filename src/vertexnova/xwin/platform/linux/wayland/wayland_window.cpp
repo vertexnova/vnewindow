@@ -86,7 +86,7 @@ void WaylandWindow_C::apply_toplevel_configure(uint32_t width, uint32_t height) 
         const EventBridgeCallbacks& cb = owner_->eventBridgeCallbacks();
         eventBridgeWindowResize(this, desc_, cb, width, height);
         WindowEventData ev{};
-        ev.type = WindowEventType_TP::RESIZE;
+        ev.type = WindowEventType::eResize;
         ev.size = desc_.size;
         owner_->NotifyWindowEvent(this, ev);
     }
@@ -96,7 +96,7 @@ void WaylandWindow_C::apply_toplevel_close() {
     open_ = false;
     if (owner_) {
         WindowEventData ev{};
-        ev.type = WindowEventType_TP::CLOSE;
+        ev.type = WindowEventType::eClose;
         owner_->NotifyWindowEvent(this, ev);
     }
 }
@@ -157,11 +157,11 @@ void WaylandWindow_C::SetTitle(const std::string& title) {
     }
 }
 
-void WaylandWindow_C::SetWindowMode(WindowMode_TP mode) {
+void WaylandWindow_C::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode_TP WaylandWindow_C::GetWindowMode() const {
+WindowMode WaylandWindow_C::GetWindowMode() const {
     return desc_.mode;
 }
 
@@ -218,14 +218,14 @@ void* WaylandWindow_C::GetNativeWindow() const {
 
 NativeWindowHandle WaylandWindow_C::GetNativeHandle() const {
     NativeWindowHandle handle{};
-    handle.api = WindowAPI_TP::WAYLAND_WINDOW;
+    handle.api = WindowAPI::eWaylandWindow;
     handle.wl_display = owner_ ? owner_->NativeDisplay() : nullptr;
     handle.wl_surface = surface_;
     return handle;
 }
 
-WindowAPI_TP WaylandWindow_C::GetWindowAPI() const {
-    return WindowAPI_TP::WAYLAND_WINDOW;
+WindowAPI WaylandWindow_C::GetWindowAPI() const {
+    return WindowAPI::eWaylandWindow;
 }
 
 int WaylandWindow_C::GetWidth() const {
@@ -302,7 +302,7 @@ void WaylandWindow_C::SetWindowLimits(const WindowLimits& limits) {
     }
 }
 
-void WaylandWindow_C::SetCursor(WindowCursor_TP cursor) {
+void WaylandWindow_C::SetCursor(WindowCursor cursor) {
     // Cursor images require wl_shm + wl_cursor; compositors may also offer cursor-shape-v1.
     // Until those globals are bound, this is a deliberate no-op.
     (void)cursor;

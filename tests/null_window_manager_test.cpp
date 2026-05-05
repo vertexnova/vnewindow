@@ -6,7 +6,7 @@
  * Created:   April 2026
  *
  * Autodoc:   yes
- * Tests for src/vertexnova/xwin/platform/null/null_window_manager.cpp (via NULL_WINDOW factory).
+ * Tests for src/vertexnova/xwin/platform/null/null_window_manager.cpp (via eNullWindow factory).
  * ----------------------------------------------------------------------
  */
 
@@ -19,13 +19,13 @@
 #include "vertexnova/xwin/xwin_types.h"
 
 using vne::xwin::EventBridgeCallbacks;
-using vne::xwin::WindowAPI_TP;
+using vne::xwin::WindowAPI;
 using vne::xwin::WindowFactory;
 
 namespace {
 
 std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
-    auto mgr = WindowFactory::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
+    auto mgr = WindowFactory::CreateWindowManager(WindowAPI::eNullWindow);
     EXPECT_NE(mgr, nullptr);
     if (!mgr) {
         return nullptr;

@@ -19,69 +19,71 @@ namespace vne::xwin {
 
 /**
  * @brief Window API implementation (no GLFW in this library).
+ *
+ * Enumerators use `e` + PascalCase with explicit underlying values (VertexNova coding guidelines).
  */
-enum class WindowAPI_TP {
-    NULL_WINDOW = 0,
+enum class WindowAPI {
+    eNullWindow = 0,
 
-    WIN32_WINDOW = 20,
-    COCOA_WINDOW = 21,
-    X11_WINDOW = 30,
-    WAYLAND_WINDOW = 31,
+    eWin32Window = 20,
+    eCocoaWindow = 21,
+    eX11Window = 30,
+    eWaylandWindow = 31,
 
-    IOS_UIKIT_WINDOW = 40,
-    TVOS_UIKIT_WINDOW = 41,
-    ANDROID_SURFACE_WINDOW = 50,
+    eIosUikitWindow = 40,
+    eTvosUikitWindow = 41,
+    eAndroidSurfaceWindow = 50,
 
-    WASM_WINDOW = 60,
-    WEBGPU_WINDOW = 61,
+    eWasmWindow = 60,
+    eWebgpuWindow = 61,
 };
 
-enum class GraphicsBackend_TP {
-    OPENGL = 0,
-    OPENGLES = 1,
-    VULKAN = 2,
-    METAL = 3,
-    DIRECTX11 = 4,
-    DIRECTX12 = 5,
-    WEBGL = 6,
-    WEBGPU = 7,
-    UNKNOWN = 99
+enum class GraphicsBackend {
+    eOpenGL = 0,
+    eOpenGLES = 1,
+    eVulkan = 2,
+    eMetal = 3,
+    eDirectX11 = 4,
+    eDirectX12 = 5,
+    eWebGL = 6,
+    eWebGPU = 7,
+    eUnknown = 99
 };
 
-enum class WindowMode_TP { WINDOWED = 0, FULLSCREEN = 1, BORDERLESS = 2, MAXIMIZED = 3 };
+enum class WindowMode { eWindowed = 0, eFullscreen = 1, eBorderless = 2, eMaximized = 3 };
 
-enum class WindowState_TP { NORMAL = 0, MINIMIZED = 1, MAXIMIZED = 2, FULLSCREEN = 3 };
+enum class WindowState { eNormal = 0, eMinimized = 1, eMaximized = 2, eFullscreen = 3 };
 
-enum class WindowVisibility_TP { VISIBLE = 0, HIDDEN = 1, MINIMIZED = 2 };
+enum class WindowVisibility { eVisible = 0, eHidden = 1, eMinimized = 2 };
 
-enum class WindowFocus_TP { FOCUSED = 0, UNFOCUSED = 1 };
+enum class WindowFocus { eFocused = 0, eUnfocused = 1 };
 
-enum class WindowResize_TP { RESIZABLE = 0, FIXED_SIZE = 1 };
+enum class WindowResize { eResizable = 0, eFixedSize = 1 };
 
-enum class WindowDecoration_TP { DECORATED = 0, BORDERLESS = 1 };
+enum class WindowDecoration { eDecorated = 0, eBorderless = 1 };
 
-enum class WindowTransparency_TP { OPAQUE = 0, TRANSLUCENT = 1 };
+enum class WindowTransparency { eOpaque = 0, eTranslucent = 1 };
 
-enum class WindowCursor_TP { NORMAL = 0, HIDDEN = 1, DISABLED = 2 };
+enum class WindowCursor { eNormal = 0, eHidden = 1, eDisabled = 2 };
 
-enum class WindowEventType_TP {
-    CLOSE = 0,
-    RESIZE = 1,
-    MOVE = 2,
-    FOCUS = 3,
-    MINIMIZE = 4,
-    MAXIMIZE = 5,
-    RESTORE = 6,
-    SHOW = 7,
-    HIDE = 8,
-    TAP = 10,
-    PAN = 11,
-    PINCH = 12,
-    ORIENTATION = 13,
-    STATUS_BAR = 14
+enum class WindowEventType {
+    eClose = 0,
+    eResize = 1,
+    eMove = 2,
+    eFocus = 3,
+    eMinimize = 4,
+    eMaximize = 5,
+    eRestore = 6,
+    eShow = 7,
+    eHide = 8,
+    eTap = 10,
+    ePan = 11,
+    ePinch = 12,
+    eOrientation = 13,
+    eStatusBar = 14
 };
 
-enum class EventAction_TP { BEGAN = 0, CHANGED = 1, ENDED = 2, CANCELLED = 3 };
+enum class EventAction { eBegan = 0, eChanged = 1, eEnded = 2, eCancelled = 3 };
 
 struct WindowPosition {
     int32_t x = 0;
@@ -106,7 +108,7 @@ struct WindowLimits {
 };
 
 struct WindowEventData {
-    WindowEventType_TP type{};
+    WindowEventType type{};
     WindowSize size{};
     WindowPosition position{};
     bool focused = false;
@@ -117,7 +119,7 @@ struct WindowEventData {
     float velocity_y = 0.0F;
     float scale = 1.0F;
     float velocity = 0.0F;
-    EventAction_TP action = EventAction_TP::BEGAN;
+    EventAction action = EventAction::eBegan;
     int orientation = 0;
     float status_bar_height = 0.0F;
 };
@@ -126,14 +128,14 @@ struct WindowProperties {
     std::string title;
     WindowSize size;
     WindowPosition position;
-    WindowMode_TP mode = WindowMode_TP::WINDOWED;
-    WindowState_TP state = WindowState_TP::NORMAL;
-    WindowVisibility_TP visibility = WindowVisibility_TP::VISIBLE;
-    WindowFocus_TP focus = WindowFocus_TP::FOCUSED;
-    WindowResize_TP resize = WindowResize_TP::RESIZABLE;
-    WindowDecoration_TP decoration = WindowDecoration_TP::DECORATED;
-    WindowTransparency_TP transparency = WindowTransparency_TP::OPAQUE;
-    WindowCursor_TP cursor = WindowCursor_TP::NORMAL;
+    WindowMode mode = WindowMode::eWindowed;
+    WindowState state = WindowState::eNormal;
+    WindowVisibility visibility = WindowVisibility::eVisible;
+    WindowFocus focus = WindowFocus::eFocused;
+    WindowResize resize = WindowResize::eResizable;
+    WindowDecoration decoration = WindowDecoration::eDecorated;
+    WindowTransparency transparency = WindowTransparency::eOpaque;
+    WindowCursor cursor = WindowCursor::eNormal;
     WindowLimits limits;
     bool vsync_enabled = true;
     bool always_on_top = false;

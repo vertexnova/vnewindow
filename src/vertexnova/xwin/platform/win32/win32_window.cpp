@@ -134,7 +134,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             open_ = false;
             if (event_owner_) {
                 WindowEventData ev{};
-                ev.type = WindowEventType_TP::CLOSE;
+                ev.type = WindowEventType::eClose;
                 event_owner_->NotifyWindowEvent(this, ev);
             }
             DestroyWindow(hwnd);
@@ -146,7 +146,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 eventBridgeWindowResize(this, desc_, cb, desc_.size.width, desc_.size.height);
                 if (event_owner_) {
                     WindowEventData ev{};
-                    ev.type = WindowEventType_TP::RESIZE;
+                    ev.type = WindowEventType::eResize;
                     ev.size = desc_.size;
                     event_owner_->NotifyWindowEvent(this, ev);
                 }
@@ -160,7 +160,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             eventBridgeWindowFocus(this, desc_, cb, true);
             if (event_owner_) {
                 WindowEventData ev{};
-                ev.type = WindowEventType_TP::FOCUS;
+                ev.type = WindowEventType::eFocus;
                 ev.focused = true;
                 event_owner_->NotifyWindowEvent(this, ev);
             }
@@ -169,7 +169,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             eventBridgeWindowFocus(this, desc_, cb, false);
             if (event_owner_) {
                 WindowEventData ev{};
-                ev.type = WindowEventType_TP::FOCUS;
+                ev.type = WindowEventType::eFocus;
                 ev.focused = false;
                 event_owner_->NotifyWindowEvent(this, ev);
             }
@@ -334,19 +334,19 @@ void Win32Window_C::SetTitle(const std::string& title) {
     }
 }
 
-void Win32Window_C::SetWindowMode(WindowMode_TP mode) {
+void Win32Window_C::SetWindowMode(WindowMode mode) {
     mode_ = mode;
     if (!hwnd_) {
         return;
     }
-    if (mode == WindowMode_TP::FULLSCREEN) {
+    if (mode == WindowMode::eFullscreen) {
         SetFullscreen(true);
         return;
     }
     if (fullscreen_) {
         SetFullscreen(false);
     }
-    if (mode == WindowMode_TP::BORDERLESS) {
+    if (mode == WindowMode::eBorderless) {
         HMONITOR mon = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
         MONITORINFO mi{};
         mi.cbSize = sizeof(mi);
@@ -365,7 +365,7 @@ void Win32Window_C::SetWindowMode(WindowMode_TP mode) {
     SetWindowPos(hwnd_, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER);
 }
 
-WindowMode_TP Win32Window_C::GetWindowMode() const {
+WindowMode Win32Window_C::GetWindowMode() const {
     return mode_;
 }
 
@@ -431,14 +431,14 @@ void Win32Window_C::SetWindowLimits(const WindowLimits& limits) {
     // Limits are enforced in WM_GETMINMAXINFO inside HandleMessage
 }
 
-void Win32Window_C::SetCursor(WindowCursor_TP cursor) {
+void Win32Window_C::SetCursor(WindowCursor cursor) {
     switch (cursor) {
-        case WindowCursor_TP::HIDDEN:
+        case WindowCursor::eHidden:
             while (ShowCursor(FALSE) >= 0) {
             }
             ClipCursor(nullptr);
             break;
-        case WindowCursor_TP::DISABLED:
+        case WindowCursor::eDisabled:
             while (ShowCursor(FALSE) >= 0) {
             }
             if (hwnd_) {
@@ -448,7 +448,7 @@ void Win32Window_C::SetCursor(WindowCursor_TP cursor) {
                 ClipCursor(&r);
             }
             break;
-        case WindowCursor_TP::NORMAL:
+        case WindowCursor::eNormal:
         default:
             while (ShowCursor(TRUE) < 0) {
             }
@@ -509,13 +509,13 @@ void* Win32Window_C::GetNativeWindow() const {
 
 NativeWindowHandle Win32Window_C::GetNativeHandle() const {
     NativeWindowHandle handle{};
-    handle.api = WindowAPI_TP::WIN32_WINDOW;
+    handle.api = WindowAPI::eWin32Window;
     handle.hwnd = hwnd_;
     return handle;
 }
 
-WindowAPI_TP Win32Window_C::GetWindowAPI() const {
-    return WindowAPI_TP::WIN32_WINDOW;
+WindowAPI Win32Window_C::GetWindowAPI() const {
+    return WindowAPI::eWin32Window;
 }
 
 int Win32Window_C::GetWidth() const {

@@ -35,8 +35,8 @@ class CocoaWindow_C final : public IWindow {
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
-    void SetWindowMode(WindowMode_TP mode) override;
-    WindowMode_TP GetWindowMode() const override;
+    void SetWindowMode(WindowMode mode) override;
+    WindowMode GetWindowMode() const override;
     void SetFullscreen(bool enabled) override;
     bool IsFullscreen() const override;
     void Minimize() override;
@@ -46,12 +46,12 @@ class CocoaWindow_C final : public IWindow {
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
     void SetWindowLimits(const WindowLimits& limits) override;
-    void SetCursor(WindowCursor_TP cursor) override;
+    void SetCursor(WindowCursor cursor) override;
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
     NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI_TP GetWindowAPI() const override;
+    WindowAPI GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
     float GetDPIScale() const override;

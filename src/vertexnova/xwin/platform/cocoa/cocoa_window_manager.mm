@@ -166,8 +166,8 @@ bool CocoaWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI_TP CocoaWindowManager_C::GetWindowAPI() const {
-    return WindowAPI_TP::COCOA_WINDOW;
+WindowAPI CocoaWindowManager_C::GetWindowAPI() const {
+    return WindowAPI::eCocoaWindow;
 }
 
 std::string CocoaWindowManager_C::GetPlatformInfo() const {

@@ -153,8 +153,8 @@ bool UIKitWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI_TP UIKitWindowManager_C::GetWindowAPI() const {
-    return WindowAPI_TP::IOS_UIKIT_WINDOW;
+WindowAPI UIKitWindowManager_C::GetWindowAPI() const {
+    return WindowAPI::eIosUikitWindow;
 }
 
 std::string UIKitWindowManager_C::GetPlatformInfo() const {

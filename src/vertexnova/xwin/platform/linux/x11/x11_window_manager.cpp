@@ -176,8 +176,8 @@ bool X11WindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI_TP X11WindowManager_C::GetWindowAPI() const {
-    return WindowAPI_TP::X11_WINDOW;
+WindowAPI X11WindowManager_C::GetWindowAPI() const {
+    return WindowAPI::eX11Window;
 }
 
 std::string X11WindowManager_C::GetPlatformInfo() const {

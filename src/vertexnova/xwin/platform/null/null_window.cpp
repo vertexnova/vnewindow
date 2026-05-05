@@ -26,24 +26,24 @@ void NullWindow_C::SetTitle(const std::string& title) {
     descriptor_.title = title;
 }
 
-void NullWindow_C::SetWindowMode(WindowMode_TP mode) {
+void NullWindow_C::SetWindowMode(WindowMode mode) {
     descriptor_.mode = mode;
 }
 
-WindowMode_TP NullWindow_C::GetWindowMode() const {
+WindowMode NullWindow_C::GetWindowMode() const {
     return descriptor_.mode;
 }
 
 void NullWindow_C::SetFullscreen(bool enabled) {
     if (enabled) {
-        descriptor_.mode = WindowMode_TP::FULLSCREEN;
+        descriptor_.mode = WindowMode::eFullscreen;
     } else {
-        descriptor_.mode = WindowMode_TP::WINDOWED;
+        descriptor_.mode = WindowMode::eWindowed;
     }
 }
 
 bool NullWindow_C::IsFullscreen() const {
-    return descriptor_.mode == WindowMode_TP::FULLSCREEN;
+    return descriptor_.mode == WindowMode::eFullscreen;
 }
 
 void NullWindow_C::Minimize() {}
@@ -56,7 +56,7 @@ void NullWindow_C::SetWindowLimits(const WindowLimits& limits) {
     descriptor_.limits = limits;
 }
 
-void NullWindow_C::SetCursor(WindowCursor_TP cursor) {
+void NullWindow_C::SetCursor(WindowCursor cursor) {
     (void)cursor;
 }
 
@@ -91,8 +91,8 @@ NativeWindowHandle NullWindow_C::GetNativeHandle() const {
     return {};
 }
 
-WindowAPI_TP NullWindow_C::GetWindowAPI() const {
-    return WindowAPI_TP::NULL_WINDOW;
+WindowAPI NullWindow_C::GetWindowAPI() const {
+    return WindowAPI::eNullWindow;
 }
 
 int NullWindow_C::GetWidth() const {

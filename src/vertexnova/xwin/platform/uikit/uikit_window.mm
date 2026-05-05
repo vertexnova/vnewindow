@@ -126,11 +126,11 @@ void UIKitWindow_C::SetTitle(const std::string& title) {
     desc_.title = title;
 }
 
-void UIKitWindow_C::SetWindowMode(WindowMode_TP mode) {
+void UIKitWindow_C::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode_TP UIKitWindow_C::GetWindowMode() const {
+WindowMode UIKitWindow_C::GetWindowMode() const {
     return desc_.mode;
 }
 
@@ -155,7 +155,7 @@ void UIKitWindow_C::SetWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
 }
 
-void UIKitWindow_C::SetCursor(WindowCursor_TP cursor) {
+void UIKitWindow_C::SetCursor(WindowCursor cursor) {
     (void)cursor;
 }
 
@@ -212,7 +212,7 @@ void* UIKitWindow_C::GetNativeWindow() const {
 
 NativeWindowHandle UIKitWindow_C::GetNativeHandle() const {
     NativeWindowHandle handle{};
-    handle.api = WindowAPI_TP::IOS_UIKIT_WINDOW;
+    handle.api = WindowAPI::eIosUikitWindow;
     handle.ui_view = ui_view_;
     if (ui_view_) {
         UIView* view = (__bridge UIView*)ui_view_;
@@ -221,8 +221,8 @@ NativeWindowHandle UIKitWindow_C::GetNativeHandle() const {
     return handle;
 }
 
-WindowAPI_TP UIKitWindow_C::GetWindowAPI() const {
-    return WindowAPI_TP::IOS_UIKIT_WINDOW;
+WindowAPI UIKitWindow_C::GetWindowAPI() const {
+    return WindowAPI::eIosUikitWindow;
 }
 
 int UIKitWindow_C::GetWidth() const {

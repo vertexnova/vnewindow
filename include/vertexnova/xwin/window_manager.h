@@ -65,7 +65,7 @@ class IWindowManager {
     virtual bool ShouldClose() const = 0;
     virtual bool ShouldCloseAll() const = 0;
 
-    virtual WindowAPI_TP GetWindowAPI() const = 0;
+    virtual WindowAPI GetWindowAPI() const = 0;
     virtual std::string GetPlatformInfo() const = 0;
     virtual bool IsFeatureSupported(const std::string& feature) const = 0;
 

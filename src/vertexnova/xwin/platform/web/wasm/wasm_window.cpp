@@ -116,7 +116,7 @@ EM_BOOL WasmWindow_C::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent
                             self->desc_.size.height);
     if (self->owner_) {
         WindowEventData data{};
-        data.type = WindowEventType_TP::RESIZE;
+        data.type = WindowEventType::eResize;
         data.size = self->desc_.size;
         self->owner_->NotifyWindowEvent(self, data);
     }
@@ -303,7 +303,7 @@ EM_BOOL WasmWindow_C::FocusCallback(int /*event_type*/, const EmscriptenFocusEve
     eventBridgeWindowFocus(self, self->desc_, self->eventBridgeCallbacks(), true);
     if (self->owner_) {
         WindowEventData data{};
-        data.type = WindowEventType_TP::FOCUS;
+        data.type = WindowEventType::eFocus;
         data.focused = true;
         self->owner_->NotifyWindowEvent(self, data);
     }
@@ -318,7 +318,7 @@ EM_BOOL WasmWindow_C::BlurCallback(int /*event_type*/, const EmscriptenFocusEven
     eventBridgeWindowFocus(self, self->desc_, self->eventBridgeCallbacks(), false);
     if (self->owner_) {
         WindowEventData data{};
-        data.type = WindowEventType_TP::FOCUS;
+        data.type = WindowEventType::eFocus;
         data.focused = false;
         self->owner_->NotifyWindowEvent(self, data);
     }
@@ -356,12 +356,12 @@ void WasmWindow_C::SetTitle(const std::string& title) {
 #endif
 }
 
-void WasmWindow_C::SetWindowMode(WindowMode_TP mode) {
+void WasmWindow_C::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode_TP WasmWindow_C::GetWindowMode() const {
-    return WindowMode_TP::WINDOWED;
+WindowMode WasmWindow_C::GetWindowMode() const {
+    return WindowMode::eWindowed;
 }
 
 void WasmWindow_C::SetFullscreen(bool enabled) {
@@ -412,13 +412,13 @@ void* WasmWindow_C::GetNativeWindow() const {
 
 NativeWindowHandle WasmWindow_C::GetNativeHandle() const {
     NativeWindowHandle handle{};
-    handle.api = WindowAPI_TP::WASM_WINDOW;
+    handle.api = WindowAPI::eWasmWindow;
     handle.canvas_id = "#canvas";
     return handle;
 }
 
-WindowAPI_TP WasmWindow_C::GetWindowAPI() const {
-    return WindowAPI_TP::WASM_WINDOW;
+WindowAPI WasmWindow_C::GetWindowAPI() const {
+    return WindowAPI::eWasmWindow;
 }
 
 int WasmWindow_C::GetWidth() const {
@@ -475,15 +475,15 @@ void WasmWindow_C::SetWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
 }
 
-void WasmWindow_C::SetCursor(WindowCursor_TP cursor) {
+void WasmWindow_C::SetCursor(WindowCursor cursor) {
 #ifdef __EMSCRIPTEN__
     const char* css = "auto";
     switch (cursor) {
-        case WindowCursor_TP::HIDDEN:
-        case WindowCursor_TP::DISABLED:
+        case WindowCursor::eHidden:
+        case WindowCursor::eDisabled:
             css = "none";
             break;
-        case WindowCursor_TP::NORMAL:
+        case WindowCursor::eNormal:
         default:
             css = "auto";
             break;

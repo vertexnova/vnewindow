@@ -133,7 +133,7 @@ void X11Window_C::PollEvents() {
                 open_ = false;
                 if (owner_) {
                     WindowEventData data{};
-                    data.type = WindowEventType_TP::CLOSE;
+                    data.type = WindowEventType::eClose;
                     owner_->NotifyWindowEvent(this, data);
                 }
             }
@@ -143,7 +143,7 @@ void X11Window_C::PollEvents() {
             eventBridgeWindowResize(this, desc_, cb, desc_.size.width, desc_.size.height);
             if (owner_) {
                 WindowEventData data{};
-                data.type = WindowEventType_TP::RESIZE;
+                data.type = WindowEventType::eResize;
                 data.size = desc_.size;
                 owner_->NotifyWindowEvent(this, data);
             }
@@ -222,7 +222,7 @@ void X11Window_C::PollEvents() {
             eventBridgeWindowFocus(this, desc_, cb, true);
             if (owner_) {
                 WindowEventData data{};
-                data.type = WindowEventType_TP::FOCUS;
+                data.type = WindowEventType::eFocus;
                 data.focused = true;
                 owner_->NotifyWindowEvent(this, data);
             }
@@ -230,7 +230,7 @@ void X11Window_C::PollEvents() {
             eventBridgeWindowFocus(this, desc_, cb, false);
             if (owner_) {
                 WindowEventData data{};
-                data.type = WindowEventType_TP::FOCUS;
+                data.type = WindowEventType::eFocus;
                 data.focused = false;
                 owner_->NotifyWindowEvent(this, data);
             }
@@ -248,19 +248,19 @@ void X11Window_C::SetTitle(const std::string& title) {
     }
 }
 
-void X11Window_C::SetWindowMode(WindowMode_TP mode) {
+void X11Window_C::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
     if (!display_ || !window_) {
         return;
     }
-    if (mode == WindowMode_TP::FULLSCREEN) {
+    if (mode == WindowMode::eFullscreen) {
         SetFullscreen(true);
         return;
     }
     if (fullscreen_) {
         SetFullscreen(false);
     }
-    if (mode == WindowMode_TP::BORDERLESS) {
+    if (mode == WindowMode::eBorderless) {
         struct MotifWmHints {
             uint32_t flags;
             uint32_t functions;
@@ -280,7 +280,7 @@ void X11Window_C::SetWindowMode(WindowMode_TP mode) {
     }
 }
 
-WindowMode_TP X11Window_C::GetWindowMode() const {
+WindowMode X11Window_C::GetWindowMode() const {
     return desc_.mode;
 }
 
@@ -366,13 +366,13 @@ void X11Window_C::SetWindowLimits(const WindowLimits& limits) {
     XFlush(display_);
 }
 
-void X11Window_C::SetCursor(WindowCursor_TP cursor) {
+void X11Window_C::SetCursor(WindowCursor cursor) {
     if (!display_ || !window_) {
         return;
     }
     switch (cursor) {
-        case WindowCursor_TP::HIDDEN:
-        case WindowCursor_TP::DISABLED: {
+        case WindowCursor::eHidden:
+        case WindowCursor::eDisabled: {
             // Create an invisible cursor using a 1×1 blank pixmap
             if (blank_cursor_ == None) {
                 static const char kBlank = 0;
@@ -384,7 +384,7 @@ void X11Window_C::SetCursor(WindowCursor_TP cursor) {
             XDefineCursor(display_, window_, blank_cursor_);
             break;
         }
-        case WindowCursor_TP::NORMAL:
+        case WindowCursor::eNormal:
         default:
             XUndefineCursor(display_, window_);
             break;
@@ -429,7 +429,7 @@ void* X11Window_C::GetNativeWindow() const {
 
 NativeWindowHandle X11Window_C::GetNativeHandle() const {
     NativeWindowHandle handle{};
-    handle.api = WindowAPI_TP::X11_WINDOW;
+    handle.api = WindowAPI::eX11Window;
     handle.x11_display = display_;
     handle.x11_window_id = static_cast<uint32_t>(window_);
     handle.xcb_connection = xcb_connection_;
@@ -437,8 +437,8 @@ NativeWindowHandle X11Window_C::GetNativeHandle() const {
     return handle;
 }
 
-WindowAPI_TP X11Window_C::GetWindowAPI() const {
-    return WindowAPI_TP::X11_WINDOW;
+WindowAPI X11Window_C::GetWindowAPI() const {
+    return WindowAPI::eX11Window;
 }
 
 int X11Window_C::GetWidth() const {

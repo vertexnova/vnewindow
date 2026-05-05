@@ -22,19 +22,19 @@ struct WindowDescriptor {
     std::string title = "VneXWin";
     WindowSize size = {800, 600};
     WindowPosition position = {100, 100};
-    WindowMode_TP mode = WindowMode_TP::WINDOWED;
-    WindowState_TP state = WindowState_TP::NORMAL;
-    WindowVisibility_TP visibility = WindowVisibility_TP::VISIBLE;
+    WindowMode mode = WindowMode::eWindowed;
+    WindowState state = WindowState::eNormal;
+    WindowVisibility visibility = WindowVisibility::eVisible;
     bool resizable = true;
     bool decorated = true;
     bool always_on_top = false;
     bool visible = true;
     bool focused = true;
     bool vsync_enabled = true;
-    WindowTransparency_TP transparency = WindowTransparency_TP::OPAQUE;
-    WindowCursor_TP cursor = WindowCursor_TP::NORMAL;
+    WindowTransparency transparency = WindowTransparency::eOpaque;
+    WindowCursor cursor = WindowCursor::eNormal;
     WindowLimits limits;
-    GraphicsBackend_TP graphics_backend = GraphicsBackend_TP::VULKAN;
+    GraphicsBackend graphics_backend = GraphicsBackend::eVulkan;
     void* platform_data = nullptr;
     size_t platform_data_size = 0;
     bool enable_events = true;
@@ -48,7 +48,7 @@ struct WindowDescriptor {
 
     WindowDescriptor(const std::string& in_title,
                      const WindowSize& in_size,
-                     WindowMode_TP in_mode = WindowMode_TP::WINDOWED,
+                     WindowMode in_mode = WindowMode::eWindowed,
                      bool in_resizable = true,
                      bool in_decorated = true)
         : title(in_title)

@@ -6,7 +6,7 @@
  * Created:   April 2026
  *
  * Autodoc:   yes
- * Tests for src/vertexnova/xwin/platform/null/null_window.cpp (via NULL_WINDOW factory).
+ * Tests for src/vertexnova/xwin/platform/null/null_window.cpp (via eNullWindow factory).
  * ----------------------------------------------------------------------
  */
 
@@ -17,14 +17,14 @@
 #include "vertexnova/xwin/window_factory.h"
 #include "vertexnova/xwin/xwin_types.h"
 
-using vne::xwin::WindowAPI_TP;
+using vne::xwin::WindowAPI;
 using vne::xwin::WindowFactory;
-using vne::xwin::WindowMode_TP;
+using vne::xwin::WindowMode;
 
 namespace {
 
 std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
-    auto mgr = WindowFactory::CreateWindowManager(WindowAPI_TP::NULL_WINDOW);
+    auto mgr = WindowFactory::CreateWindowManager(WindowAPI::eNullWindow);
     EXPECT_NE(mgr, nullptr);
     if (!mgr) {
         return nullptr;
@@ -43,7 +43,7 @@ TEST_F(NullWindow_CTest, NativeHandleFieldsAreDefaulted) {
     auto w = mgr->CreateWindow("test", 64, 48);
     ASSERT_NE(w, nullptr);
     const auto handle = w->GetNativeHandle();
-    EXPECT_EQ(handle.api, WindowAPI_TP::NULL_WINDOW);
+    EXPECT_EQ(handle.api, WindowAPI::eNullWindow);
     EXPECT_EQ(handle.hwnd, nullptr);
     EXPECT_EQ(handle.ns_view, nullptr);
     EXPECT_EQ(handle.ns_window, nullptr);
@@ -81,19 +81,19 @@ TEST_F(NullWindow_CTest, SetModeAndFullscreen) {
     ASSERT_NE(mgr, nullptr);
     auto w = mgr->CreateWindow("mode", 100, 80);
     ASSERT_NE(w, nullptr);
-    EXPECT_EQ(w->GetWindowMode(), WindowMode_TP::WINDOWED);
+    EXPECT_EQ(w->GetWindowMode(), WindowMode::eWindowed);
 
-    w->SetWindowMode(WindowMode_TP::FULLSCREEN);
-    EXPECT_EQ(w->GetWindowMode(), WindowMode_TP::FULLSCREEN);
+    w->SetWindowMode(WindowMode::eFullscreen);
+    EXPECT_EQ(w->GetWindowMode(), WindowMode::eFullscreen);
     w->SetFullscreen(true);
     EXPECT_TRUE(w->IsFullscreen());
 
-    w->SetWindowMode(WindowMode_TP::BORDERLESS);
-    EXPECT_EQ(w->GetWindowMode(), WindowMode_TP::BORDERLESS);
+    w->SetWindowMode(WindowMode::eBorderless);
+    EXPECT_EQ(w->GetWindowMode(), WindowMode::eBorderless);
 
-    w->SetWindowMode(WindowMode_TP::WINDOWED);
+    w->SetWindowMode(WindowMode::eWindowed);
     w->SetFullscreen(false);
-    EXPECT_EQ(w->GetWindowMode(), WindowMode_TP::WINDOWED);
+    EXPECT_EQ(w->GetWindowMode(), WindowMode::eWindowed);
     EXPECT_FALSE(w->IsFullscreen());
 
     w->Close();

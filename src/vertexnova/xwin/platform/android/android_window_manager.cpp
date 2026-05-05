@@ -152,8 +152,8 @@ bool AndroidWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI_TP AndroidWindowManager_C::GetWindowAPI() const {
-    return WindowAPI_TP::ANDROID_SURFACE_WINDOW;
+WindowAPI AndroidWindowManager_C::GetWindowAPI() const {
+    return WindowAPI::eAndroidSurfaceWindow;
 }
 
 std::string AndroidWindowManager_C::GetPlatformInfo() const {

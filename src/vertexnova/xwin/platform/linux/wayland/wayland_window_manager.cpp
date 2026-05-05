@@ -273,7 +273,7 @@ void WaylandWindowManager_C::notify_window_focus(WaylandWindow_C* win, bool focu
     }
     eventBridgeWindowFocus(win, win->descriptor(), event_bridge_callbacks_, focused);
     WindowEventData ev{};
-    ev.type = WindowEventType_TP::FOCUS;
+    ev.type = WindowEventType::eFocus;
     ev.focused = focused;
     NotifyWindowEvent(win, ev);
 }
@@ -864,8 +864,8 @@ bool WaylandWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI_TP WaylandWindowManager_C::GetWindowAPI() const {
-    return WindowAPI_TP::WAYLAND_WINDOW;
+WindowAPI WaylandWindowManager_C::GetWindowAPI() const {
+    return WindowAPI::eWaylandWindow;
 }
 std::string WaylandWindowManager_C::GetPlatformInfo() const {
     return "Linux / Wayland (xdg-shell)";

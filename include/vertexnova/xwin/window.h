@@ -42,14 +42,14 @@ class IWindow {
     virtual void SwapBuffers() = 0;
 
     virtual void SetTitle(const std::string& title) = 0;
-    virtual void SetWindowMode(WindowMode_TP mode) = 0;
-    virtual WindowMode_TP GetWindowMode() const = 0;
+    virtual void SetWindowMode(WindowMode mode) = 0;
+    virtual WindowMode GetWindowMode() const = 0;
     virtual void SetFullscreen(bool enabled) = 0;
     virtual bool IsFullscreen() const = 0;
     virtual void SetPosition(int x, int y) = 0;
     virtual void GetPosition(int& x, int& y) const = 0;
     virtual void SetWindowLimits(const WindowLimits& limits);
-    virtual void SetCursor(WindowCursor_TP cursor);
+    virtual void SetCursor(WindowCursor cursor);
     virtual void SetMonitor(uint32_t monitor_index);
     virtual uint32_t GetMonitor() const;
     virtual float GetDPIScale() const;
@@ -67,7 +67,7 @@ class IWindow {
     virtual bool IsOpen() const = 0;
     virtual void* GetNativeWindow() const = 0;
     virtual NativeWindowHandle GetNativeHandle() const;
-    virtual WindowAPI_TP GetWindowAPI() const = 0;
+    virtual WindowAPI GetWindowAPI() const = 0;
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
     virtual std::string GetClipboardText() const;
@@ -80,7 +80,7 @@ class IWindow {
 inline void IWindow::SetWindowLimits(const WindowLimits& limits) {
     (void)limits;
 }
-inline void IWindow::SetCursor(WindowCursor_TP cursor) {
+inline void IWindow::SetCursor(WindowCursor cursor) {
     (void)cursor;
 }
 inline void IWindow::SetMonitor(uint32_t monitor_index) {

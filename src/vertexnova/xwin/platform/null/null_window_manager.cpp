@@ -138,8 +138,8 @@ bool NullWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI_TP NullWindowManager_C::GetWindowAPI() const {
-    return WindowAPI_TP::NULL_WINDOW;
+WindowAPI NullWindowManager_C::GetWindowAPI() const {
+    return WindowAPI::eNullWindow;
 }
 
 std::string NullWindowManager_C::GetPlatformInfo() const {

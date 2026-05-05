@@ -152,8 +152,8 @@ bool WasmWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI_TP WasmWindowManager_C::GetWindowAPI() const {
-    return WindowAPI_TP::WASM_WINDOW;
+WindowAPI WasmWindowManager_C::GetWindowAPI() const {
+    return WindowAPI::eWasmWindow;
 }
 
 std::string WasmWindowManager_C::GetPlatformInfo() const {

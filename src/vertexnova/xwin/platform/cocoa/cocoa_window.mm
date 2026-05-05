@@ -449,7 +449,7 @@ void CocoaWindow_C::handleWindowClose() {
     open_ = false;
     if (owner_) {
         WindowEventData data{};
-        data.type = WindowEventType_TP::CLOSE;
+        data.type = WindowEventType::eClose;
         owner_->NotifyWindowEvent(this, data);
     }
     destroy_native();
@@ -462,7 +462,7 @@ void CocoaWindow_C::handleWindowResize(uint32_t w, uint32_t h) {
     eventBridgeWindowResize(this, desc_, cb, w, h);
     if (owner_) {
         WindowEventData data{};
-        data.type = WindowEventType_TP::RESIZE;
+        data.type = WindowEventType::eResize;
         data.size = desc_.size;
         owner_->NotifyWindowEvent(this, data);
     }
@@ -473,7 +473,7 @@ void CocoaWindow_C::handleWindowFocus(bool focused) {
     eventBridgeWindowFocus(this, desc_, cb, focused);
     if (owner_) {
         WindowEventData data{};
-        data.type = WindowEventType_TP::FOCUS;
+        data.type = WindowEventType::eFocus;
         data.focused = focused;
         owner_->NotifyWindowEvent(this, data);
     }
@@ -493,20 +493,20 @@ void CocoaWindow_C::SetTitle(const std::string& title) {
     }
 }
 
-void CocoaWindow_C::SetWindowMode(WindowMode_TP mode) {
+void CocoaWindow_C::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
     if (!ns_window_) {
         return;
     }
     NSWindow* win = (__bridge NSWindow*)ns_window_;
-    if (mode == WindowMode_TP::FULLSCREEN) {
+    if (mode == WindowMode::eFullscreen) {
         SetFullscreen(true);
         return;
     }
     if (fullscreen_) {
         SetFullscreen(false);
     }
-    if (mode == WindowMode_TP::BORDERLESS) {
+    if (mode == WindowMode::eBorderless) {
         [win setStyleMask:NSWindowStyleMaskBorderless];
         NSScreen* screen = win.screen ? win.screen : [NSScreen mainScreen];
         if (screen) {
@@ -518,7 +518,7 @@ void CocoaWindow_C::SetWindowMode(WindowMode_TP mode) {
                        | NSWindowStyleMaskResizable)];
 }
 
-WindowMode_TP CocoaWindow_C::GetWindowMode() const {
+WindowMode CocoaWindow_C::GetWindowMode() const {
     return desc_.mode;
 }
 
@@ -610,16 +610,16 @@ void CocoaWindow_C::SetWindowLimits(const WindowLimits& limits) {
     }
 }
 
-void CocoaWindow_C::SetCursor(WindowCursor_TP cursor) {
+void CocoaWindow_C::SetCursor(WindowCursor cursor) {
     switch (cursor) {
-        case WindowCursor_TP::HIDDEN:
+        case WindowCursor::eHidden:
             [NSCursor hide];
             break;
-        case WindowCursor_TP::DISABLED:
+        case WindowCursor::eDisabled:
             [NSCursor hide];
             CGAssociateMouseAndMouseCursorPosition(false);
             break;
-        case WindowCursor_TP::NORMAL:
+        case WindowCursor::eNormal:
         default:
             CGAssociateMouseAndMouseCursorPosition(true);
             [NSCursor unhide];
@@ -641,14 +641,14 @@ void* CocoaWindow_C::GetNativeWindow() const {
 
 NativeWindowHandle CocoaWindow_C::GetNativeHandle() const {
     NativeWindowHandle handle{};
-    handle.api = WindowAPI_TP::COCOA_WINDOW;
+    handle.api = WindowAPI::eCocoaWindow;
     handle.ns_view = ns_view_;
     handle.ns_window = ns_window_;
     return handle;
 }
 
-WindowAPI_TP CocoaWindow_C::GetWindowAPI() const {
-    return WindowAPI_TP::COCOA_WINDOW;
+WindowAPI CocoaWindow_C::GetWindowAPI() const {
+    return WindowAPI::eCocoaWindow;
 }
 
 int CocoaWindow_C::GetWidth() const {

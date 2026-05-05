@@ -33,11 +33,11 @@ void AndroidWindow_C::SetTitle(const std::string& title) {
     desc_.title = title;
 }
 
-void AndroidWindow_C::SetWindowMode(WindowMode_TP mode) {
+void AndroidWindow_C::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode_TP AndroidWindow_C::GetWindowMode() const {
+WindowMode AndroidWindow_C::GetWindowMode() const {
     return desc_.mode;
 }
 
@@ -76,7 +76,7 @@ void AndroidWindow_C::SetWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
 }
 
-void AndroidWindow_C::SetCursor(WindowCursor_TP cursor) {
+void AndroidWindow_C::SetCursor(WindowCursor cursor) {
     (void)cursor;
 }
 
@@ -95,13 +95,13 @@ void* AndroidWindow_C::GetNativeWindow() const {
 
 NativeWindowHandle AndroidWindow_C::GetNativeHandle() const {
     NativeWindowHandle handle{};
-    handle.api = WindowAPI_TP::ANDROID_SURFACE_WINDOW;
+    handle.api = WindowAPI::eAndroidSurfaceWindow;
     handle.a_native_window = native_;
     return handle;
 }
 
-WindowAPI_TP AndroidWindow_C::GetWindowAPI() const {
-    return WindowAPI_TP::ANDROID_SURFACE_WINDOW;
+WindowAPI AndroidWindow_C::GetWindowAPI() const {
+    return WindowAPI::eAndroidSurfaceWindow;
 }
 
 int AndroidWindow_C::GetWidth() const {

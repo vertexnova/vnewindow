@@ -34,8 +34,8 @@ class WasmWindow_C final : public IWindow {
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
-    void SetWindowMode(WindowMode_TP mode) override;
-    WindowMode_TP GetWindowMode() const override;
+    void SetWindowMode(WindowMode mode) override;
+    WindowMode GetWindowMode() const override;
     void SetFullscreen(bool enabled) override;
     bool IsFullscreen() const override;
     void SetPosition(int x, int y) override;
@@ -45,12 +45,12 @@ class WasmWindow_C final : public IWindow {
     void Maximize() override;
     void Restore() override;
     void SetWindowLimits(const WindowLimits& limits) override;
-    void SetCursor(WindowCursor_TP cursor) override;
+    void SetCursor(WindowCursor cursor) override;
     void Close() override;
     bool IsOpen() const override;
     void* GetNativeWindow() const override;
     NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI_TP GetWindowAPI() const override;
+    WindowAPI GetWindowAPI() const override;
     int GetWidth() const override;
     int GetHeight() const override;
     uint32_t GetFramebufferWidth() const override;
