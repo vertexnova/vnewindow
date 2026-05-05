@@ -47,16 +47,8 @@ const wl_registry_listener kRegistryListener = {
     registry_global_remove,
 };
 
-void output_geometry(void*,
-                     struct wl_output*,
-                     int32_t,
-                     int32_t,
-                     int32_t,
-                     int32_t,
-                     int32_t,
-                     const char*,
-                     const char*,
-                     int32_t) {}
+void output_geometry(
+    void*, struct wl_output*, int32_t, int32_t, int32_t, int32_t, int32_t, const char*, const char*, int32_t) {}
 void output_mode(void*, struct wl_output*, uint32_t, int32_t, int32_t, int32_t) {}
 void output_done(void*, struct wl_output*) {}
 void output_scale(void* data, struct wl_output*, int32_t factor) {

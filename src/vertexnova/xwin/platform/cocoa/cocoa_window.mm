@@ -200,34 +200,57 @@
 
 // ---- Text / IME input ----
 
-- (BOOL)hasMarkedText { return NO; }
-- (NSRange)markedRange { return NSMakeRange(NSNotFound, 0); }
-- (NSRange)selectedRange { return NSMakeRange(NSNotFound, 0); }
+- (BOOL)hasMarkedText {
+    return NO;
+}
+- (NSRange)markedRange {
+    return NSMakeRange(NSNotFound, 0);
+}
+- (NSRange)selectedRange {
+    return NSMakeRange(NSNotFound, 0);
+}
 - (void)setMarkedText:(id)string selectedRange:(NSRange)sel replacementRange:(NSRange)rep {
-    (void)string; (void)sel; (void)rep;
+    (void)string;
+    (void)sel;
+    (void)rep;
 }
-- (void)unmarkText {}
-- (NSArray<NSAttributedStringKey>*)validAttributesForMarkedText { return @[]; }
+- (void)unmarkText {
+}
+- (NSArray<NSAttributedStringKey>*)validAttributesForMarkedText {
+    return @[];
+}
 - (NSAttributedString*)attributedSubstringForProposedRange:(NSRange)r actualRange:(NSRangePointer)ar {
-    (void)r; (void)ar; return nil;
+    (void)r;
+    (void)ar;
+    return nil;
 }
-- (NSUInteger)characterIndexForPoint:(NSPoint)p { (void)p; return NSNotFound; }
+- (NSUInteger)characterIndexForPoint:(NSPoint)p {
+    (void)p;
+    return NSNotFound;
+}
 - (NSRect)firstRectForCharacterRange:(NSRange)r actualRange:(NSRangePointer)ar {
-    (void)r; (void)ar; return NSZeroRect;
+    (void)r;
+    (void)ar;
+    return NSZeroRect;
 }
 - (void)insertText:(id)string replacementRange:(NSRange)rep {
     (void)rep;
-    if (!_xwin) { return; }
-    NSString* str = [string isKindOfClass:[NSAttributedString class]]
-        ? [(NSAttributedString*)string string]
-        : (NSString*)string;
-    if (!str || str.length == 0) { return; }
+    if (!_xwin) {
+        return;
+    }
+    NSString* str =
+        [string isKindOfClass:[NSAttributedString class]] ? [(NSAttributedString*)string string] : (NSString*)string;
+    if (!str || str.length == 0) {
+        return;
+    }
     const char* utf8 = str.UTF8String;
     if (utf8) {
         _xwin->handleTextInput(utf8);
     }
 }
-- (void)doCommandBySelector:(SEL)sel { (void)sel; }
+- (void)doCommandBySelector:(SEL)sel {
+    (void)sel;
+}
 
 @end
 

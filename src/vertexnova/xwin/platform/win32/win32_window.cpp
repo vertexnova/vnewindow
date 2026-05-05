@@ -595,21 +595,20 @@ void Win32Window_C::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, ui
         return;
     }
     BITMAPV5HEADER bi{};
-    bi.bV5Size        = sizeof(BITMAPV5HEADER);
-    bi.bV5Width       = static_cast<LONG>(width);
-    bi.bV5Height      = -static_cast<LONG>(height);  // top-down
-    bi.bV5Planes      = 1;
-    bi.bV5BitCount    = 32;
+    bi.bV5Size = sizeof(BITMAPV5HEADER);
+    bi.bV5Width = static_cast<LONG>(width);
+    bi.bV5Height = -static_cast<LONG>(height);  // top-down
+    bi.bV5Planes = 1;
+    bi.bV5BitCount = 32;
     bi.bV5Compression = BI_BITFIELDS;
-    bi.bV5RedMask     = 0x00FF0000U;
-    bi.bV5GreenMask   = 0x0000FF00U;
-    bi.bV5BlueMask    = 0x000000FFU;
-    bi.bV5AlphaMask   = 0xFF000000U;
+    bi.bV5RedMask = 0x00FF0000U;
+    bi.bV5GreenMask = 0x0000FF00U;
+    bi.bV5BlueMask = 0x000000FFU;
+    bi.bV5AlphaMask = 0xFF000000U;
 
     void* bits = nullptr;
     HDC dc = GetDC(nullptr);
-    HBITMAP color_bm =
-        CreateDIBSection(dc, reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS, &bits, nullptr, 0);
+    HBITMAP color_bm = CreateDIBSection(dc, reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS, &bits, nullptr, 0);
     ReleaseDC(nullptr, dc);
     if (!color_bm) {
         return;
@@ -624,9 +623,9 @@ void Win32Window_C::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, ui
     }
     HBITMAP mask_bm = CreateBitmap(static_cast<int>(width), static_cast<int>(height), 1, 1, nullptr);
     ICONINFO ii{};
-    ii.fIcon    = TRUE;
+    ii.fIcon = TRUE;
     ii.hbmColor = color_bm;
-    ii.hbmMask  = mask_bm;
+    ii.hbmMask = mask_bm;
     HICON icon = CreateIconIndirect(&ii);
     DeleteObject(color_bm);
     DeleteObject(mask_bm);
@@ -634,7 +633,7 @@ void Win32Window_C::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, ui
         return;
     }
     SendMessageW(_hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
-    SendMessageW(_hwnd, WM_SETICON, ICON_BIG,   reinterpret_cast<LPARAM>(icon));
+    SendMessageW(_hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
     DestroyIcon(icon);
 }
 
