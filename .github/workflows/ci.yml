@@ -469,7 +469,8 @@ jobs:
 
       - name: Install clang and clang-tidy
         # Match build-reusable Linux deps: cached configure expects X11 when libx11-dev was present.
-        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake clang clang-tidy libx11-dev
+        # jq: derive file list from compile_commands (Linux build has no Cocoa/Win32/UIKit SDKs).
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake clang clang-tidy libx11-dev jq
 
       - name: Configure CMake (refresh compile_commands)
         run: |
@@ -484,16 +485,28 @@ jobs:
           cmake --build build/shared/Release --config Release --parallel
 
       - name: Run clang-tidy
+        shell: bash
         run: |
-          find src -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.mm' \) -print0 \
-            | xargs -0 -r clang-tidy -p build/shared/Release \
-                --warnings-as-errors='*'
+          set -euo pipefail
+          # Match by path suffix so restored compile_commands paths match any checkout root.
+          TIDY_FILES=()
+          while IFS= read -r f; do
+            case "$f" in
+              */src/vertexnova/xwin/*) TIDY_FILES+=("$f") ;;
+            esac
+          done < <(jq -r '.[].file' build/shared/Release/compile_commands.json | sort -u)
+          if [[ ${#TIDY_FILES[@]} -eq 0 ]]; then
+            echo "::error::No vne::xwin sources in compile_commands.json — check CMake export."
+            exit 1
+          fi
+          printf '%s\0' "${TIDY_FILES[@]}" \
+            | xargs -0 -r clang-tidy -p build/shared/Release --warnings-as-errors='*'
 
       - name: Write clang-tidy summary
         if: always()
         run: |
           echo "## clang-tidy" >> "$GITHUB_STEP_SUMMARY"
-          echo "Analyzed \`src/\` with \`build/shared/Release/compile_commands.json\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Analyzed \`src/vertexnova/xwin/*\` listed in \`compile_commands.json\`" >> "$GITHUB_STEP_SUMMARY"
 
   # ====================================================================
   # STAGE 5: CI GATE
