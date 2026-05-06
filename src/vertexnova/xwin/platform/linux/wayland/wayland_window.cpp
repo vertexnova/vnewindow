@@ -43,14 +43,20 @@ void xdg_toplevel_close_thunk(void* data, struct xdg_toplevel*) {
     self->apply_toplevel_close();
 }
 
-const xdg_surface_listener kXdgSurfaceListener = {
-    .configure = xdg_surface_configure_thunk,
-};
+/* Value-init then assign: avoids -Wmissing-field-initializers when protocols add fields
+ * (designated-only lists still warn on Clang for omitted trailing members). */
+const xdg_surface_listener kXdgSurfaceListener = [] {
+    xdg_surface_listener l{};
+    l.configure = xdg_surface_configure_thunk;
+    return l;
+}();
 
-const xdg_toplevel_listener kXdgToplevelListener = {
-    .configure = xdg_toplevel_configure_thunk,
-    .close = xdg_toplevel_close_thunk,
-};
+const xdg_toplevel_listener kXdgToplevelListener = [] {
+    xdg_toplevel_listener l{};
+    l.configure = xdg_toplevel_configure_thunk;
+    l.close = xdg_toplevel_close_thunk;
+    return l;
+}();
 
 }  // namespace
 
