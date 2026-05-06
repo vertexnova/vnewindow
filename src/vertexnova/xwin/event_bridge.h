@@ -53,8 +53,8 @@ void eventBridgeMouseMove(IWindow* window,
 void eventBridgeMouseScroll(IWindow* window,
                             const WindowDescriptor& descriptor,
                             const EventBridgeCallbacks& callbacks,
-                            float x_offset,
-                            float y_offset);
+                            float xOffset,
+                            float yOffset);
 
 void eventBridgeTouch(IWindow* window,
                       const WindowDescriptor& descriptor,

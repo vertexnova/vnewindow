@@ -52,7 +52,7 @@ struct WindowInputMapping {
 // -----------------------------------------------------------------------------
 
 /** @brief Win32 WM_KEY* token: low 16 = VK; bits 16–23 = scan; bit 24 = extended (from lParam). */
-inline uint64_t packWin32NativeKey(std::uintptr_t vk, std::uintptr_t l_param) {
+[[nodiscard]] inline uint64_t packWin32NativeKey(std::uintptr_t vk, std::uintptr_t l_param) noexcept {
     const std::uint32_t scan = (static_cast<std::uint32_t>(l_param) >> 16U) & 0xFFU;
     const std::uint32_t ext = (static_cast<std::uint32_t>(l_param) & (1U << 24)) != 0 ? 1U : 0U;
     uint64_t p = static_cast<uint64_t>(vk) & 0xFFFFULL;
@@ -61,7 +61,7 @@ inline uint64_t packWin32NativeKey(std::uintptr_t vk, std::uintptr_t l_param) {
     return p;
 }
 
-inline void unpackWin32NativeKey(uint64_t packed, std::uintptr_t* vk_out, std::uintptr_t* l_param_out) {
+inline void unpackWin32NativeKey(uint64_t packed, std::uintptr_t* vk_out, std::uintptr_t* l_param_out) noexcept {
     *vk_out = static_cast<std::uintptr_t>(packed & 0xFFFFULL);
     const std::uint32_t scan = static_cast<std::uint32_t>((packed >> 16) & 0xFFULL);
     const std::uint32_t ext = static_cast<std::uint32_t>((packed >> 24) & 1ULL);
@@ -73,39 +73,39 @@ inline void unpackWin32NativeKey(uint64_t packed, std::uintptr_t* vk_out, std::u
 }
 
 /** @brief Win32 mouse: low 32 = UINT msg, high 32 = WPARAM for XBUTTON. */
-inline uint64_t packWin32Mouse(unsigned int msg, std::uintptr_t w_param) {
+[[nodiscard]] inline uint64_t packWin32Mouse(unsigned int msg, std::uintptr_t w_param) noexcept {
     uint64_t p = static_cast<uint64_t>(msg) & 0xFFFFFFFFULL;
     p |= (static_cast<uint64_t>(w_param) << 32);
     return p;
 }
 
-inline void unpackWin32Mouse(uint64_t packed, unsigned int* msg_out, std::uintptr_t* w_param_out) {
+inline void unpackWin32Mouse(uint64_t packed, unsigned int* msg_out, std::uintptr_t* w_param_out) noexcept {
     *msg_out = static_cast<unsigned int>(packed & 0xFFFFFFFFULL);
     *w_param_out = static_cast<std::uintptr_t>(packed >> 32);
 }
 
 /** @brief Cocoa / UIKit NSEvent.keyCode (CGKeyCode). */
-inline uint64_t packCocoaNativeKey(std::uint16_t key_code) {
+[[nodiscard]] inline uint64_t packCocoaNativeKey(std::uint16_t key_code) noexcept {
     return static_cast<uint64_t>(key_code);
 }
 
 /** @brief X11 KeySym or Wayland xkb_keysym_t (fits 32 bits). */
-inline uint64_t packXkbNativeKey(std::uint32_t keysym) {
+[[nodiscard]] inline uint64_t packXkbNativeKey(std::uint32_t keysym) noexcept {
     return static_cast<uint64_t>(keysym);
 }
 
 /** @brief Cocoa/UIKit NSEvent.buttonNumber (0–7 align with vne::events::MouseButton indices). */
-inline uint64_t packCocoaNativeMouse(std::uint16_t button_number) {
+[[nodiscard]] inline uint64_t packCocoaNativeMouse(std::uint16_t button_number) noexcept {
     return static_cast<uint64_t>(button_number);
 }
 
 /** @brief X11 ButtonPress/ButtonRelease button field (1-based button index). */
-inline uint64_t packX11NativeMouse(std::uint32_t x11_button) {
+[[nodiscard]] inline uint64_t packX11NativeMouse(std::uint32_t x11_button) noexcept {
     return static_cast<uint64_t>(x11_button);
 }
 
 /** @brief Linux evdev button code (e.g. BTN_LEFT) as used by Wayland pointer protocol. */
-inline uint64_t packWaylandNativeMouse(std::uint32_t linux_input_button) {
+[[nodiscard]] inline uint64_t packWaylandNativeMouse(std::uint32_t linux_input_button) noexcept {
     return static_cast<uint64_t>(linux_input_button);
 }
 
@@ -114,33 +114,34 @@ inline uint64_t packWaylandNativeMouse(std::uint32_t linux_input_button) {
 // -----------------------------------------------------------------------------
 
 /** Uses mapping from WindowDescriptor when non-null; otherwise built-ins only. */
-VNE_XWIN_API vne::events::KeyCode mapNativeKeyToEvents(WindowAPI api,
-                                                       uint64_t native_key_packed,
-                                                       const WindowInputMapping* mapping = nullptr);
+[[nodiscard]] VNE_XWIN_API vne::events::KeyCode mapNativeKeyToEvents(WindowAPI api,
+                                                                     uint64_t native_key_packed,
+                                                                     const WindowInputMapping* mapping = nullptr);
 
-VNE_XWIN_API uint64_t mapEventsKeyToNativePacked(WindowAPI api,
-                                                 vne::events::KeyCode key,
-                                                 const WindowInputMapping* mapping = nullptr);
+[[nodiscard]] VNE_XWIN_API uint64_t mapEventsKeyToNativePacked(WindowAPI api,
+                                                               vne::events::KeyCode key,
+                                                               const WindowInputMapping* mapping = nullptr);
 
-VNE_XWIN_API vne::events::MouseButton mapNativeMouseToEvents(WindowAPI api,
-                                                             uint64_t native_mouse_packed,
-                                                             const WindowInputMapping* mapping = nullptr);
+[[nodiscard]] VNE_XWIN_API vne::events::MouseButton mapNativeMouseToEvents(WindowAPI api,
+                                                                           uint64_t native_mouse_packed,
+                                                                           const WindowInputMapping* mapping = nullptr);
 
-VNE_XWIN_API uint64_t mapEventsMouseToNativePacked(WindowAPI api,
-                                                   vne::events::MouseButton button,
-                                                   const WindowInputMapping* mapping = nullptr);
+[[nodiscard]] VNE_XWIN_API uint64_t mapEventsMouseToNativePacked(WindowAPI api,
+                                                                 vne::events::MouseButton button,
+                                                                 const WindowInputMapping* mapping = nullptr);
 
-VNE_XWIN_API std::uint8_t mapNativeModifiersToEvents(WindowAPI api,
-                                                     std::uint64_t native_modifiers_packed,
-                                                     const WindowInputMapping* mapping = nullptr);
+[[nodiscard]] VNE_XWIN_API std::uint8_t mapNativeModifiersToEvents(WindowAPI api,
+                                                                   std::uint64_t native_modifiers_packed,
+                                                                   const WindowInputMapping* mapping = nullptr);
 
-VNE_XWIN_API std::uint64_t mapEventsModifiersToNativePacked(WindowAPI api,
-                                                            std::uint8_t events_modifiers,
-                                                            const WindowInputMapping* mapping = nullptr);
+[[nodiscard]] VNE_XWIN_API std::uint64_t mapEventsModifiersToNativePacked(WindowAPI api,
+                                                                          std::uint8_t events_modifiers,
+                                                                          const WindowInputMapping* mapping = nullptr);
 
 /** Built-in tables only (ignores WindowInputMapping). */
-VNE_XWIN_API vne::events::KeyCode mapNativeKeyToEventsDefault(WindowAPI api, uint64_t native_key_packed);
+[[nodiscard]] VNE_XWIN_API vne::events::KeyCode mapNativeKeyToEventsDefault(WindowAPI api,
+                                                                            uint64_t native_key_packed) noexcept;
 
-VNE_XWIN_API uint64_t mapEventsKeyToNativePackedDefault(WindowAPI api, vne::events::KeyCode key);
+[[nodiscard]] VNE_XWIN_API uint64_t mapEventsKeyToNativePackedDefault(WindowAPI api, vne::events::KeyCode key) noexcept;
 
 }  // namespace vne::xwin

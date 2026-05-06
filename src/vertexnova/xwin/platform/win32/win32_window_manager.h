@@ -26,7 +26,7 @@ class Win32WindowManager final : public IWindowManager {
     Win32WindowManager();
     ~Win32WindowManager() override;
 
-    bool Initialize() override;
+    [[nodiscard]] bool Initialize() override;
     void Shutdown() override;
     [[nodiscard]] bool IsInitialized() const noexcept override;
 
@@ -52,7 +52,7 @@ class Win32WindowManager final : public IWindowManager {
     [[nodiscard]] bool ShouldCloseAll() const noexcept override;
 
     [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
-    std::string GetPlatformInfo() const override;
+    [[nodiscard]] std::string GetPlatformInfo() const override;
     [[nodiscard]] bool IsFeatureSupported(const std::string& feature) const override;
     [[nodiscard]] std::string GetProperties() const override;
     void SetProperties(const std::string& properties) override;

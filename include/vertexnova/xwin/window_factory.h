@@ -26,22 +26,23 @@ namespace vne::xwin {
  */
 class VNE_XWIN_API WindowFactory {
    public:
-    static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI window_api);
-    static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI window_api, const std::string& properties);
-    static std::shared_ptr<IWindowManager> CreateWindowManager();
+    [[nodiscard]] static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI window_api);
+    [[nodiscard]] static std::shared_ptr<IWindowManager> CreateWindowManager(WindowAPI window_api,
+                                                                             const std::string& properties);
+    [[nodiscard]] static std::shared_ptr<IWindowManager> CreateWindowManager();
 
    private:
-    static WindowAPI GetBestWindowAPIForPlatform();
-    static bool IsWindowAPISupported(WindowAPI window_api);
-    static std::string GetSupportedWindowAPIs();
-    static std::string GetWindowAPIInfo(WindowAPI window_api);
-    static std::string GetWindowAPICapabilities(WindowAPI window_api);
+    [[nodiscard]] static WindowAPI GetBestWindowAPIForPlatform();
+    [[nodiscard]] static bool IsWindowAPISupported(WindowAPI window_api);
+    [[nodiscard]] static std::string GetSupportedWindowAPIs();
+    [[nodiscard]] static std::string GetWindowAPIInfo(WindowAPI window_api);
+    [[nodiscard]] static std::string GetWindowAPICapabilities(WindowAPI window_api);
 
    public:
-    static std::string GetVersion();
-    static std::string GetBuildInfo();
-    static bool IsAvailable();
-    static std::string GetLastError();
+    [[nodiscard]] static std::string GetVersion();
+    [[nodiscard]] static std::string GetBuildInfo();
+    [[nodiscard]] static bool IsAvailable();
+    [[nodiscard]] static std::string GetLastError();
     static void ClearLastError();
 
    private:

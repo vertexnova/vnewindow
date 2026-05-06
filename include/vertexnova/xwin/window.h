@@ -43,38 +43,38 @@ class IWindow {
 
     virtual void SetTitle(const std::string& title) = 0;
     virtual void SetWindowMode(WindowMode mode) = 0;
-    virtual WindowMode GetWindowMode() const = 0;
+    [[nodiscard]] virtual WindowMode GetWindowMode() const noexcept = 0;
     virtual void SetFullscreen(bool enabled) = 0;
-    virtual bool IsFullscreen() const = 0;
+    [[nodiscard]] virtual bool IsFullscreen() const noexcept = 0;
     virtual void SetPosition(int x, int y) = 0;
     virtual void GetPosition(int& x, int& y) const = 0;
     virtual void SetWindowLimits(const WindowLimits& limits);
     virtual void SetCursor(WindowCursor cursor);
     virtual void SetMonitor(uint32_t monitor_index);
-    virtual uint32_t GetMonitor() const;
-    virtual float GetDPIScale() const;
-    virtual uint32_t GetFramebufferWidth() const;
-    virtual uint32_t GetFramebufferHeight() const;
+    [[nodiscard]] virtual uint32_t GetMonitor() const noexcept;
+    [[nodiscard]] virtual float GetDPIScale() const noexcept;
+    [[nodiscard]] virtual uint32_t GetFramebufferWidth() const noexcept;
+    [[nodiscard]] virtual uint32_t GetFramebufferHeight() const noexcept;
     virtual void SetTransparent(bool enabled);
-    virtual bool IsTransparent() const;
+    [[nodiscard]] virtual bool IsTransparent() const noexcept;
     virtual void SetVSync(bool enabled);
-    virtual bool IsVSyncEnabled() const;
+    [[nodiscard]] virtual bool IsVSyncEnabled() const noexcept;
     virtual void Minimize();
     virtual void Maximize();
     virtual void Restore();
     virtual void Resize(uint32_t width, uint32_t height) = 0;
     virtual void Close() = 0;
-    virtual bool IsOpen() const = 0;
-    virtual void* GetNativeWindow() const = 0;
-    virtual NativeWindowHandle GetNativeHandle() const;
-    virtual WindowAPI GetWindowAPI() const = 0;
-    virtual int GetWidth() const = 0;
-    virtual int GetHeight() const = 0;
-    virtual std::string GetClipboardText() const;
+    [[nodiscard]] virtual bool IsOpen() const noexcept = 0;
+    [[nodiscard]] virtual void* GetNativeWindow() const noexcept = 0;
+    [[nodiscard]] virtual NativeWindowHandle GetNativeHandle() const noexcept;
+    [[nodiscard]] virtual WindowAPI GetWindowAPI() const noexcept = 0;
+    [[nodiscard]] virtual int GetWidth() const noexcept = 0;
+    [[nodiscard]] virtual int GetHeight() const noexcept = 0;
+    [[nodiscard]] virtual std::string GetClipboardText() const;
     virtual void SetClipboardText(const std::string& text);
     virtual void SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height);
 
-    static std::unique_ptr<IWindow> Create(const WindowDescriptor& descriptor);
+    [[nodiscard]] static std::unique_ptr<IWindow> Create(const WindowDescriptor& descriptor);
 };
 
 inline void IWindow::SetWindowLimits(const WindowLimits& limits) {
@@ -86,34 +86,34 @@ inline void IWindow::SetCursor(WindowCursor cursor) {
 inline void IWindow::SetMonitor(uint32_t monitor_index) {
     (void)monitor_index;
 }
-inline uint32_t IWindow::GetMonitor() const {
+inline uint32_t IWindow::GetMonitor() const noexcept {
     return 0;
 }
-inline float IWindow::GetDPIScale() const {
+inline float IWindow::GetDPIScale() const noexcept {
     return 1.0F;
 }
-inline uint32_t IWindow::GetFramebufferWidth() const {
+inline uint32_t IWindow::GetFramebufferWidth() const noexcept {
     return static_cast<uint32_t>(static_cast<float>(GetWidth()) * GetDPIScale());
 }
-inline uint32_t IWindow::GetFramebufferHeight() const {
+inline uint32_t IWindow::GetFramebufferHeight() const noexcept {
     return static_cast<uint32_t>(static_cast<float>(GetHeight()) * GetDPIScale());
 }
 inline void IWindow::SetTransparent(bool enabled) {
     (void)enabled;
 }
-inline bool IWindow::IsTransparent() const {
+inline bool IWindow::IsTransparent() const noexcept {
     return false;
 }
 inline void IWindow::SetVSync(bool enabled) {
     (void)enabled;
 }
-inline bool IWindow::IsVSyncEnabled() const {
+inline bool IWindow::IsVSyncEnabled() const noexcept {
     return false;
 }
 inline void IWindow::Minimize() {}
 inline void IWindow::Maximize() {}
 inline void IWindow::Restore() {}
-inline NativeWindowHandle IWindow::GetNativeHandle() const {
+inline NativeWindowHandle IWindow::GetNativeHandle() const noexcept {
     return {};
 }
 inline std::string IWindow::GetClipboardText() const {

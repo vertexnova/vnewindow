@@ -95,7 +95,7 @@ std::uint32_t mapMouseButtonToLinuxEvdev(MouseButton button) {
 
 }  // namespace
 
-KeyCode mapNativeKeyToEventsDefault(WindowAPI api, uint64_t native_key_packed) {
+KeyCode mapNativeKeyToEventsDefault(WindowAPI api, uint64_t native_key_packed) noexcept {
     switch (api) {
         case WindowAPI::eNullWindow:
             return KeyCode::eUnknown;
@@ -129,7 +129,7 @@ KeyCode mapNativeKeyToEventsDefault(WindowAPI api, uint64_t native_key_packed) {
     }
 }
 
-uint64_t mapEventsKeyToNativePackedDefault(WindowAPI api, KeyCode key) {
+uint64_t mapEventsKeyToNativePackedDefault(WindowAPI api, KeyCode key) noexcept {
 #if VNE_XWIN_HAS_WIN32
     if (api == WindowAPI::eWin32Window) {
         return mapEventsKeyCodeToWin32Packed(key);
@@ -160,7 +160,7 @@ uint64_t mapEventsKeyToNativePackedDefault(WindowAPI api, KeyCode key) {
     return 0;
 }
 
-MouseButton mapNativeMouseToEventsDefault(WindowAPI api, uint64_t native_mouse_packed) {
+MouseButton mapNativeMouseToEventsDefault(WindowAPI api, uint64_t native_mouse_packed) noexcept {
 #if VNE_XWIN_HAS_WIN32
     if (api == WindowAPI::eWin32Window) {
         unsigned int msg = 0;
@@ -202,7 +202,7 @@ MouseButton mapNativeMouseToEventsDefault(WindowAPI api, uint64_t native_mouse_p
     return MouseButton::eLeft;
 }
 
-uint64_t mapEventsMouseToNativePackedDefault(WindowAPI api, MouseButton button) {
+uint64_t mapEventsMouseToNativePackedDefault(WindowAPI api, MouseButton button) noexcept {
 #if VNE_XWIN_HAS_WIN32
     if (api == WindowAPI::eWin32Window) {
         return mapEventsMouseButtonToWin32Packed(button);
@@ -233,7 +233,7 @@ uint64_t mapEventsMouseToNativePackedDefault(WindowAPI api, MouseButton button) 
     return 0;
 }
 
-std::uint8_t mapNativeModifiersToEventsDefault(WindowAPI api, std::uint64_t native_modifiers_packed) {
+std::uint8_t mapNativeModifiersToEventsDefault(WindowAPI api, std::uint64_t native_modifiers_packed) noexcept {
 #if VNE_XWIN_HAS_WIN32
     if (api == WindowAPI::eWin32Window) {
         return static_cast<std::uint8_t>(native_modifiers_packed & 0xFFu);
@@ -265,7 +265,7 @@ std::uint8_t mapNativeModifiersToEventsDefault(WindowAPI api, std::uint64_t nati
     return 0;
 }
 
-std::uint64_t mapEventsModifiersToNativePackedDefault(WindowAPI api, std::uint8_t events_modifiers) {
+std::uint64_t mapEventsModifiersToNativePackedDefault(WindowAPI api, std::uint8_t events_modifiers) noexcept {
 #if VNE_XWIN_HAS_WIN32
     if (api == WindowAPI::eWin32Window) {
         return static_cast<std::uint64_t>(events_modifiers);

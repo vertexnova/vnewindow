@@ -23,12 +23,14 @@ class NullWindowManager final : public IWindowManager {
     NullWindowManager() = default;
     ~NullWindowManager() override;
 
-    bool Initialize() override;
+    [[nodiscard]] bool Initialize() override;
     void Shutdown() override;
     [[nodiscard]] bool IsInitialized() const noexcept override;
 
-    std::shared_ptr<IWindow> OpenWindow(const WindowDescriptor& descriptor) override;
-    std::shared_ptr<IWindow> OpenWindow(const std::string& title, uint32_t width, uint32_t height) override;
+    [[nodiscard]] std::shared_ptr<IWindow> OpenWindow(const WindowDescriptor& descriptor) override;
+    [[nodiscard]] std::shared_ptr<IWindow> OpenWindow(const std::string& title,
+                                                      uint32_t width,
+                                                      uint32_t height) override;
     void RemoveWindow(std::shared_ptr<IWindow> window) override;
     void DestroyAllWindows() override;
 
@@ -46,7 +48,7 @@ class NullWindowManager final : public IWindowManager {
     [[nodiscard]] bool ShouldCloseAll() const noexcept override;
 
     [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
-    std::string GetPlatformInfo() const override;
+    [[nodiscard]] std::string GetPlatformInfo() const override;
     [[nodiscard]] bool IsFeatureSupported(const std::string& feature) const override;
     [[nodiscard]] std::string GetProperties() const override;
     void SetProperties(const std::string& properties) override;
