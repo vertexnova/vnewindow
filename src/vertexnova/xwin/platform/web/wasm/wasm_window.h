@@ -21,23 +21,23 @@
 
 namespace vne::xwin {
 
-class WasmWindowManager_C;
+class WasmWindowManager;
 
-class WasmWindow_C final : public IWindow {
+class WasmWindow final : public IWindow {
    public:
-    WasmWindow_C();
-    ~WasmWindow_C() override;
+    WasmWindow();
+    ~WasmWindow() override;
 
-    void SetEventOwner(WasmWindowManager_C* owner);
+    void setEventOwner(WasmWindowManager* owner);
 
     void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
     void SetWindowMode(WindowMode mode) override;
-    WindowMode GetWindowMode() const override;
+    [[nodiscard]] WindowMode GetWindowMode() const noexcept override;
     void SetFullscreen(bool enabled) override;
-    bool IsFullscreen() const override;
+    [[nodiscard]] bool IsFullscreen() const noexcept override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
@@ -47,15 +47,15 @@ class WasmWindow_C final : public IWindow {
     void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor cursor) override;
     void Close() override;
-    bool IsOpen() const override;
-    void* GetNativeWindow() const override;
-    NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI GetWindowAPI() const override;
-    int GetWidth() const override;
-    int GetHeight() const override;
-    uint32_t GetFramebufferWidth() const override;
-    uint32_t GetFramebufferHeight() const override;
-    float GetDPIScale() const override;
+    [[nodiscard]] bool IsOpen() const noexcept override;
+    [[nodiscard]] void* GetNativeWindow() const noexcept override;
+    [[nodiscard]] NativeWindowHandle GetNativeHandle() const noexcept override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
+    [[nodiscard]] int GetWidth() const noexcept override;
+    [[nodiscard]] int GetHeight() const noexcept override;
+    [[nodiscard]] uint32_t GetFramebufferWidth() const noexcept override;
+    [[nodiscard]] uint32_t GetFramebufferHeight() const noexcept override;
+    [[nodiscard]] float GetDPIScale() const noexcept override;
 
 #ifdef __EMSCRIPTEN__
     static EM_BOOL ResizeCallback(int event_type, const EmscriptenUiEvent* event, void* user_data);
@@ -75,9 +75,9 @@ class WasmWindow_C final : public IWindow {
 #endif
 
    private:
-    const EventBridgeCallbacks& eventBridgeCallbacks() const;
+    [[nodiscard]] const EventBridgeCallbacks& eventBridgeCallbacks() const noexcept;
 
-    WasmWindowManager_C* owner_ = nullptr;
+    WasmWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool initialized_ = false;
     bool should_close_ = false;

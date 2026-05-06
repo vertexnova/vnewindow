@@ -23,38 +23,38 @@
 
 namespace vne::xwin {
 
-WasmWindowManager_C::WasmWindowManager_C() = default;
+WasmWindowManager::WasmWindowManager() = default;
 
-WasmWindowManager_C::~WasmWindowManager_C() {
+WasmWindowManager::~WasmWindowManager() {
     Shutdown();
 }
 
-void WasmWindowManager_C::NotifyWindowEvent(IWindow* window, const WindowEventData& event) {
+void WasmWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
     if (callback_ && window) {
         callback_(window, event);
     }
 }
 
-bool WasmWindowManager_C::Initialize() {
+bool WasmWindowManager::Initialize() {
     initialized_ = true;
     return true;
 }
 
-void WasmWindowManager_C::Shutdown() {
+void WasmWindowManager::Shutdown() {
     DestroyAllWindows();
     initialized_ = false;
 }
 
-bool WasmWindowManager_C::IsInitialized() const {
+bool WasmWindowManager::IsInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> WasmWindowManager_C::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> WasmWindowManager::OpenWindow(const WindowDescriptor& descriptor) {
     if (!initialized_) {
         return nullptr;
     }
-    auto w = std::make_shared<WasmWindow_C>();
-    w->SetEventOwner(this);
+    auto w = std::make_shared<WasmWindow>();
+    w->setEventOwner(this);
     w->Initialize(descriptor);
     windows_.push_back(w);
     if (!primary_) {
@@ -64,12 +64,12 @@ std::shared_ptr<IWindow> WasmWindowManager_C::OpenWindow(const WindowDescriptor&
     return w;
 }
 
-std::shared_ptr<IWindow> WasmWindowManager_C::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
-    WindowDescriptor d(title, width, height);
-    return OpenWindow(d);
+std::shared_ptr<IWindow> WasmWindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
+    WindowDescriptor descriptor(title, width, height);
+    return OpenWindow(descriptor);
 }
 
-void WasmWindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
+void WasmWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
@@ -86,7 +86,7 @@ void WasmWindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void WasmWindowManager_C::DestroyAllWindows() {
+void WasmWindowManager::DestroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
             w->Close();
@@ -97,41 +97,41 @@ void WasmWindowManager_C::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t WasmWindowManager_C::GetWindowCount() const {
+size_t WasmWindowManager::GetWindowCount() const noexcept {
     return windows_.size();
 }
 
-std::vector<std::shared_ptr<IWindow>> WasmWindowManager_C::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> WasmWindowManager::GetWindows() const {
     return windows_;
 }
 
-std::shared_ptr<IWindow> WasmWindowManager_C::GetPrimaryWindow() const {
+std::shared_ptr<IWindow> WasmWindowManager::GetPrimaryWindow() const noexcept {
     return primary_;
 }
 
-std::shared_ptr<IWindow> WasmWindowManager_C::GetFocusedWindow() const {
+std::shared_ptr<IWindow> WasmWindowManager::GetFocusedWindow() const noexcept {
     return focused_;
 }
 
-void WasmWindowManager_C::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
+void WasmWindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
     primary_ = std::move(window);
 }
 
-void WasmWindowManager_C::FocusWindow(std::shared_ptr<IWindow> window) {
+void WasmWindowManager::FocusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
 }
 
-void WasmWindowManager_C::ProcessEvents() {}
+void WasmWindowManager::ProcessEvents() {}
 
-void WasmWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& callback) {
+void WasmWindowManager::SetEventCallback(const WindowManagerEventCallback_T& callback) {
     callback_ = callback;
 }
 
-void WasmWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
+void WasmWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
-bool WasmWindowManager_C::ShouldClose() const {
+bool WasmWindowManager::ShouldClose() const {
     for (const auto& w : windows_) {
         if (w && !w->IsOpen()) {
             return true;
@@ -140,7 +140,7 @@ bool WasmWindowManager_C::ShouldClose() const {
     return false;
 }
 
-bool WasmWindowManager_C::ShouldCloseAll() const {
+bool WasmWindowManager::ShouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
@@ -152,27 +152,27 @@ bool WasmWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI WasmWindowManager_C::GetWindowAPI() const {
+WindowAPI WasmWindowManager::GetWindowAPI() const noexcept {
     return WindowAPI::eWasmWindow;
 }
 
-std::string WasmWindowManager_C::GetPlatformInfo() const {
+std::string WasmWindowManager::GetPlatformInfo() const {
     return "WebAssembly / Emscripten";
 }
 
-bool WasmWindowManager_C::IsFeatureSupported(const std::string& feature) const {
+bool WasmWindowManager::IsFeatureSupported(const std::string& feature) const {
     return feature == "resize" || feature == "canvas" || feature == "fullscreen";
 }
 
-std::string WasmWindowManager_C::GetProperties() const {
+std::string WasmWindowManager::GetProperties() const {
     return properties_;
 }
 
-void WasmWindowManager_C::SetProperties(const std::string& properties) {
+void WasmWindowManager::SetProperties(const std::string& properties) {
     properties_ = properties;
 }
 
-uint64_t WasmWindowManager_C::GetCurrentTime() const {
+uint64_t WasmWindowManager::GetCurrentTime() const noexcept {
 #ifdef __EMSCRIPTEN__
     return static_cast<uint64_t>(emscripten_get_now());
 #else
@@ -181,7 +181,7 @@ uint64_t WasmWindowManager_C::GetCurrentTime() const {
 #endif
 }
 
-void WasmWindowManager_C::Sleep(uint32_t milliseconds) const {
+void WasmWindowManager::Sleep(uint32_t milliseconds) const noexcept {
 #ifdef __EMSCRIPTEN__
     emscripten_sleep(milliseconds);
 #else
@@ -189,7 +189,7 @@ void WasmWindowManager_C::Sleep(uint32_t milliseconds) const {
 #endif
 }
 
-double WasmWindowManager_C::GetPlatformTime() const {
+double WasmWindowManager::GetPlatformTime() const noexcept {
 #ifdef __EMSCRIPTEN__
     return emscripten_get_now();
 #else

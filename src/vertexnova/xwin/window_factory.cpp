@@ -77,7 +77,7 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI win
 #endif
 #if VNE_XWIN_HAS_WASM
         case WindowAPI::eWasmWindow:
-            return std::make_shared<WasmWindowManager_C>();
+            return std::make_shared<WasmWindowManager>();
 #endif
 #if VNE_XWIN_HAS_UIKIT
         case WindowAPI::eIosUikitWindow:

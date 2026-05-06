@@ -23,9 +23,9 @@
 
 namespace vne::xwin {
 
-WasmWindow_C::WasmWindow_C() = default;
+WasmWindow::WasmWindow() = default;
 
-WasmWindow_C::~WasmWindow_C() {
+WasmWindow::~WasmWindow() {
 #ifdef __EMSCRIPTEN__
     emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, 0, nullptr);
     emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, 0, nullptr);
@@ -44,15 +44,15 @@ WasmWindow_C::~WasmWindow_C() {
 #endif
 }
 
-void WasmWindow_C::SetEventOwner(WasmWindowManager_C* owner) {
+void WasmWindow::setEventOwner(WasmWindowManager* owner) {
     owner_ = owner;
 }
 
-const EventBridgeCallbacks& WasmWindow_C::eventBridgeCallbacks() const {
+const EventBridgeCallbacks& WasmWindow::eventBridgeCallbacks() const noexcept {
     return owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
 }
 
-void WasmWindow_C::Initialize(const WindowDescriptor& descriptor) {
+void WasmWindow::Initialize(const WindowDescriptor& descriptor) {
     desc_ = descriptor;
 #ifdef __EMSCRIPTEN__
     canvas_tag_ = const_cast<char*>("#canvas");
@@ -61,33 +61,33 @@ void WasmWindow_C::Initialize(const WindowDescriptor& descriptor) {
                                        static_cast<int>(desc_.size.height));
 
     // Window resize
-    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::ResizeCallback);
+    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::ResizeCallback);
 
     // Keyboard (on window so we receive keys even when canvas lacks focus)
-    emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::KeyDownCallback);
-    emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::KeyUpCallback);
+    emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::KeyDownCallback);
+    emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::KeyUpCallback);
 
     // Mouse (on canvas)
-    emscripten_set_mousedown_callback("#canvas", this, 1, &WasmWindow_C::MouseDownCallback);
-    emscripten_set_mouseup_callback("#canvas", this, 1, &WasmWindow_C::MouseUpCallback);
-    emscripten_set_mousemove_callback("#canvas", this, 1, &WasmWindow_C::MouseMoveCallback);
-    emscripten_set_wheel_callback("#canvas", this, 1, &WasmWindow_C::WheelCallback);
+    emscripten_set_mousedown_callback("#canvas", this, 1, &WasmWindow::MouseDownCallback);
+    emscripten_set_mouseup_callback("#canvas", this, 1, &WasmWindow::MouseUpCallback);
+    emscripten_set_mousemove_callback("#canvas", this, 1, &WasmWindow::MouseMoveCallback);
+    emscripten_set_wheel_callback("#canvas", this, 1, &WasmWindow::WheelCallback);
 
     // Touch (on canvas)
-    emscripten_set_touchstart_callback("#canvas", this, 1, &WasmWindow_C::TouchStartCallback);
-    emscripten_set_touchend_callback("#canvas", this, 1, &WasmWindow_C::TouchEndCallback);
-    emscripten_set_touchmove_callback("#canvas", this, 1, &WasmWindow_C::TouchMoveCallback);
-    emscripten_set_touchcancel_callback("#canvas", this, 1, &WasmWindow_C::TouchCancelCallback);
+    emscripten_set_touchstart_callback("#canvas", this, 1, &WasmWindow::TouchStartCallback);
+    emscripten_set_touchend_callback("#canvas", this, 1, &WasmWindow::TouchEndCallback);
+    emscripten_set_touchmove_callback("#canvas", this, 1, &WasmWindow::TouchMoveCallback);
+    emscripten_set_touchcancel_callback("#canvas", this, 1, &WasmWindow::TouchCancelCallback);
 
     // Fullscreen
     emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT,
                                              this,
                                              1,
-                                             &WasmWindow_C::FullscreenChangeCallback);
+                                             &WasmWindow::FullscreenChangeCallback);
 
     // Window / document: focus routing for WindowFocusEvent
-    emscripten_set_focus_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::FocusCallback);
-    emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow_C::BlurCallback);
+    emscripten_set_focus_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::FocusCallback);
+    emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::BlurCallback);
 #endif
     initialized_ = true;
     should_close_ = false;
@@ -99,8 +99,8 @@ void WasmWindow_C::Initialize(const WindowDescriptor& descriptor) {
 
 #ifdef __EMSCRIPTEN__
 
-EM_BOOL WasmWindow_C::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent* event, void* user_data) {
-    auto* self = static_cast<WasmWindow_C*>(user_data);
+EM_BOOL WasmWindow::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent* event, void* user_data) {
+    auto* self = static_cast<WasmWindow*>(user_data);
     if (!self || !event) {
         return EM_FALSE;
     }
@@ -118,13 +118,13 @@ EM_BOOL WasmWindow_C::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent
         WindowEventData data{};
         data.type = WindowEventType::eResize;
         data.size = self->desc_.size;
-        self->owner_->NotifyWindowEvent(self, data);
+        self->owner_->notifyWindowEvent(self, data);
     }
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::KeyDownCallback(int /*event_type*/, const EmscriptenKeyboardEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::KeyDownCallback(int /*event_type*/, const EmscriptenKeyboardEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -135,8 +135,8 @@ EM_BOOL WasmWindow_C::KeyDownCallback(int /*event_type*/, const EmscriptenKeyboa
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::KeyUpCallback(int /*event_type*/, const EmscriptenKeyboardEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::KeyUpCallback(int /*event_type*/, const EmscriptenKeyboardEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -146,8 +146,8 @@ EM_BOOL WasmWindow_C::KeyUpCallback(int /*event_type*/, const EmscriptenKeyboard
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::MouseDownCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::MouseDownCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -164,8 +164,8 @@ EM_BOOL WasmWindow_C::MouseDownCallback(int /*event_type*/, const EmscriptenMous
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::MouseUpCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::MouseUpCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -182,8 +182,8 @@ EM_BOOL WasmWindow_C::MouseUpCallback(int /*event_type*/, const EmscriptenMouseE
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::MouseMoveCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::MouseMoveCallback(int /*event_type*/, const EmscriptenMouseEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -197,8 +197,8 @@ EM_BOOL WasmWindow_C::MouseMoveCallback(int /*event_type*/, const EmscriptenMous
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::WheelCallback(int /*event_type*/, const EmscriptenWheelEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::WheelCallback(int /*event_type*/, const EmscriptenWheelEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -211,8 +211,8 @@ EM_BOOL WasmWindow_C::WheelCallback(int /*event_type*/, const EmscriptenWheelEve
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::TouchStartCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::TouchStartCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -232,8 +232,8 @@ EM_BOOL WasmWindow_C::TouchStartCallback(int /*event_type*/, const EmscriptenTou
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::TouchEndCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::TouchEndCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -253,8 +253,8 @@ EM_BOOL WasmWindow_C::TouchEndCallback(int /*event_type*/, const EmscriptenTouch
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::TouchMoveCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::TouchMoveCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -274,8 +274,8 @@ EM_BOOL WasmWindow_C::TouchMoveCallback(int /*event_type*/, const EmscriptenTouc
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::TouchCancelCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::TouchCancelCallback(int /*event_type*/, const EmscriptenTouchEvent* ev, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -295,8 +295,8 @@ EM_BOOL WasmWindow_C::TouchCancelCallback(int /*event_type*/, const EmscriptenTo
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::FocusCallback(int /*event_type*/, const EmscriptenFocusEvent*, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::FocusCallback(int /*event_type*/, const EmscriptenFocusEvent*, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self) {
         return EM_FALSE;
     }
@@ -305,13 +305,13 @@ EM_BOOL WasmWindow_C::FocusCallback(int /*event_type*/, const EmscriptenFocusEve
         WindowEventData data{};
         data.type = WindowEventType::eFocus;
         data.focused = true;
-        self->owner_->NotifyWindowEvent(self, data);
+        self->owner_->notifyWindowEvent(self, data);
     }
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::BlurCallback(int /*event_type*/, const EmscriptenFocusEvent*, void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+EM_BOOL WasmWindow::BlurCallback(int /*event_type*/, const EmscriptenFocusEvent*, void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self) {
         return EM_FALSE;
     }
@@ -320,15 +320,15 @@ EM_BOOL WasmWindow_C::BlurCallback(int /*event_type*/, const EmscriptenFocusEven
         WindowEventData data{};
         data.type = WindowEventType::eFocus;
         data.focused = false;
-        self->owner_->NotifyWindowEvent(self, data);
+        self->owner_->notifyWindowEvent(self, data);
     }
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow_C::FullscreenChangeCallback(int /*event_type*/,
+EM_BOOL WasmWindow::FullscreenChangeCallback(int /*event_type*/,
                                                const EmscriptenFullscreenChangeEvent* ev,
                                                void* ud) {
-    auto* self = static_cast<WasmWindow_C*>(ud);
+    auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
     }
@@ -342,29 +342,29 @@ EM_BOOL WasmWindow_C::FullscreenChangeCallback(int /*event_type*/,
 // IWindow interface
 // ---------------------------------------------------------------------------
 
-void WasmWindow_C::PollEvents() {
+void WasmWindow::PollEvents() {
     // Input is driven by Emscripten's JS event loop via the callbacks registered
     // in Initialize(). Nothing to poll manually.
 }
 
-void WasmWindow_C::SwapBuffers() {}
+void WasmWindow::SwapBuffers() {}
 
-void WasmWindow_C::SetTitle(const std::string& title) {
+void WasmWindow::SetTitle(const std::string& title) {
     desc_.title = title;
 #ifdef __EMSCRIPTEN__
     emscripten_set_window_title(title.c_str());
 #endif
 }
 
-void WasmWindow_C::SetWindowMode(WindowMode mode) {
+void WasmWindow::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode WasmWindow_C::GetWindowMode() const {
+WindowMode WasmWindow::GetWindowMode() const noexcept {
     return WindowMode::eWindowed;
 }
 
-void WasmWindow_C::SetFullscreen(bool enabled) {
+void WasmWindow::SetFullscreen(bool enabled) {
 #ifdef __EMSCRIPTEN__
     if (enabled) {
         emscripten_request_fullscreen("#canvas", 1);
@@ -376,21 +376,21 @@ void WasmWindow_C::SetFullscreen(bool enabled) {
 #endif
 }
 
-bool WasmWindow_C::IsFullscreen() const {
+bool WasmWindow::IsFullscreen() const noexcept {
     return fullscreen_;
 }
 
-void WasmWindow_C::SetPosition(int x, int y) {
+void WasmWindow::SetPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
 }
 
-void WasmWindow_C::GetPosition(int& x, int& y) const {
+void WasmWindow::GetPosition(int& x, int& y) const {
     x = desc_.position.x;
     y = desc_.position.y;
 }
 
-void WasmWindow_C::Resize(uint32_t width, uint32_t height) {
+void WasmWindow::Resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
 #ifdef __EMSCRIPTEN__
@@ -398,38 +398,38 @@ void WasmWindow_C::Resize(uint32_t width, uint32_t height) {
 #endif
 }
 
-void WasmWindow_C::Close() {
+void WasmWindow::Close() {
     should_close_ = true;
 }
 
-bool WasmWindow_C::IsOpen() const {
+bool WasmWindow::IsOpen() const noexcept {
     return !should_close_ && initialized_;
 }
 
-void* WasmWindow_C::GetNativeWindow() const {
+void* WasmWindow::GetNativeWindow() const noexcept {
     return canvas_tag_;
 }
 
-NativeWindowHandle WasmWindow_C::GetNativeHandle() const {
+NativeWindowHandle WasmWindow::GetNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eWasmWindow;
     handle.canvas_id = "#canvas";
     return handle;
 }
 
-WindowAPI WasmWindow_C::GetWindowAPI() const {
+WindowAPI WasmWindow::GetWindowAPI() const noexcept {
     return WindowAPI::eWasmWindow;
 }
 
-int WasmWindow_C::GetWidth() const {
+int WasmWindow::GetWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int WasmWindow_C::GetHeight() const {
+int WasmWindow::GetHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-uint32_t WasmWindow_C::GetFramebufferWidth() const {
+uint32_t WasmWindow::GetFramebufferWidth() const noexcept {
 #ifdef __EMSCRIPTEN__
     int w = 0, h = 0;
     emscripten_get_canvas_element_size("#canvas", &w, &h);
@@ -440,7 +440,7 @@ uint32_t WasmWindow_C::GetFramebufferWidth() const {
     return static_cast<uint32_t>(desc_.size.width);
 }
 
-uint32_t WasmWindow_C::GetFramebufferHeight() const {
+uint32_t WasmWindow::GetFramebufferHeight() const noexcept {
 #ifdef __EMSCRIPTEN__
     int w = 0, h = 0;
     emscripten_get_canvas_element_size("#canvas", &w, &h);
@@ -451,7 +451,7 @@ uint32_t WasmWindow_C::GetFramebufferHeight() const {
     return static_cast<uint32_t>(desc_.size.height);
 }
 
-float WasmWindow_C::GetDPIScale() const {
+float WasmWindow::GetDPIScale() const noexcept {
 #ifdef __EMSCRIPTEN__
     return static_cast<float>(emscripten_get_device_pixel_ratio());
 #else
@@ -459,23 +459,23 @@ float WasmWindow_C::GetDPIScale() const {
 #endif
 }
 
-void WasmWindow_C::Minimize() {
+void WasmWindow::Minimize() {
     // Browser tabs cannot be minimized programmatically from canvas.
 }
 
-void WasmWindow_C::Maximize() {
+void WasmWindow::Maximize() {
     // No standard browser API; fullscreen is handled by SetFullscreen.
 }
 
-void WasmWindow_C::Restore() {
+void WasmWindow::Restore() {
     // See SetFullscreen / Maximize.
 }
 
-void WasmWindow_C::SetWindowLimits(const WindowLimits& limits) {
+void WasmWindow::SetWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
 }
 
-void WasmWindow_C::SetCursor(WindowCursor cursor) {
+void WasmWindow::SetCursor(WindowCursor cursor) {
 #ifdef __EMSCRIPTEN__
     const char* css = "auto";
     switch (cursor) {
@@ -491,7 +491,7 @@ void WasmWindow_C::SetCursor(WindowCursor cursor) {
     EM_ASM(
         {
             var s = UTF8ToString($0);
-            if (typeof document != = 'undefined' && document.body) {
+            if (typeof document !== 'undefined' && document.body) {
                 document.body.style.cursor = s;
             }
             var c = document.querySelector('#canvas');
