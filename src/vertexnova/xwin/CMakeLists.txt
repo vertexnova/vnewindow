@@ -161,9 +161,9 @@ endif()
 
 if(_vx_wasm)
     list(APPEND XWIN_SOURCES
-        platform/web/wasm/wasm_window.cpp
-        platform/web/wasm/wasm_map_key.cpp
-        platform/web/wasm/wasm_window_manager.cpp
+        platform/wasm/wasm_window.cpp
+        platform/wasm/wasm_map_key.cpp
+        platform/wasm/wasm_window_manager.cpp
     )
 endif()
 

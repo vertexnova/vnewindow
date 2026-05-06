@@ -32,7 +32,7 @@
 #include "platform/linux/wayland/wayland_window_manager.h"
 #endif
 #if VNE_XWIN_HAS_WASM
-#include "platform/web/wasm/wasm_window_manager.h"
+#include "platform/wasm/wasm_window_manager.h"
 #endif
 #if VNE_XWIN_HAS_UIKIT
 #include "platform/uikit/uikit_window_manager.h"
