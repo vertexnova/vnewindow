@@ -32,6 +32,9 @@
 
 namespace vne::xwin {
 
+using vne::events::KeyCode;
+using vne::events::MouseButton;
+
 namespace {
 
 #if VNE_XWIN_HAS_X11
@@ -91,9 +94,6 @@ std::uint32_t mapMouseButtonToLinuxEvdev(MouseButton button) {
 #endif
 
 }  // namespace
-
-using vne::events::KeyCode;
-using vne::events::MouseButton;
 
 KeyCode mapNativeKeyToEventsDefault(WindowAPI api, uint64_t native_key_packed) {
     switch (api) {

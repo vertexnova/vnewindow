@@ -124,7 +124,9 @@ WindowAPI WindowFactory::GetBestWindowAPIForPlatform() {
     return WindowAPI::eCocoaWindow;
 #elif defined(__linux__)
     const auto env_nonempty = [](const char* v) { return v != nullptr && v[0] != '\0'; };
+#if VNE_XWIN_HAS_WAYLAND
     const bool prefer_wl = env_nonempty(std::getenv("WAYLAND_DISPLAY"));
+#endif
     const bool prefer_x = env_nonempty(std::getenv("DISPLAY"));
 #if VNE_XWIN_HAS_WAYLAND
     if (prefer_wl) {
