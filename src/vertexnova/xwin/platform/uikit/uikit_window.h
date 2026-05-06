@@ -16,8 +16,6 @@
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/event_bridge_callbacks.h"
 
-#include <vertexnova/events/types.h>
-
 #include <string>
 
 namespace vne::xwin {
@@ -60,8 +58,6 @@ class UIKitWindow_C final : public IWindow {
 
     // Called from VneXWinUIView
     void handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
-    void handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods);
-    void handleMouseMove(double x, double y, uint8_t mods);
 
     const WindowInputMapping* input_mapping() const { return desc_.input_mapping; }
 
