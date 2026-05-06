@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "xwin_map_key.h"
+#include "x11_map_key.h"
 
 #include <X11/keysym.h>
 #include <limits>
@@ -192,7 +192,9 @@ std::uint64_t mapEventsKeyCodeToX11Keysym(KeyCode target) {
     if (target == KeyCode::eUnknown) {
         return 0;
     }
-    for (std::uint64_t sym = kPrintableAsciiFirst; sym <= static_cast<std::uint64_t>(std::numeric_limits<std::uint16_t>::max()); ++sym) {
+    for (std::uint64_t sym = kPrintableAsciiFirst;
+         sym <= static_cast<std::uint64_t>(std::numeric_limits<std::uint16_t>::max());
+         ++sym) {
         if (mapX11Keysym(static_cast<KeySym>(sym)) == target) {
             return sym;
         }

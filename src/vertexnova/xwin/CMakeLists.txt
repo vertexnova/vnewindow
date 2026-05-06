@@ -131,7 +131,7 @@ if(_vx_x11)
     list(APPEND XWIN_SOURCES
         platform/linux/x11/x11_window.cpp
         platform/linux/x11/x11_window_manager.cpp
-        platform/linux/x11/xwin_map_key.cpp
+        platform/linux/x11/x11_map_key.cpp
     )
 endif()
 

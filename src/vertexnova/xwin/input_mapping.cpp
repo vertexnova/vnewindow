@@ -23,7 +23,7 @@
 #endif
 #if VNE_XWIN_HAS_X11
 #include <X11/Xlib.h>
-#include "platform/linux/x11/xwin_map_key.h"
+#include "platform/linux/x11/x11_map_key.h"
 #endif
 #if VNE_XWIN_HAS_WAYLAND
 #include <linux/input-event-codes.h>
