@@ -28,8 +28,8 @@ Checks: >
 
 WarningsAsErrors: ''
 
-# Project sources and public headers under vertexnova/.
-HeaderFilterRegex: '(src/vertexnova/.*|include/vertexnova/.*)'
+# Project sources and public headers only under vne::xwin (exclude deps/internal trees).
+HeaderFilterRegex: '^.*/(src/vertexnova/xwin/.*|include/vertexnova/xwin/.*)'
 
 CheckOptions:
   # Classes/Structs: PascalCase (no suffix)
