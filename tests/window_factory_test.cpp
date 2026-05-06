@@ -30,11 +30,11 @@ TEST_F(WindowFactoryTest, GetBuildInfo) {
     EXPECT_FALSE(info.empty());
 }
 
-TEST_F(WindowFactoryTest, NullBackendCreatesOpenWindow) {
+TEST_F(WindowFactoryTest, NullBackendOpenWindow) {
     auto mgr = WindowFactory::CreateWindowManager(WindowAPI::eNullWindow);
     ASSERT_NE(mgr, nullptr);
     EXPECT_TRUE(mgr->Initialize());
-    auto w = mgr->CreateWindow("test", 64, 48);
+    auto w = mgr->OpenWindow("test", 64, 48);
     ASSERT_NE(w, nullptr);
     EXPECT_TRUE(w->IsOpen());
     EXPECT_EQ(w->GetWindowAPI(), WindowAPI::eNullWindow);
@@ -51,7 +51,7 @@ bool try_desktop_smoke(WindowAPI api) {
     if (!mgr->Initialize()) {
         return false;
     }
-    auto w = mgr->CreateWindow("vnexwin_smoke", 32, 32);
+    auto w = mgr->OpenWindow("vnexwin_smoke", 32, 32);
     if (!w || !w->IsOpen()) {
         mgr->Shutdown();
         return false;
@@ -66,7 +66,7 @@ bool try_desktop_smoke(WindowAPI api) {
     (void)w->GetFramebufferWidth();
     (void)w->GetFramebufferHeight();
 
-    mgr->DestroyWindow(w);
+    mgr->RemoveWindow(w);
     mgr->Shutdown();
     return true;
 }

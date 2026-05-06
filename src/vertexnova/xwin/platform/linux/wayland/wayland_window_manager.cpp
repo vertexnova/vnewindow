@@ -756,7 +756,7 @@ bool WaylandWindowManager_C::IsInitialized() const {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> WaylandWindowManager_C::CreateWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> WaylandWindowManager_C::OpenWindow(const WindowDescriptor& descriptor) {
     if (!initialized_ || !display_ || !compositor_ || !xdg_wm_base_) {
         return nullptr;
     }
@@ -774,13 +774,13 @@ std::shared_ptr<IWindow> WaylandWindowManager_C::CreateWindow(const WindowDescri
     return w;
 }
 
-std::shared_ptr<IWindow> WaylandWindowManager_C::CreateWindow(const std::string& title,
-                                                              uint32_t width,
-                                                              uint32_t height) {
-    return CreateWindow(WindowDescriptor(title, width, height));
+std::shared_ptr<IWindow> WaylandWindowManager_C::OpenWindow(const std::string& title,
+                                                            uint32_t width,
+                                                            uint32_t height) {
+    return OpenWindow(WindowDescriptor(title, width, height));
 }
 
-void WaylandWindowManager_C::DestroyWindow(std::shared_ptr<IWindow> window) {
+void WaylandWindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }

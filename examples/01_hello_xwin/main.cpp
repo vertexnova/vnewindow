@@ -23,7 +23,7 @@ int main() {
 
     auto mgr = WindowFactory::CreateWindowManager(vne::xwin::WindowAPI::eNullWindow);
     if (mgr && mgr->Initialize()) {
-        auto w = mgr->CreateWindow("hello_xwin", 320, 240);
+        auto w = mgr->OpenWindow("hello_xwin", 320, 240);
         if (w) {
             VNE_LOG_INFO << "Null window size: " << w->GetWidth() << "x" << w->GetHeight();
         }

@@ -49,7 +49,7 @@ bool WasmWindowManager_C::IsInitialized() const {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> WasmWindowManager_C::CreateWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> WasmWindowManager_C::OpenWindow(const WindowDescriptor& descriptor) {
     if (!initialized_) {
         return nullptr;
     }
@@ -64,12 +64,12 @@ std::shared_ptr<IWindow> WasmWindowManager_C::CreateWindow(const WindowDescripto
     return w;
 }
 
-std::shared_ptr<IWindow> WasmWindowManager_C::CreateWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<IWindow> WasmWindowManager_C::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
     WindowDescriptor d(title, width, height);
-    return CreateWindow(d);
+    return OpenWindow(d);
 }
 
-void WasmWindowManager_C::DestroyWindow(std::shared_ptr<IWindow> window) {
+void WasmWindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }

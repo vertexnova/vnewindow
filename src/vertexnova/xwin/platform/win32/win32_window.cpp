@@ -99,7 +99,7 @@ void Win32Window_C::create_window(const WindowDescriptor& descriptor) {
 
 void Win32Window_C::destroy_window() {
     if (hwnd_) {
-        DestroyWindow(hwnd_);
+        ::DestroyWindow(hwnd_);
         hwnd_ = nullptr;
     }
     open_ = false;
@@ -139,7 +139,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 ev.type = WindowEventType::eClose;
                 event_owner_->NotifyWindowEvent(this, ev);
             }
-            DestroyWindow(hwnd);
+            ::DestroyWindow(hwnd);
             return 0;
         case WM_SIZE: {
             if (wParam != SIZE_MINIMIZED) {
@@ -512,7 +512,7 @@ void Win32Window_C::Resize(uint32_t width, uint32_t height) {
 
 void Win32Window_C::Close() {
     if (hwnd_) {
-        DestroyWindow(hwnd_);
+        ::DestroyWindow(hwnd_);
         hwnd_ = nullptr;
     }
     open_ = false;

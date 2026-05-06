@@ -39,9 +39,9 @@ int main() {
     desc.enable_events = true;
     desc.enable_input = true;
 
-    auto w = mgr->CreateWindow(desc);
+    auto w = mgr->OpenWindow(desc);
     if (!w) {
-        VNE_LOG_ERROR << "CreateWindow failed";
+        VNE_LOG_ERROR << "OpenWindow failed";
         mgr->Shutdown();
         return 1;
     }
@@ -55,7 +55,7 @@ int main() {
 
     if (w->GetWindowAPI() == vne::xwin::WindowAPI::eNullWindow) {
         VNE_LOG_INFO << "Null backend has no native input; closing window for a clean smoke run.";
-        mgr->DestroyWindow(w);
+        mgr->RemoveWindow(w);
     }
 
     if (mgr->GetWindowCount() == 0U) {

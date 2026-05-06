@@ -40,7 +40,7 @@ class NullWindowTest : public ::testing::Test {};
 TEST_F(NullWindowTest, NativeHandleFieldsAreDefaulted) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->CreateWindow("test", 64, 48);
+    auto w = mgr->OpenWindow("test", 64, 48);
     ASSERT_NE(w, nullptr);
     const auto handle = w->GetNativeHandle();
     EXPECT_EQ(handle.api, WindowAPI::eNullWindow);
@@ -64,7 +64,7 @@ TEST_F(NullWindowTest, NativeHandleFieldsAreDefaulted) {
 TEST_F(NullWindowTest, CreatePollResizeClose) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->CreateWindow("life", 128, 96);
+    auto w = mgr->OpenWindow("life", 128, 96);
     ASSERT_NE(w, nullptr);
     w->PollEvents();
     w->SwapBuffers();
@@ -79,7 +79,7 @@ TEST_F(NullWindowTest, CreatePollResizeClose) {
 TEST_F(NullWindowTest, SetModeAndFullscreen) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->CreateWindow("mode", 100, 80);
+    auto w = mgr->OpenWindow("mode", 100, 80);
     ASSERT_NE(w, nullptr);
     EXPECT_EQ(w->GetWindowMode(), WindowMode::eWindowed);
 
@@ -103,7 +103,7 @@ TEST_F(NullWindowTest, SetModeAndFullscreen) {
 TEST_F(NullWindowTest, MinimizeMaximizeRestoreNoop) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->CreateWindow("mmr", 32, 32);
+    auto w = mgr->OpenWindow("mmr", 32, 32);
     ASSERT_NE(w, nullptr);
     w->Minimize();
     w->Maximize();
@@ -115,7 +115,7 @@ TEST_F(NullWindowTest, MinimizeMaximizeRestoreNoop) {
 TEST_F(NullWindowTest, DpiAndFramebufferDefaults) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->CreateWindow("dpi", 100, 50);
+    auto w = mgr->OpenWindow("dpi", 100, 50);
     ASSERT_NE(w, nullptr);
     EXPECT_FLOAT_EQ(w->GetDPIScale(), 1.0F);
     EXPECT_EQ(w->GetWidth(), 100);
@@ -134,7 +134,7 @@ TEST_F(NullWindowTest, DpiAndFramebufferDefaults) {
 TEST_F(NullWindowTest, ClipboardRoundTripDefaultNoOp) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->CreateWindow("clip", 16, 16);
+    auto w = mgr->OpenWindow("clip", 16, 16);
     ASSERT_NE(w, nullptr);
     EXPECT_TRUE(w->GetClipboardText().empty());
     w->SetClipboardText("hello");

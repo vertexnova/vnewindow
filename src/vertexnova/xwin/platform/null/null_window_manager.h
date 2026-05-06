@@ -28,9 +28,9 @@ class NullWindowManager_C final : public IWindowManager {
     void Shutdown() override;
     bool IsInitialized() const override;
 
-    std::shared_ptr<IWindow> CreateWindow(const WindowDescriptor& descriptor) override;
-    std::shared_ptr<IWindow> CreateWindow(const std::string& title, uint32_t width, uint32_t height) override;
-    void DestroyWindow(std::shared_ptr<IWindow> window) override;
+    std::shared_ptr<IWindow> OpenWindow(const WindowDescriptor& descriptor) override;
+    std::shared_ptr<IWindow> OpenWindow(const std::string& title, uint32_t width, uint32_t height) override;
+    void RemoveWindow(std::shared_ptr<IWindow> window) override;
     void DestroyAllWindows() override;
 
     size_t GetWindowCount() const override;

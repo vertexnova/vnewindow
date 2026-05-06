@@ -60,7 +60,7 @@ TEST_F(NullWindowManagerTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
     mgr->setEventBridgeCallbacks(std::move(cb));
     mgr->ProcessEvents();
 
-    auto w = mgr->CreateWindow("eb", 16, 16);
+    auto w = mgr->OpenWindow("eb", 16, 16);
     ASSERT_NE(w, nullptr);
     mgr->ProcessEvents();
     EXPECT_FALSE(called);

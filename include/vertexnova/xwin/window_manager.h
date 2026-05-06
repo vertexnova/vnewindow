@@ -40,9 +40,9 @@ class IWindowManager {
     virtual void Shutdown() = 0;
     virtual bool IsInitialized() const = 0;
 
-    virtual std::shared_ptr<IWindow> CreateWindow(const WindowDescriptor& descriptor) = 0;
-    virtual std::shared_ptr<IWindow> CreateWindow(const std::string& title, uint32_t width, uint32_t height) = 0;
-    virtual void DestroyWindow(std::shared_ptr<IWindow> window) = 0;
+    virtual std::shared_ptr<IWindow> OpenWindow(const WindowDescriptor& descriptor) = 0;
+    virtual std::shared_ptr<IWindow> OpenWindow(const std::string& title, uint32_t width, uint32_t height) = 0;
+    virtual void RemoveWindow(std::shared_ptr<IWindow> window) = 0;
     virtual void DestroyAllWindows() = 0;
 
     virtual size_t GetWindowCount() const = 0;
