@@ -60,6 +60,11 @@ on:
         required: false
         type: string
         default: ""
+      linux_extra_apt_packages:
+        description: "Additional apt packages on Linux (space-separated, e.g. Wayland dev libs)"
+        required: false
+        type: string
+        default: ""
     secrets:
       codecov_token:
         description: "Codecov upload token (when enable_coverage is true)"
@@ -125,7 +130,11 @@ jobs:
 
       - name: Install Linux build dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake libx11-dev
+        env:
+          EXTRA_APT: ${{ inputs.linux_extra_apt_packages }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y build-essential cmake libx11-dev ${EXTRA_APT}
 
       - name: Install lcov (coverage builds only)
         if: runner.os == 'Linux' && inputs.enable_coverage

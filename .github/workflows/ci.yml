@@ -219,6 +219,23 @@ jobs:
       extra_cmake_flags:  "-DENABLE_IPO=OFF"
     secrets: inherit
 
+  build-linux-wayland:
+    name: "Build+Test / Linux (X11 + Wayland)"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      runner:                    ubuntu-latest
+      c_compiler:                clang
+      cpp_compiler:              clang++
+      platform:                  linux-wayland
+      build_type:                Release
+      enable_coverage:           false
+      warnings_as_errors:        true
+      extra_cmake_flags:         "-DVNE_XWIN_ENABLE_WAYLAND=ON -DENABLE_IPO=OFF"
+      linux_extra_apt_packages: "pkg-config libwayland-dev wayland-protocols libwayland-bin libxkbcommon-dev"
+    secrets: inherit
+
   build-macos:
     name: "Build+Test / macOS"
     needs: [detect-release, pre-checks-gate]
@@ -493,6 +510,7 @@ jobs:
       - pre-checks-gate
       - build-linux-gcc
       - build-linux-clang
+      - build-linux-wayland
       - build-linux-clang-static
       - build-linux-asan
       - build-macos
@@ -510,6 +528,7 @@ jobs:
             "pre-checks-gate=${{ needs.pre-checks-gate.result }}"
             "build-linux-gcc=${{ needs.build-linux-gcc.result }}"
             "build-linux-clang=${{ needs.build-linux-clang.result }}"
+            "build-linux-wayland=${{ needs.build-linux-wayland.result }}"
             "build-linux-clang-static=${{ needs.build-linux-clang-static.result }}"
             "build-linux-asan=${{ needs.build-linux-asan.result }}"
             "build-macos=${{ needs.build-macos.result }}"
@@ -544,6 +563,7 @@ jobs:
           echo "| pre-checks-gate   | ${{ needs.pre-checks-gate.result }}   |" >> "$GITHUB_STEP_SUMMARY"
           echo "| build-linux-gcc   | ${{ needs.build-linux-gcc.result }}   |" >> "$GITHUB_STEP_SUMMARY"
           echo "| build-linux-clang | ${{ needs.build-linux-clang.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-linux-wayland | ${{ needs.build-linux-wayland.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| build-linux-clang-static | ${{ needs.build-linux-clang-static.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| build-linux-asan  | ${{ needs.build-linux-asan.result }}  |" >> "$GITHUB_STEP_SUMMARY"
           echo "| build-macos       | ${{ needs.build-macos.result }}       |" >> "$GITHUB_STEP_SUMMARY"
