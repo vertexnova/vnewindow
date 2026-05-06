@@ -62,7 +62,8 @@ struct WindowInputMapping {
 
 /** @brief Win32 WM_KEY* token: low 16 = VK; bits 16–23 = scan; bit 24 = extended (from lParam). */
 [[nodiscard]] inline uint64_t packWin32NativeKey(std::uintptr_t vk, std::uintptr_t l_param) noexcept {
-    const auto scan = (static_cast<std::uint32_t>(l_param) >> kWin32ScanShift) & static_cast<std::uint32_t>(kWin32ScanMask);
+    const auto scan =
+        (static_cast<std::uint32_t>(l_param) >> kWin32ScanShift) & static_cast<std::uint32_t>(kWin32ScanMask);
     const auto ext = (static_cast<std::uint32_t>(l_param) & (1U << kWin32ExtShift)) != 0U ? 1U : 0U;
     uint64_t p = static_cast<uint64_t>(vk) & kWin32VkMask;
     p |= (static_cast<uint64_t>(scan) << kWin32ScanShift);
