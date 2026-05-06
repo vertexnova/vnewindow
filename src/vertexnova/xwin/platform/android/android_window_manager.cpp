@@ -62,9 +62,7 @@ std::shared_ptr<IWindow> AndroidWindowManager_C::OpenWindow(const WindowDescript
     return w;
 }
 
-std::shared_ptr<IWindow> AndroidWindowManager_C::OpenWindow(const std::string& title,
-                                                            uint32_t width,
-                                                            uint32_t height) {
+std::shared_ptr<IWindow> AndroidWindowManager_C::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
     WindowDescriptor d(title, width, height);
     return OpenWindow(d);
 }

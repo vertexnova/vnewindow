@@ -774,9 +774,7 @@ std::shared_ptr<IWindow> WaylandWindowManager_C::OpenWindow(const WindowDescript
     return w;
 }
 
-std::shared_ptr<IWindow> WaylandWindowManager_C::OpenWindow(const std::string& title,
-                                                            uint32_t width,
-                                                            uint32_t height) {
+std::shared_ptr<IWindow> WaylandWindowManager_C::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
     return OpenWindow(WindowDescriptor(title, width, height));
 }
 
