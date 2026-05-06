@@ -29,14 +29,14 @@
 // VneXWinView — NSView subclass that routes keyboard + mouse to the bridge
 // ---------------------------------------------------------------------------
 @interface VneXWinView : NSView <NSTextInputClient> {
-    vne::xwin::CocoaWindow_C* xwin_;
+    vne::xwin::CocoaWindow* xwin_;
 }
-- (instancetype)initWithFrame:(NSRect)frame xwin:(vne::xwin::CocoaWindow_C*)xwin;
+- (instancetype)initWithFrame:(NSRect)frame xwin:(vne::xwin::CocoaWindow*)xwin;
 @end
 
 @implementation VneXWinView
 
-- (instancetype)initWithFrame:(NSRect)frame xwin:(vne::xwin::CocoaWindow_C*)xwin {
+- (instancetype)initWithFrame:(NSRect)frame xwin:(vne::xwin::CocoaWindow*)xwin {
     self = [super initWithFrame:frame];
     if (self) {
         xwin_ = xwin;
@@ -69,10 +69,10 @@
     }
     const vne::events::KeyCode kc = vne::xwin::mapNativeKeyToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                     vne::xwin::packCocoaNativeKey(ev.keyCode),
-                                                                    xwin_->input_mapping());
+                                                                    xwin_->inputMapping());
     const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                static_cast<uint64_t>(ev.modifierFlags),
-                                                               xwin_->input_mapping());
+                                                               xwin_->inputMapping());
     const bool repeat = ev.isARepeat;
     xwin_->handleKeyDown(kc, mods, repeat);
 }
@@ -83,10 +83,10 @@
     }
     const vne::events::KeyCode kc = vne::xwin::mapNativeKeyToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                     vne::xwin::packCocoaNativeKey(ev.keyCode),
-                                                                    xwin_->input_mapping());
+                                                                    xwin_->inputMapping());
     const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                static_cast<uint64_t>(ev.modifierFlags),
-                                                               xwin_->input_mapping());
+                                                               xwin_->inputMapping());
     xwin_->handleKeyUp(kc, mods);
 }
 
@@ -97,13 +97,13 @@
     // Treat modifier-only changes as key press/release based on current flags
     const vne::events::KeyCode kc = vne::xwin::mapNativeKeyToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                     vne::xwin::packCocoaNativeKey(ev.keyCode),
-                                                                    xwin_->input_mapping());
+                                                                    xwin_->inputMapping());
     if (kc == vne::events::KeyCode::eUnknown) {
         return;
     }
     const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                static_cast<uint64_t>(ev.modifierFlags),
-                                                               xwin_->input_mapping());
+                                                               xwin_->inputMapping());
     // Heuristic: if the modifier bit is still set it was just pressed, otherwise released
     const bool is_press = (mods != 0);
     if (is_press) {
@@ -123,14 +123,14 @@
     const auto btn =
         vne::xwin::mapNativeMouseToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                           vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
-                                          xwin_->input_mapping());
+                                          xwin_->inputMapping());
     xwin_->handleMouseButton(btn,
                              true,
                              p.x,
                              p.y,
                              vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                    static_cast<uint64_t>(ev.modifierFlags),
-                                                                   xwin_->input_mapping()));
+                                                                   xwin_->inputMapping()));
 }
 - (void)mouseUp:(NSEvent*)ev {
     if (!xwin_) {
@@ -140,14 +140,14 @@
     const auto btn =
         vne::xwin::mapNativeMouseToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                           vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
-                                          xwin_->input_mapping());
+                                          xwin_->inputMapping());
     xwin_->handleMouseButton(btn,
                              false,
                              p.x,
                              p.y,
                              vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                    static_cast<uint64_t>(ev.modifierFlags),
-                                                                   xwin_->input_mapping()));
+                                                                   xwin_->inputMapping()));
 }
 - (void)rightMouseDown:(NSEvent*)ev {
     if (!xwin_) {
@@ -157,14 +157,14 @@
     const auto btn =
         vne::xwin::mapNativeMouseToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                           vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
-                                          xwin_->input_mapping());
+                                          xwin_->inputMapping());
     xwin_->handleMouseButton(btn,
                              true,
                              p.x,
                              p.y,
                              vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                    static_cast<uint64_t>(ev.modifierFlags),
-                                                                   xwin_->input_mapping()));
+                                                                   xwin_->inputMapping()));
 }
 - (void)rightMouseUp:(NSEvent*)ev {
     if (!xwin_) {
@@ -174,14 +174,14 @@
     const auto btn =
         vne::xwin::mapNativeMouseToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                           vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
-                                          xwin_->input_mapping());
+                                          xwin_->inputMapping());
     xwin_->handleMouseButton(btn,
                              false,
                              p.x,
                              p.y,
                              vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                    static_cast<uint64_t>(ev.modifierFlags),
-                                                                   xwin_->input_mapping()));
+                                                                   xwin_->inputMapping()));
 }
 - (void)otherMouseDown:(NSEvent*)ev {
     if (!xwin_) {
@@ -191,14 +191,14 @@
     const auto btn =
         vne::xwin::mapNativeMouseToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                           vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
-                                          xwin_->input_mapping());
+                                          xwin_->inputMapping());
     xwin_->handleMouseButton(btn,
                              true,
                              p.x,
                              p.y,
                              vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                    static_cast<uint64_t>(ev.modifierFlags),
-                                                                   xwin_->input_mapping()));
+                                                                   xwin_->inputMapping()));
 }
 - (void)otherMouseUp:(NSEvent*)ev {
     if (!xwin_) {
@@ -208,14 +208,14 @@
     const auto btn =
         vne::xwin::mapNativeMouseToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                           vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
-                                          xwin_->input_mapping());
+                                          xwin_->inputMapping());
     xwin_->handleMouseButton(btn,
                              false,
                              p.x,
                              p.y,
                              vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                    static_cast<uint64_t>(ev.modifierFlags),
-                                                                   xwin_->input_mapping()));
+                                                                   xwin_->inputMapping()));
 }
 
 // ---- Mouse motion ----
@@ -229,7 +229,7 @@
                            p.y,
                            vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                  static_cast<uint64_t>(ev.modifierFlags),
-                                                                 xwin_->input_mapping()));
+                                                                 xwin_->inputMapping()));
 }
 - (void)mouseDragged:(NSEvent*)ev {
     [self mouseMoved:ev];
@@ -311,14 +311,14 @@
 // VneXWinWindowDelegate — NSWindowDelegate for window-level events
 // ---------------------------------------------------------------------------
 @interface VneXWinWindowDelegate : NSObject <NSWindowDelegate> {
-    vne::xwin::CocoaWindow_C* xwin_;
+    vne::xwin::CocoaWindow* xwin_;
 }
-- (instancetype)initWithXwin:(vne::xwin::CocoaWindow_C*)xwin;
+- (instancetype)initWithXwin:(vne::xwin::CocoaWindow*)xwin;
 @end
 
 @implementation VneXWinWindowDelegate
 
-- (instancetype)initWithXwin:(vne::xwin::CocoaWindow_C*)xwin {
+- (instancetype)initWithXwin:(vne::xwin::CocoaWindow*)xwin {
     self = [super init];
     if (self) {
         xwin_ = xwin;
@@ -331,7 +331,7 @@
     if (xwin_) {
         xwin_->handleWindowClose();
     }
-    return NO;  // CocoaWindow_C::Close() calls destroy_native()
+    return NO;  // CocoaWindow::Close() calls destroyNative()
 }
 
 - (void)windowDidResize:(NSNotification*)notification {
@@ -374,21 +374,21 @@
 @end
 
 // ---------------------------------------------------------------------------
-// CocoaWindow_C implementation
+// CocoaWindow implementation
 // ---------------------------------------------------------------------------
 namespace vne::xwin {
 
-CocoaWindow_C::CocoaWindow_C() = default;
+CocoaWindow::CocoaWindow() = default;
 
-CocoaWindow_C::~CocoaWindow_C() {
-    destroy_native();
+CocoaWindow::~CocoaWindow() {
+    destroyNative();
 }
 
-void CocoaWindow_C::SetEventOwner(CocoaWindowManager_C* owner) {
+void CocoaWindow::setEventOwner(CocoaWindowManager* owner) {
     owner_ = owner;
 }
 
-void CocoaWindow_C::destroy_native() {
+void CocoaWindow::destroyNative() {
     if (ns_window_) {
         NSWindow* win = (__bridge_transfer NSWindow*)ns_window_;
         ns_window_ = nullptr;
@@ -400,8 +400,8 @@ void CocoaWindow_C::destroy_native() {
     open_ = false;
 }
 
-void CocoaWindow_C::Initialize(const WindowDescriptor& descriptor) {
-    destroy_native();
+void CocoaWindow::Initialize(const WindowDescriptor& descriptor) {
+    destroyNative();
     desc_ = descriptor;
 
     NSRect rect = NSMakeRect(desc_.position.x,
@@ -447,7 +447,7 @@ void CocoaWindow_C::Initialize(const WindowDescriptor& descriptor) {
     open_ = true;
 }
 
-void CocoaWindow_C::PollEvents() {
+void CocoaWindow::PollEvents() {
     for (;;) {
         NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny
                                          untilDate:[NSDate distantPast]
@@ -460,11 +460,11 @@ void CocoaWindow_C::PollEvents() {
     }
 }
 
-void CocoaWindow_C::SwapBuffers() {}
+void CocoaWindow::SwapBuffers() {}
 
 // ---- Event dispatch helpers (called from ObjC) ----
 
-void CocoaWindow_C::handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat) {
+void CocoaWindow::handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat) {
     if (key == vne::events::KeyCode::eUnknown) {
         return;
     }
@@ -472,7 +472,7 @@ void CocoaWindow_C::handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool r
     eventBridgeKeyDown(this, desc_, cb, key, mods, repeat);
 }
 
-void CocoaWindow_C::handleKeyUp(vne::events::KeyCode key, uint8_t mods) {
+void CocoaWindow::handleKeyUp(vne::events::KeyCode key, uint8_t mods) {
     if (key == vne::events::KeyCode::eUnknown) {
         return;
     }
@@ -480,34 +480,34 @@ void CocoaWindow_C::handleKeyUp(vne::events::KeyCode key, uint8_t mods) {
     eventBridgeKeyUp(this, desc_, cb, key, mods);
 }
 
-void CocoaWindow_C::handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods) {
+void CocoaWindow::handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, mods);
 }
 
-void CocoaWindow_C::handleMouseMove(double x, double y, uint8_t mods) {
+void CocoaWindow::handleMouseMove(double x, double y, uint8_t mods) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeMouseMove(this, desc_, cb, x, y, mods);
 }
 
-void CocoaWindow_C::handleMouseScroll(float dx, float dy) {
+void CocoaWindow::handleMouseScroll(float dx, float dy) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeMouseScroll(this, desc_, cb, dx, dy);
 }
 
-void CocoaWindow_C::handleWindowClose() {
+void CocoaWindow::handleWindowClose() {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeWindowClose(this, desc_, cb);
     open_ = false;
     if (owner_) {
         WindowEventData data{};
         data.type = WindowEventType::eClose;
-        owner_->NotifyWindowEvent(this, data);
+        owner_->notifyWindowEvent(this, data);
     }
-    destroy_native();
+    destroyNative();
 }
 
-void CocoaWindow_C::handleWindowResize(uint32_t w, uint32_t h) {
+void CocoaWindow::handleWindowResize(uint32_t w, uint32_t h) {
     desc_.size.width = w;
     desc_.size.height = h;
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
@@ -516,28 +516,28 @@ void CocoaWindow_C::handleWindowResize(uint32_t w, uint32_t h) {
         WindowEventData data{};
         data.type = WindowEventType::eResize;
         data.size = desc_.size;
-        owner_->NotifyWindowEvent(this, data);
+        owner_->notifyWindowEvent(this, data);
     }
 }
 
-void CocoaWindow_C::handleWindowFocus(bool focused) {
+void CocoaWindow::handleWindowFocus(bool focused) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeWindowFocus(this, desc_, cb, focused);
     if (owner_) {
         WindowEventData data{};
         data.type = WindowEventType::eFocus;
         data.focused = focused;
-        owner_->NotifyWindowEvent(this, data);
+        owner_->notifyWindowEvent(this, data);
     }
 }
 
-void CocoaWindow_C::setFullscreenState(bool fs) {
+void CocoaWindow::setFullscreenState(bool fs) {
     fullscreen_ = fs;
 }
 
 // ---- IWindow interface ----
 
-void CocoaWindow_C::SetTitle(const std::string& title) {
+void CocoaWindow::SetTitle(const std::string& title) {
     desc_.title = title;
     if (ns_window_) {
         NSWindow* win = (__bridge NSWindow*)ns_window_;
@@ -545,7 +545,7 @@ void CocoaWindow_C::SetTitle(const std::string& title) {
     }
 }
 
-void CocoaWindow_C::SetWindowMode(WindowMode mode) {
+void CocoaWindow::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
     if (!ns_window_) {
         return;
@@ -570,11 +570,11 @@ void CocoaWindow_C::SetWindowMode(WindowMode mode) {
                        | NSWindowStyleMaskResizable)];
 }
 
-WindowMode CocoaWindow_C::GetWindowMode() const {
+WindowMode CocoaWindow::GetWindowMode() const noexcept {
     return desc_.mode;
 }
 
-void CocoaWindow_C::SetFullscreen(bool enabled) {
+void CocoaWindow::SetFullscreen(bool enabled) {
     if (!ns_window_) {
         return;
     }
@@ -586,17 +586,17 @@ void CocoaWindow_C::SetFullscreen(bool enabled) {
     // fullscreen_ updated via windowDidEnterFullScreen: / windowDidExitFullScreen:
 }
 
-bool CocoaWindow_C::IsFullscreen() const {
+bool CocoaWindow::IsFullscreen() const noexcept {
     return fullscreen_;
 }
 
-void CocoaWindow_C::Minimize() {
+void CocoaWindow::Minimize() {
     if (ns_window_) {
         [(__bridge NSWindow*)ns_window_ miniaturize:nil];
     }
 }
 
-void CocoaWindow_C::Maximize() {
+void CocoaWindow::Maximize() {
     if (ns_window_) {
         NSWindow* win = (__bridge NSWindow*)ns_window_;
         if (!win.isZoomed) {
@@ -605,7 +605,7 @@ void CocoaWindow_C::Maximize() {
     }
 }
 
-void CocoaWindow_C::Restore() {
+void CocoaWindow::Restore() {
     if (ns_window_) {
         NSWindow* win = (__bridge NSWindow*)ns_window_;
         if (win.isMiniaturized) {
@@ -616,7 +616,7 @@ void CocoaWindow_C::Restore() {
     }
 }
 
-void CocoaWindow_C::SetPosition(int x, int y) {
+void CocoaWindow::SetPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
     if (ns_window_) {
@@ -625,7 +625,7 @@ void CocoaWindow_C::SetPosition(int x, int y) {
     }
 }
 
-void CocoaWindow_C::GetPosition(int& x, int& y) const {
+void CocoaWindow::GetPosition(int& x, int& y) const {
     if (ns_window_) {
         NSRect r = ((__bridge NSWindow*)ns_window_).frame;
         x = static_cast<int>(r.origin.x);
@@ -636,7 +636,7 @@ void CocoaWindow_C::GetPosition(int& x, int& y) const {
     y = desc_.position.y;
 }
 
-void CocoaWindow_C::Resize(uint32_t width, uint32_t height) {
+void CocoaWindow::Resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     if (ns_window_) {
@@ -648,7 +648,7 @@ void CocoaWindow_C::Resize(uint32_t width, uint32_t height) {
     }
 }
 
-void CocoaWindow_C::SetWindowLimits(const WindowLimits& limits) {
+void CocoaWindow::SetWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
     if (!ns_window_) {
         return;
@@ -662,7 +662,7 @@ void CocoaWindow_C::SetWindowLimits(const WindowLimits& limits) {
     }
 }
 
-void CocoaWindow_C::SetCursor(WindowCursor cursor) {
+void CocoaWindow::SetCursor(WindowCursor cursor) {
     switch (cursor) {
         case WindowCursor::eHidden:
             [NSCursor hide];
@@ -679,19 +679,19 @@ void CocoaWindow_C::SetCursor(WindowCursor cursor) {
     }
 }
 
-void CocoaWindow_C::Close() {
-    destroy_native();
+void CocoaWindow::Close() {
+    destroyNative();
 }
 
-bool CocoaWindow_C::IsOpen() const {
+bool CocoaWindow::IsOpen() const noexcept {
     return open_ && ns_window_ != nullptr;
 }
 
-void* CocoaWindow_C::GetNativeWindow() const {
+void* CocoaWindow::GetNativeWindow() const noexcept {
     return ns_view_;
 }
 
-NativeWindowHandle CocoaWindow_C::GetNativeHandle() const {
+NativeWindowHandle CocoaWindow::GetNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eCocoaWindow;
     handle.ns_view = ns_view_;
@@ -699,19 +699,19 @@ NativeWindowHandle CocoaWindow_C::GetNativeHandle() const {
     return handle;
 }
 
-WindowAPI CocoaWindow_C::GetWindowAPI() const {
+WindowAPI CocoaWindow::GetWindowAPI() const noexcept {
     return WindowAPI::eCocoaWindow;
 }
 
-int CocoaWindow_C::GetWidth() const {
+int CocoaWindow::GetWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int CocoaWindow_C::GetHeight() const {
+int CocoaWindow::GetHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-float CocoaWindow_C::GetDPIScale() const {
+float CocoaWindow::GetDPIScale() const noexcept {
     if (!ns_window_) {
         return 1.0F;
     }
@@ -720,12 +720,12 @@ float CocoaWindow_C::GetDPIScale() const {
     return screen ? static_cast<float>(screen.backingScaleFactor) : 1.0F;
 }
 
-void CocoaWindow_C::handleTextInput(const char* utf8_text) {
+void CocoaWindow::handleTextInput(const char* utf8_text) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeTextInput(this, desc_, cb, utf8_text);
 }
 
-std::string CocoaWindow_C::GetClipboardText() const {
+std::string CocoaWindow::GetClipboardText() const {
     NSPasteboard* pb = [NSPasteboard generalPasteboard];
     NSString* str = [pb stringForType:NSPasteboardTypeString];
     if (!str) {
@@ -735,7 +735,7 @@ std::string CocoaWindow_C::GetClipboardText() const {
     return utf8 ? std::string(utf8) : std::string{};
 }
 
-void CocoaWindow_C::SetClipboardText(const std::string& text) {
+void CocoaWindow::SetClipboardText(const std::string& text) {
     NSPasteboard* pb = [NSPasteboard generalPasteboard];
     [pb clearContents];
     [pb setString:[NSString stringWithUTF8String:text.c_str()] forType:NSPasteboardTypeString];

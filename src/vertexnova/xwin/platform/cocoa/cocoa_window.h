@@ -24,23 +24,23 @@ namespace vne::xwin {
 
 struct WindowInputMapping;
 
-class CocoaWindowManager_C;
+class CocoaWindowManager;
 
-class CocoaWindow_C final : public IWindow {
+class CocoaWindow final : public IWindow {
    public:
-    CocoaWindow_C();
-    ~CocoaWindow_C() override;
+    CocoaWindow();
+    ~CocoaWindow() override;
 
-    void SetEventOwner(CocoaWindowManager_C* owner);
+    void setEventOwner(CocoaWindowManager* owner);
 
     void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
     void SetWindowMode(WindowMode mode) override;
-    WindowMode GetWindowMode() const override;
+    [[nodiscard]] WindowMode GetWindowMode() const noexcept override;
     void SetFullscreen(bool enabled) override;
-    bool IsFullscreen() const override;
+    [[nodiscard]] bool IsFullscreen() const noexcept override;
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
@@ -50,13 +50,13 @@ class CocoaWindow_C final : public IWindow {
     void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor cursor) override;
     void Close() override;
-    bool IsOpen() const override;
-    void* GetNativeWindow() const override;
-    NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI GetWindowAPI() const override;
-    int GetWidth() const override;
-    int GetHeight() const override;
-    float GetDPIScale() const override;
+    [[nodiscard]] bool IsOpen() const noexcept override;
+    [[nodiscard]] void* GetNativeWindow() const noexcept override;
+    [[nodiscard]] NativeWindowHandle GetNativeHandle() const noexcept override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
+    [[nodiscard]] int GetWidth() const noexcept override;
+    [[nodiscard]] int GetHeight() const noexcept override;
+    [[nodiscard]] float GetDPIScale() const noexcept override;
 
     // Called from ObjC helper classes
     void handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat);
@@ -70,15 +70,15 @@ class CocoaWindow_C final : public IWindow {
     void handleWindowFocus(bool focused);
     void setFullscreenState(bool fs);
 
-    const WindowInputMapping* input_mapping() const { return desc_.input_mapping; }
+    [[nodiscard]] const WindowInputMapping* inputMapping() const noexcept { return desc_.input_mapping; }
 
-    std::string GetClipboardText() const override;
+    [[nodiscard]] std::string GetClipboardText() const override;
     void SetClipboardText(const std::string& text) override;
 
    private:
-    void destroy_native();
+    void destroyNative();
 
-    CocoaWindowManager_C* owner_ = nullptr;
+    CocoaWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
     bool fullscreen_ = false;

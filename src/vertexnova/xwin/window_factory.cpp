@@ -65,7 +65,7 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI win
 #endif
 #if VNE_XWIN_HAS_COCOA
         case WindowAPI::eCocoaWindow:
-            return std::make_shared<CocoaWindowManager_C>();
+            return std::make_shared<CocoaWindowManager>();
 #endif
 #if VNE_XWIN_HAS_X11
         case WindowAPI::eX11Window:
