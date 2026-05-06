@@ -54,12 +54,11 @@
                 const CGPoint p = [touch locationInView:self];
                 const vne::xwin::WindowAPI api = xwin_->GetWindowAPI();
                 const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(api,
-                                                                            static_cast<uint64_t>(event.modifierFlags),
-                                                                            xwin_->input_mapping());
+                                                                           static_cast<uint64_t>(event.modifierFlags),
+                                                                           xwin_->input_mapping());
                 const uint16_t bn = static_cast<uint16_t>(touch.buttonNumber);
-                const auto btn = vne::xwin::mapNativeMouseToEvents(api,
-                                                                   vne::xwin::packCocoaNativeMouse(bn),
-                                                                   xwin_->input_mapping());
+                const auto btn =
+                    vne::xwin::mapNativeMouseToEvents(api, vne::xwin::packCocoaNativeMouse(bn), xwin_->input_mapping());
                 switch (phase) {
                     case vne::xwin::EventBridgeTouchPhase::eDown:
                         xwin_->handleMouseButton(btn, true, static_cast<double>(p.x), static_cast<double>(p.y), mods);
@@ -141,11 +140,7 @@ void UIKitWindow_C::handleTouch(uint32_t touch_id, double x, double y, EventBrid
     eventBridgeTouch(this, desc_, cb, touch_id, x, y, phase);
 }
 
-void UIKitWindow_C::handleMouseButton(vne::events::MouseButton button,
-                                      bool pressed,
-                                      double x,
-                                      double y,
-                                      uint8_t mods) {
+void UIKitWindow_C::handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, mods);
 }
