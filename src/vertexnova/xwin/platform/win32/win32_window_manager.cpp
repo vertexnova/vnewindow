@@ -17,6 +17,11 @@
 #include <chrono>
 #include <thread>
 
+/* <windows.h> defines GetCurrentTime as a macro (GetTickCount); break it before defining our method. */
+#ifdef GetCurrentTime
+#undef GetCurrentTime
+#endif
+
 namespace vne::xwin {
 
 Win32WindowManager_C::Win32WindowManager_C() = default;
