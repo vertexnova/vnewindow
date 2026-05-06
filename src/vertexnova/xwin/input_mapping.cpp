@@ -96,6 +96,7 @@ std::uint32_t mapMouseButtonToLinuxEvdev(MouseButton button) {
 }  // namespace
 
 KeyCode mapNativeKeyToEventsDefault(WindowAPI api, uint64_t native_key_packed) noexcept {
+    (void)native_key_packed;
     switch (api) {
         case WindowAPI::eNullWindow:
             return KeyCode::eUnknown;

@@ -131,7 +131,7 @@ void WasmWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) 
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
-bool WasmWindowManager::shouldClose() const {
+bool WasmWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {
         if (w && !w->isOpen()) {
             return true;
