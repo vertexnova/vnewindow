@@ -10,7 +10,12 @@
  * ----------------------------------------------------------------------
  */
 
-/** @file input_mapping.h Native input tokens ↔ vne::events types, with optional per-window overrides. */
+/** @file input_mapping.h Native input tokens ↔ vne::events types, with optional per-window overrides.
+ *
+ * Built-in tables cover Win32, Cocoa, X11, and Wayland. UIKit uses the same Cocoa-style key / button /
+ * modifier mapping for pointer and hardware keyboard (e.g. Simulator mouse, iPad trackpad); finger
+ * input is still delivered as touch. Android remains touch-first with no default key/mouse tables.
+ */
 
 #include "vertexnova/xwin/xwin_export.h"
 #include "vertexnova/xwin/xwin_types.h"
@@ -25,7 +30,8 @@ namespace vne::xwin {
 /**
  * Optional per-window translation hooks. If a slot is empty, or returns eUnknown / zero where
  * documented, the library falls back to built-in platform tables (Win32 VK, Cocoa CGKeyCode,
- * X11/Wayland keysym, etc.).
+ * X11/Wayland keysym, etc.). Android has no default tables; UIKit uses these hooks when routing
+ * pointer/keyboard through the shared Cocoa-compatible mapping.
  *
  * Native payload packing is API-specific (see packWin32NativeKey, packCocoaNativeKey, …).
  */

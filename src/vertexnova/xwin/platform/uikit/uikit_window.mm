@@ -14,6 +14,8 @@
 #include "uikit_window_manager.h"
 #include "event_bridge.h"
 
+#include "vertexnova/xwin/input_mapping.h"
+
 #import <UIKit/UIKit.h>
 #import <QuartzCore/CAMetalLayer.h>
 
@@ -42,11 +44,38 @@
     return self;
 }
 
-- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase)phase {
+- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase)phase event:(UIEvent*)event {
     if (!xwin_) {
         return;
     }
     for (UITouch* touch in touches) {
+        if (@available(iOS 13.4, tvOS 13.4, *)) {
+            if (touch.type == UITouchTypePointer) {
+                const CGPoint p = [touch locationInView:self];
+                const vne::xwin::WindowAPI api = xwin_->GetWindowAPI();
+                const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(api,
+                                                                            static_cast<uint64_t>(event.modifierFlags),
+                                                                            xwin_->input_mapping());
+                const uint16_t bn = static_cast<uint16_t>(touch.buttonNumber);
+                const auto btn = vne::xwin::mapNativeMouseToEvents(api,
+                                                                   vne::xwin::packCocoaNativeMouse(bn),
+                                                                   xwin_->input_mapping());
+                switch (phase) {
+                    case vne::xwin::EventBridgeTouchPhase::eDown:
+                        xwin_->handleMouseButton(btn, true, static_cast<double>(p.x), static_cast<double>(p.y), mods);
+                        break;
+                    case vne::xwin::EventBridgeTouchPhase::eUp:
+                        xwin_->handleMouseButton(btn, false, static_cast<double>(p.x), static_cast<double>(p.y), mods);
+                        break;
+                    case vne::xwin::EventBridgeTouchPhase::eMove:
+                        xwin_->handleMouseMove(static_cast<double>(p.x), static_cast<double>(p.y), mods);
+                        break;
+                    default:
+                        break;
+                }
+                continue;
+            }
+        }
         const CGPoint p = [touch locationInView:self];
         // Use the touch object pointer hash as a stable per-finger id
         const uint32_t touch_id = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(touch) & 0xFFFFFFFFu);
@@ -55,21 +84,17 @@
 }
 
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eDown];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eDown event:event];
 }
 - (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eMove];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eMove event:event];
 }
 - (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp event:event];
 }
 - (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    (void)event;
     // Treat cancel as up so the app can release any held state
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp];
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp event:event];
 }
 
 @end
@@ -114,6 +139,20 @@ void UIKitWindow_C::Initialize(const WindowDescriptor& descriptor) {
 void UIKitWindow_C::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeTouch(this, desc_, cb, touch_id, x, y, phase);
+}
+
+void UIKitWindow_C::handleMouseButton(vne::events::MouseButton button,
+                                      bool pressed,
+                                      double x,
+                                      double y,
+                                      uint8_t mods) {
+    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
+    eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, mods);
+}
+
+void UIKitWindow_C::handleMouseMove(double x, double y, uint8_t mods) {
+    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
+    eventBridgeMouseMove(this, desc_, cb, x, y, mods);
 }
 
 void UIKitWindow_C::PollEvents() {

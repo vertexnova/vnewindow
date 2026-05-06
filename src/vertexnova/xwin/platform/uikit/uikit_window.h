@@ -22,6 +22,8 @@
 
 namespace vne::xwin {
 
+struct WindowInputMapping;
+
 class UIKitWindowManager_C;
 
 class UIKitWindow_C final : public IWindow {
@@ -58,6 +60,10 @@ class UIKitWindow_C final : public IWindow {
 
     // Called from VneXWinUIView
     void handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
+    void handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods);
+    void handleMouseMove(double x, double y, uint8_t mods);
+
+    const WindowInputMapping* input_mapping() const { return desc_.input_mapping; }
 
    private:
     void destroy_native();

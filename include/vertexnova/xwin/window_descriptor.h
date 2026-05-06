@@ -42,7 +42,8 @@ struct WindowDescriptor {
     bool enable_events = true;
     bool enable_input = true;
 
-    /** Optional per-window native ↔ vne::events mapping; must outlive the window if non-null. */
+    /** Optional per-window native ↔ vne::events mapping; must outlive the window if non-null.
+     *  Used for desktop KM and for UIKit pointer/keyboard; Android touch-first builds often omit this. */
     const WindowInputMapping* input_mapping = nullptr;
 
     WindowDescriptor() = default;
