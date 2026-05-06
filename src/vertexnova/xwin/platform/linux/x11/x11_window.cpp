@@ -22,6 +22,7 @@
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
 #include <cstdint>
+#include <vector>
 
 namespace vne::xwin {
 
@@ -44,6 +45,10 @@ void X11Window_C::SetDisplay(Display* display, int screen, ::Window root, void* 
 
 void X11Window_C::destroy() {
     if (display_ && window_) {
+        const Atom clip = XInternAtom(display_, "CLIPBOARD", False);
+        if (XGetSelectionOwner(display_, clip) == window_) {
+            XSetSelectionOwner(display_, clip, None, CurrentTime);
+        }
         XDestroyWindow(display_, window_);
         window_ = 0;
     }
@@ -460,6 +465,122 @@ float X11Window_C::GetDPIScale() const {
     }
     const float dpi = (static_cast<float>(width_px) * 25.4F) / static_cast<float>(width_mm);
     return dpi / 96.0F;
+}
+
+std::string X11Window_C::GetClipboardText() const {
+    if (!display_ || !window_) {
+        return {};
+    }
+    const Atom clip = XInternAtom(display_, "CLIPBOARD", False);
+    const ::Window owner = XGetSelectionOwner(display_, clip);
+    if (owner == None) {
+        return {};
+    }
+    if (owner == window_) {
+        return clipboard_text_;
+    }
+    /* Reading another client's CLIPBOARD requires an async protocol (XConvertSelection + SelectionNotify). */
+    return {};
+}
+
+void X11Window_C::SetClipboardText(const std::string& text) {
+    if (!display_ || !window_) {
+        return;
+    }
+    clipboard_text_ = text;
+    const Atom clip = XInternAtom(display_, "CLIPBOARD", False);
+    XSetSelectionOwner(display_, clip, window_, CurrentTime);
+    XFlush(display_);
+}
+
+void X11Window_C::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
+    if (!display_ || !window_ || rgba_pixels == nullptr || width == 0U || height == 0U) {
+        return;
+    }
+    std::vector<long> icon;
+    icon.reserve(static_cast<size_t>(2U + width * height));
+    icon.push_back(static_cast<long>(width));
+    icon.push_back(static_cast<long>(height));
+    for (uint32_t y = 0; y < height; ++y) {
+        for (uint32_t x = 0; x < width; ++x) {
+            const size_t i = (static_cast<size_t>(y) * width + x) * 4U;
+            const auto r = static_cast<unsigned long>(rgba_pixels[i]);
+            const auto g = static_cast<unsigned long>(rgba_pixels[i + 1U]);
+            const auto b = static_cast<unsigned long>(rgba_pixels[i + 2U]);
+            const auto a = static_cast<unsigned long>(rgba_pixels[i + 3U]);
+            const unsigned long argb = (a << 24U) | (r << 16U) | (g << 8U) | b;
+            icon.push_back(static_cast<long>(argb));
+        }
+    }
+    const Atom net_wm_icon = XInternAtom(display_, "_NET_WM_ICON", False);
+    XChangeProperty(display_,
+                    window_,
+                    net_wm_icon,
+                    XA_CARDINAL,
+                    32,
+                    PropModeReplace,
+                    reinterpret_cast<unsigned char*>(icon.data()),
+                    static_cast<int>(icon.size()));
+    XFlush(display_);
+}
+
+void X11Window_C::handle_selection_request(const XSelectionRequestEvent& req) {
+    if (!display_) {
+        return;
+    }
+    XSelectionEvent notify{};
+    notify.type = SelectionNotify;
+    notify.send_event = True;
+    notify.display = req.display;
+    notify.requestor = req.requestor;
+    notify.selection = req.selection;
+    notify.target = req.target;
+    notify.property = None;
+    notify.time = req.time;
+
+    const Atom clip = XInternAtom(display_, "CLIPBOARD", False);
+    if (req.selection != clip || req.property == None) {
+        XSendEvent(display_, req.requestor, False, NoEventMask, reinterpret_cast<XEvent*>(&notify));
+        return;
+    }
+
+    const Atom utf8 = XInternAtom(display_, "UTF8_STRING", False);
+    const Atom targets = XInternAtom(display_, "TARGETS", False);
+
+    if (req.target == targets) {
+        const Atom offered[] = {utf8, XA_STRING, targets};
+        XChangeProperty(display_,
+                        req.requestor,
+                        req.property,
+                        XA_ATOM,
+                        32,
+                        PropModeReplace,
+                        reinterpret_cast<const unsigned char*>(offered),
+                        static_cast<int>(sizeof(offered) / sizeof(offered[0])));
+        notify.property = req.property;
+    } else if (req.target == utf8) {
+        XChangeProperty(display_,
+                        req.requestor,
+                        req.property,
+                        utf8,
+                        8,
+                        PropModeReplace,
+                        reinterpret_cast<const unsigned char*>(clipboard_text_.data()),
+                        static_cast<int>(clipboard_text_.size()));
+        notify.property = req.property;
+    } else if (req.target == XA_STRING) {
+        XChangeProperty(display_,
+                        req.requestor,
+                        req.property,
+                        XA_STRING,
+                        8,
+                        PropModeReplace,
+                        reinterpret_cast<const unsigned char*>(clipboard_text_.data()),
+                        static_cast<int>(clipboard_text_.size()));
+        notify.property = req.property;
+    }
+
+    XSendEvent(display_, req.requestor, False, NoEventMask, reinterpret_cast<XEvent*>(&notify));
 }
 
 }  // namespace vne::xwin
