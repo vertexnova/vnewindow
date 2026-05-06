@@ -85,7 +85,7 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI win
 #endif
 #if VNE_XWIN_HAS_ANDROID
         case WindowAPI::eAndroidSurfaceWindow:
-            return std::make_shared<AndroidWindowManager_C>();
+            return std::make_shared<AndroidWindowManager>();
 #endif
         default:
             last_error_ = "No factory mapping for this WindowAPI value.";

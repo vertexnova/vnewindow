@@ -1,15 +1,4 @@
 #pragma once
-/*
- * Pass ANativeWindow* via WindowDescriptor::platform_data from JNI / GameActivity.
- *
- * Input delivery pattern
- * ----------------------
- * Android input is driven by the host app's JNI / GameActivity loop, NOT by
- * PollEvents() (which remains a no-op). The host should call InjectTouchEvent()
- * and InjectKeyEvent() from its AInputQueue / GameActivity input callback after
- * forwarding each AInputEvent to xwin. This routes events through the standard
- * vne::events bridge (EventManager queue + Input state + optional callbacks).
- */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,19 +19,30 @@
 
 namespace vne::xwin {
 
-class AndroidWindow_C final : public IWindow {
+ /*
+ * Pass ANativeWindow* via WindowDescriptor::platform_data from JNI / GameActivity.
+ *
+ * Input delivery pattern
+ * ----------------------
+ * Android input is driven by the host app's JNI / GameActivity loop, NOT by
+ * PollEvents() (which remains a no-op). The host should call injectTouchEvent()
+ * and injectKeyEvent() from its AInputQueue / GameActivity input callback after
+ * forwarding each AInputEvent to xwin. This routes events through the standard
+ * vne::events bridge (EventManager queue + Input state + optional callbacks).
+ */
+class AndroidWindow final : public IWindow {
    public:
-    AndroidWindow_C();
-    ~AndroidWindow_C() override;
+    AndroidWindow();
+    ~AndroidWindow() override;
 
     void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
     void SetWindowMode(WindowMode mode) override;
-    WindowMode GetWindowMode() const override;
+    [[nodiscard]] WindowMode GetWindowMode() const noexcept override;
     void SetFullscreen(bool enabled) override;
-    bool IsFullscreen() const override;
+    [[nodiscard]] bool IsFullscreen() const noexcept override;
     void SetPosition(int x, int y) override;
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
@@ -52,28 +52,28 @@ class AndroidWindow_C final : public IWindow {
     void SetWindowLimits(const WindowLimits& limits) override;
     void SetCursor(WindowCursor cursor) override;
     void Close() override;
-    bool IsOpen() const override;
-    void* GetNativeWindow() const override;
-    NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI GetWindowAPI() const override;
-    int GetWidth() const override;
-    int GetHeight() const override;
-    float GetDPIScale() const override;
+    [[nodiscard]] bool IsOpen() const noexcept override;
+    [[nodiscard]] void* GetNativeWindow() const noexcept override;
+    [[nodiscard]] NativeWindowHandle GetNativeHandle() const noexcept override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
+    [[nodiscard]] int GetWidth() const noexcept override;
+    [[nodiscard]] int GetHeight() const noexcept override;
+    [[nodiscard]] float GetDPIScale() const noexcept override;
 
     /**
      * @brief Inject a touch event from the host AInputQueue / GameActivity loop.
      * Call once per finger per AInputEvent after reading AINPUT_EVENT_TYPE_MOTION.
      */
-    void InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
+    void injectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
 
     /**
      * @brief Inject a key event from the host AInputQueue / GameActivity loop.
      * Call once per AInputEvent after reading AINPUT_EVENT_TYPE_KEY.
      */
-    void InjectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers);
+    void injectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers);
 
     /** @brief Inject a window resize notification (call when ANativeWindow resizes). */
-    void InjectResizeEvent(uint32_t width, uint32_t height);
+    void injectResizeEvent(uint32_t width, uint32_t height);
 
     /** @brief Provide optional granular callbacks (mirrors WindowManager::setEventBridgeCallbacks). */
     void setEventBridgeCallbacks(EventBridgeCallbacks callbacks);

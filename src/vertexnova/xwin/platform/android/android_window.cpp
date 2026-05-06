@@ -15,112 +15,112 @@
 
 namespace vne::xwin {
 
-AndroidWindow_C::AndroidWindow_C() = default;
+AndroidWindow::AndroidWindow() = default;
 
-AndroidWindow_C::~AndroidWindow_C() = default;
+AndroidWindow::~AndroidWindow() = default;
 
-void AndroidWindow_C::Initialize(const WindowDescriptor& descriptor) {
+void AndroidWindow::Initialize(const WindowDescriptor& descriptor) {
     desc_ = descriptor;
     native_ = descriptor.platform_data;
     open_ = native_ != nullptr;
 }
 
-void AndroidWindow_C::PollEvents() {}
+void AndroidWindow::PollEvents() {}
 
-void AndroidWindow_C::SwapBuffers() {}
+void AndroidWindow::SwapBuffers() {}
 
-void AndroidWindow_C::SetTitle(const std::string& title) {
+void AndroidWindow::SetTitle(const std::string& title) {
     desc_.title = title;
 }
 
-void AndroidWindow_C::SetWindowMode(WindowMode mode) {
+void AndroidWindow::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode AndroidWindow_C::GetWindowMode() const {
+WindowMode AndroidWindow::GetWindowMode() const noexcept {
     return desc_.mode;
 }
 
-void AndroidWindow_C::SetFullscreen(bool enabled) {
+void AndroidWindow::SetFullscreen(bool enabled) {
     (void)enabled;
 }
 
-bool AndroidWindow_C::IsFullscreen() const {
+bool AndroidWindow::IsFullscreen() const noexcept {
     return false;
 }
 
-void AndroidWindow_C::SetPosition(int x, int y) {
+void AndroidWindow::SetPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
 }
 
-void AndroidWindow_C::GetPosition(int& x, int& y) const {
+void AndroidWindow::GetPosition(int& x, int& y) const {
     x = desc_.position.x;
     y = desc_.position.y;
 }
 
-void AndroidWindow_C::Resize(uint32_t width, uint32_t height) {
+void AndroidWindow::Resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
 }
 
-void AndroidWindow_C::Minimize() {
+void AndroidWindow::Minimize() {
     // Window state is owned by the Activity; hook via JNI if needed.
 }
 
-void AndroidWindow_C::Maximize() {}
+void AndroidWindow::Maximize() {}
 
-void AndroidWindow_C::Restore() {}
+void AndroidWindow::Restore() {}
 
-void AndroidWindow_C::SetWindowLimits(const WindowLimits& limits) {
+void AndroidWindow::SetWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
 }
 
-void AndroidWindow_C::SetCursor(WindowCursor cursor) {
+void AndroidWindow::SetCursor(WindowCursor cursor) {
     (void)cursor;
 }
 
-void AndroidWindow_C::Close() {
+void AndroidWindow::Close() {
     open_ = false;
     native_ = nullptr;
 }
 
-bool AndroidWindow_C::IsOpen() const {
+bool AndroidWindow::IsOpen() const noexcept {
     return open_ && native_ != nullptr;
 }
 
-void* AndroidWindow_C::GetNativeWindow() const {
+void* AndroidWindow::GetNativeWindow() const noexcept {
     return native_;
 }
 
-NativeWindowHandle AndroidWindow_C::GetNativeHandle() const {
+NativeWindowHandle AndroidWindow::GetNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eAndroidSurfaceWindow;
     handle.a_native_window = native_;
     return handle;
 }
 
-WindowAPI AndroidWindow_C::GetWindowAPI() const {
+WindowAPI AndroidWindow::GetWindowAPI() const noexcept {
     return WindowAPI::eAndroidSurfaceWindow;
 }
 
-int AndroidWindow_C::GetWidth() const {
+int AndroidWindow::GetWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int AndroidWindow_C::GetHeight() const {
+int AndroidWindow::GetHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-float AndroidWindow_C::GetDPIScale() const {
+float AndroidWindow::GetDPIScale() const noexcept {
     return 1.0F;
 }
 
-void AndroidWindow_C::InjectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
+void AndroidWindow::injectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
     eventBridgeTouch(this, desc_, event_bridge_callbacks_, touch_id, x, y, phase);
 }
 
-void AndroidWindow_C::InjectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers) {
+void AndroidWindow::injectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers) {
     if (down) {
         eventBridgeKeyDown(this, desc_, event_bridge_callbacks_, key, modifiers, false);
     } else {
@@ -128,13 +128,13 @@ void AndroidWindow_C::InjectKeyEvent(vne::events::KeyCode key, bool down, uint8_
     }
 }
 
-void AndroidWindow_C::InjectResizeEvent(uint32_t width, uint32_t height) {
+void AndroidWindow::injectResizeEvent(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     eventBridgeWindowResize(this, desc_, event_bridge_callbacks_, width, height);
 }
 
-void AndroidWindow_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
+void AndroidWindow::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
