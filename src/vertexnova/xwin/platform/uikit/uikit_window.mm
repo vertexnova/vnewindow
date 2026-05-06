@@ -21,9 +21,9 @@
 // VneXWinUIView — UIView subclass that routes multi-touch to the bridge
 // ---------------------------------------------------------------------------
 @interface VneXWinUIView : UIView {
-    vne::xwin::UIKitWindow_C* xwin_;
+    vne::xwin::UIKitWindow* xwin_;
 }
-- (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow_C*)xwin;
+- (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow*)xwin;
 @end
 
 @implementation VneXWinUIView
@@ -32,7 +32,7 @@
     return [CAMetalLayer class];
 }
 
-- (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow_C*)xwin {
+- (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow*)xwin {
     self = [super initWithFrame:frame];
     if (self) {
         xwin_ = xwin;
@@ -75,21 +75,21 @@
 @end
 
 // ---------------------------------------------------------------------------
-// UIKitWindow_C implementation
+// UIKitWindow implementation
 // ---------------------------------------------------------------------------
 namespace vne::xwin {
 
-UIKitWindow_C::UIKitWindow_C() = default;
+UIKitWindow::UIKitWindow() = default;
 
-UIKitWindow_C::~UIKitWindow_C() {
-    destroy_native();
+UIKitWindow::~UIKitWindow() {
+    destroyNative();
 }
 
-void UIKitWindow_C::SetEventOwner(UIKitWindowManager_C* owner) {
+void UIKitWindow::setEventOwner(UIKitWindowManager* owner) {
     owner_ = owner;
 }
 
-void UIKitWindow_C::destroy_native() {
+void UIKitWindow::destroyNative() {
     if (ui_view_) {
         UIView* v = (__bridge_transfer UIView*)ui_view_;
         ui_view_ = nullptr;
@@ -98,8 +98,8 @@ void UIKitWindow_C::destroy_native() {
     open_ = false;
 }
 
-void UIKitWindow_C::Initialize(const WindowDescriptor& descriptor) {
-    destroy_native();
+void UIKitWindow::Initialize(const WindowDescriptor& descriptor) {
+    destroyNative();
     desc_ = descriptor;
     CGRect frame = CGRectMake(static_cast<CGFloat>(desc_.position.x),
                               static_cast<CGFloat>(desc_.position.y),
@@ -111,55 +111,55 @@ void UIKitWindow_C::Initialize(const WindowDescriptor& descriptor) {
     open_ = true;
 }
 
-void UIKitWindow_C::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
+void UIKitWindow::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeTouch(this, desc_, cb, touch_id, x, y, phase);
 }
 
-void UIKitWindow_C::PollEvents() {
+void UIKitWindow::PollEvents() {
     // Touch events are delivered by UIKit on the main run loop via VneXWinUIView.
 }
 
-void UIKitWindow_C::SwapBuffers() {}
+void UIKitWindow::SwapBuffers() {}
 
-void UIKitWindow_C::SetTitle(const std::string& title) {
+void UIKitWindow::SetTitle(const std::string& title) {
     desc_.title = title;
 }
 
-void UIKitWindow_C::SetWindowMode(WindowMode mode) {
+void UIKitWindow::SetWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode UIKitWindow_C::GetWindowMode() const {
+WindowMode UIKitWindow::GetWindowMode() const noexcept {
     return desc_.mode;
 }
 
-void UIKitWindow_C::SetFullscreen(bool enabled) {
+void UIKitWindow::SetFullscreen(bool enabled) {
     // On iOS the app always occupies the full screen; this is a no-op.
     (void)enabled;
 }
 
-bool UIKitWindow_C::IsFullscreen() const {
+bool UIKitWindow::IsFullscreen() const noexcept {
     return true;  // iOS is always full-screen
 }
 
-void UIKitWindow_C::Minimize() {
+void UIKitWindow::Minimize() {
     // iOS does not expose minimizing a view surface like a desktop window.
 }
 
-void UIKitWindow_C::Maximize() {}
+void UIKitWindow::Maximize() {}
 
-void UIKitWindow_C::Restore() {}
+void UIKitWindow::Restore() {}
 
-void UIKitWindow_C::SetWindowLimits(const WindowLimits& limits) {
+void UIKitWindow::SetWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
 }
 
-void UIKitWindow_C::SetCursor(WindowCursor cursor) {
+void UIKitWindow::SetCursor(WindowCursor cursor) {
     (void)cursor;
 }
 
-void UIKitWindow_C::SetPosition(int x, int y) {
+void UIKitWindow::SetPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
     if (ui_view_) {
@@ -171,7 +171,7 @@ void UIKitWindow_C::SetPosition(int x, int y) {
     }
 }
 
-void UIKitWindow_C::GetPosition(int& x, int& y) const {
+void UIKitWindow::GetPosition(int& x, int& y) const {
     if (ui_view_) {
         UIView* v = (__bridge UIView*)ui_view_;
         x = static_cast<int>(v.frame.origin.x);
@@ -182,7 +182,7 @@ void UIKitWindow_C::GetPosition(int& x, int& y) const {
     y = desc_.position.y;
 }
 
-void UIKitWindow_C::Resize(uint32_t width, uint32_t height) {
+void UIKitWindow::Resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     if (ui_view_) {
@@ -194,15 +194,15 @@ void UIKitWindow_C::Resize(uint32_t width, uint32_t height) {
     }
 }
 
-void UIKitWindow_C::Close() {
-    destroy_native();
+void UIKitWindow::Close() {
+    destroyNative();
 }
 
-bool UIKitWindow_C::IsOpen() const {
+bool UIKitWindow::IsOpen() const noexcept {
     return open_ && ui_view_ != nullptr;
 }
 
-void* UIKitWindow_C::GetNativeWindow() const {
+void* UIKitWindow::GetNativeWindow() const noexcept {
     if (!ui_view_) {
         return nullptr;
     }
@@ -210,7 +210,7 @@ void* UIKitWindow_C::GetNativeWindow() const {
     return (__bridge void*)view.layer;
 }
 
-NativeWindowHandle UIKitWindow_C::GetNativeHandle() const {
+NativeWindowHandle UIKitWindow::GetNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eIosUikitWindow;
     handle.ui_view = ui_view_;
@@ -221,19 +221,19 @@ NativeWindowHandle UIKitWindow_C::GetNativeHandle() const {
     return handle;
 }
 
-WindowAPI UIKitWindow_C::GetWindowAPI() const {
+WindowAPI UIKitWindow::GetWindowAPI() const noexcept {
     return WindowAPI::eIosUikitWindow;
 }
 
-int UIKitWindow_C::GetWidth() const {
+int UIKitWindow::GetWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int UIKitWindow_C::GetHeight() const {
+int UIKitWindow::GetHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-float UIKitWindow_C::GetDPIScale() const {
+float UIKitWindow::GetDPIScale() const noexcept {
     UIScreen* s = [UIScreen mainScreen];
     return s ? static_cast<float>(s.scale) : 1.0F;
 }

@@ -22,23 +22,23 @@ namespace vne::xwin {
 
 struct WindowInputMapping;
 
-class UIKitWindowManager_C;
+class UIKitWindowManager;
 
-class UIKitWindow_C final : public IWindow {
+class UIKitWindow final : public IWindow {
    public:
-    UIKitWindow_C();
-    ~UIKitWindow_C() override;
+    UIKitWindow();
+    ~UIKitWindow() override;
 
-    void SetEventOwner(UIKitWindowManager_C* owner);
+    void setEventOwner(UIKitWindowManager* owner);
 
     void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
     void SetWindowMode(WindowMode mode) override;
-    WindowMode GetWindowMode() const override;
+    [[nodiscard]] WindowMode GetWindowMode() const noexcept override;
     void SetFullscreen(bool enabled) override;
-    bool IsFullscreen() const override;
+    [[nodiscard]] bool IsFullscreen() const noexcept override;
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
@@ -48,23 +48,23 @@ class UIKitWindow_C final : public IWindow {
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
     void Close() override;
-    bool IsOpen() const override;
-    void* GetNativeWindow() const override;
-    NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI GetWindowAPI() const override;
-    int GetWidth() const override;
-    int GetHeight() const override;
-    float GetDPIScale() const override;
+    [[nodiscard]] bool IsOpen() const noexcept override;
+    [[nodiscard]] void* GetNativeWindow() const noexcept override;
+    [[nodiscard]] NativeWindowHandle GetNativeHandle() const noexcept override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
+    [[nodiscard]] int GetWidth() const noexcept override;
+    [[nodiscard]] int GetHeight() const noexcept override;
+    [[nodiscard]] float GetDPIScale() const noexcept override;
 
     // Called from VneXWinUIView
     void handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
 
-    const WindowInputMapping* input_mapping() const { return desc_.input_mapping; }
+    [[nodiscard]] const WindowInputMapping* inputMapping() const noexcept { return desc_.input_mapping; }
 
    private:
-    void destroy_native();
+    void destroyNative();
 
-    UIKitWindowManager_C* owner_ = nullptr;
+    UIKitWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
     void* ui_view_ = nullptr;

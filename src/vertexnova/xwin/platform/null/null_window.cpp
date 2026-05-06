@@ -13,28 +13,28 @@
 
 namespace vne::xwin {
 
-void NullWindow_C::Initialize(const WindowDescriptor& descriptor) {
+void NullWindow::Initialize(const WindowDescriptor& descriptor) {
     descriptor_ = descriptor;
     open_ = true;
 }
 
-void NullWindow_C::PollEvents() {}
+void NullWindow::PollEvents() {}
 
-void NullWindow_C::SwapBuffers() {}
+void NullWindow::SwapBuffers() {}
 
-void NullWindow_C::SetTitle(const std::string& title) {
+void NullWindow::SetTitle(const std::string& title) {
     descriptor_.title = title;
 }
 
-void NullWindow_C::SetWindowMode(WindowMode mode) {
+void NullWindow::SetWindowMode(WindowMode mode) {
     descriptor_.mode = mode;
 }
 
-WindowMode NullWindow_C::GetWindowMode() const {
+WindowMode NullWindow::GetWindowMode() const noexcept {
     return descriptor_.mode;
 }
 
-void NullWindow_C::SetFullscreen(bool enabled) {
+void NullWindow::SetFullscreen(bool enabled) {
     if (enabled) {
         descriptor_.mode = WindowMode::eFullscreen;
     } else {
@@ -42,65 +42,69 @@ void NullWindow_C::SetFullscreen(bool enabled) {
     }
 }
 
-bool NullWindow_C::IsFullscreen() const {
+bool NullWindow::IsFullscreen() const noexcept {
     return descriptor_.mode == WindowMode::eFullscreen;
 }
 
-void NullWindow_C::Minimize() {}
+void NullWindow::Minimize() {}
 
-void NullWindow_C::Maximize() {}
+void NullWindow::Maximize() {}
 
-void NullWindow_C::Restore() {}
+void NullWindow::Restore() {}
 
-void NullWindow_C::SetWindowLimits(const WindowLimits& limits) {
+void NullWindow::SetWindowLimits(const WindowLimits& limits) {
     descriptor_.limits = limits;
 }
 
-void NullWindow_C::SetCursor(WindowCursor cursor) {
+void NullWindow::SetCursor(WindowCursor cursor) {
     (void)cursor;
 }
 
-void NullWindow_C::SetPosition(int x, int y) {
+void NullWindow::SetPosition(int x, int y) {
     descriptor_.position.x = x;
     descriptor_.position.y = y;
 }
 
-void NullWindow_C::GetPosition(int& x, int& y) const {
+void NullWindow::GetPosition(int& x, int& y) const {
     x = descriptor_.position.x;
     y = descriptor_.position.y;
 }
 
-void NullWindow_C::Resize(uint32_t width, uint32_t height) {
+void NullWindow::Resize(uint32_t width, uint32_t height) {
     descriptor_.size.width = width;
     descriptor_.size.height = height;
 }
 
-void NullWindow_C::Close() {
+void NullWindow::Close() {
     open_ = false;
 }
 
-bool NullWindow_C::IsOpen() const {
+bool NullWindow::IsOpen() const noexcept {
     return open_;
 }
 
-void* NullWindow_C::GetNativeWindow() const {
+void* NullWindow::GetNativeWindow() const noexcept {
     return nullptr;
 }
 
-NativeWindowHandle NullWindow_C::GetNativeHandle() const {
+NativeWindowHandle NullWindow::GetNativeHandle() const noexcept {
     return {};
 }
 
-WindowAPI NullWindow_C::GetWindowAPI() const {
+WindowAPI NullWindow::GetWindowAPI() const noexcept {
     return WindowAPI::eNullWindow;
 }
 
-int NullWindow_C::GetWidth() const {
+int NullWindow::GetWidth() const noexcept {
     return static_cast<int>(descriptor_.size.width);
 }
 
-int NullWindow_C::GetHeight() const {
+int NullWindow::GetHeight() const noexcept {
     return static_cast<int>(descriptor_.size.height);
+}
+
+float NullWindow::GetDPIScale() const noexcept {
+    return 1.0F;
 }
 
 }  // namespace vne::xwin

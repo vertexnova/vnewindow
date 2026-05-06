@@ -18,29 +18,29 @@
 
 namespace vne::xwin {
 
-NullWindowManager_C::~NullWindowManager_C() {
+NullWindowManager::~NullWindowManager() {
     Shutdown();
 }
 
-bool NullWindowManager_C::Initialize() {
+bool NullWindowManager::Initialize() {
     initialized_ = true;
     return true;
 }
 
-void NullWindowManager_C::Shutdown() {
+void NullWindowManager::Shutdown() {
     DestroyAllWindows();
     initialized_ = false;
 }
 
-bool NullWindowManager_C::IsInitialized() const {
+bool NullWindowManager::IsInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> NullWindowManager_C::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> NullWindowManager::OpenWindow(const WindowDescriptor& descriptor) {
     if (!initialized_) {
         return nullptr;
     }
-    auto w = std::make_shared<NullWindow_C>();
+    auto w = std::make_shared<NullWindow>();
     w->Initialize(descriptor);
     windows_.push_back(w);
     if (!primary_) {
@@ -50,12 +50,12 @@ std::shared_ptr<IWindow> NullWindowManager_C::OpenWindow(const WindowDescriptor&
     return w;
 }
 
-std::shared_ptr<IWindow> NullWindowManager_C::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
-    WindowDescriptor d(title, width, height);
-    return OpenWindow(d);
+std::shared_ptr<IWindow> NullWindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
+    WindowDescriptor descriptor(title, width, height);
+    return OpenWindow(descriptor);
 }
 
-void NullWindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
+void NullWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
@@ -72,7 +72,7 @@ void NullWindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void NullWindowManager_C::DestroyAllWindows() {
+void NullWindowManager::DestroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
             w->Close();
@@ -83,41 +83,41 @@ void NullWindowManager_C::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t NullWindowManager_C::GetWindowCount() const {
+size_t NullWindowManager::GetWindowCount() const noexcept {
     return windows_.size();
 }
 
-std::vector<std::shared_ptr<IWindow>> NullWindowManager_C::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> NullWindowManager::GetWindows() const {
     return windows_;
 }
 
-std::shared_ptr<IWindow> NullWindowManager_C::GetPrimaryWindow() const {
+std::shared_ptr<IWindow> NullWindowManager::GetPrimaryWindow() const noexcept {
     return primary_;
 }
 
-std::shared_ptr<IWindow> NullWindowManager_C::GetFocusedWindow() const {
+std::shared_ptr<IWindow> NullWindowManager::GetFocusedWindow() const noexcept {
     return focused_;
 }
 
-void NullWindowManager_C::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
+void NullWindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
     primary_ = std::move(window);
 }
 
-void NullWindowManager_C::FocusWindow(std::shared_ptr<IWindow> window) {
+void NullWindowManager::FocusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
 }
 
-void NullWindowManager_C::ProcessEvents() {}
+void NullWindowManager::ProcessEvents() {}
 
-void NullWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& callback) {
+void NullWindowManager::SetEventCallback(const WindowManagerEventCallback_T& callback) {
     callback_ = callback;
 }
 
-void NullWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
+void NullWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
-bool NullWindowManager_C::ShouldClose() const {
+bool NullWindowManager::ShouldClose() const noexcept {
     for (const auto& w : windows_) {
         if (w && !w->IsOpen()) {
             return true;
@@ -126,7 +126,7 @@ bool NullWindowManager_C::ShouldClose() const {
     return false;
 }
 
-bool NullWindowManager_C::ShouldCloseAll() const {
+bool NullWindowManager::ShouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
@@ -138,36 +138,36 @@ bool NullWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI NullWindowManager_C::GetWindowAPI() const {
+WindowAPI NullWindowManager::GetWindowAPI() const noexcept {
     return WindowAPI::eNullWindow;
 }
 
-std::string NullWindowManager_C::GetPlatformInfo() const {
+std::string NullWindowManager::GetPlatformInfo() const {
     return "NullWindowManager (headless / tests)";
 }
 
-bool NullWindowManager_C::IsFeatureSupported(const std::string& /*feature*/) const {
+bool NullWindowManager::IsFeatureSupported(const std::string& /*feature*/) const {
     return false;
 }
 
-std::string NullWindowManager_C::GetProperties() const {
+std::string NullWindowManager::GetProperties() const {
     return properties_;
 }
 
-void NullWindowManager_C::SetProperties(const std::string& properties) {
+void NullWindowManager::SetProperties(const std::string& properties) {
     properties_ = properties;
 }
 
-uint64_t NullWindowManager_C::GetCurrentTime() const {
+uint64_t NullWindowManager::GetCurrentTime() const noexcept {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-void NullWindowManager_C::Sleep(uint32_t milliseconds) const {
+void NullWindowManager::Sleep(uint32_t milliseconds) const noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
-double NullWindowManager_C::GetPlatformTime() const {
+double NullWindowManager::GetPlatformTime() const noexcept {
     using namespace std::chrono;
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }

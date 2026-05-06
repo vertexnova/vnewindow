@@ -14,19 +14,19 @@
 
 namespace vne::xwin {
 
-class NullWindow_C final : public IWindow {
+class NullWindow final : public IWindow {
    public:
-    NullWindow_C() = default;
-    ~NullWindow_C() override = default;
+    NullWindow() = default;
+    ~NullWindow() override = default;
 
     void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
     void SetWindowMode(WindowMode mode) override;
-    WindowMode GetWindowMode() const override;
+    [[nodiscard]] WindowMode GetWindowMode() const noexcept override;
     void SetFullscreen(bool enabled) override;
-    bool IsFullscreen() const override;
+    [[nodiscard]] bool IsFullscreen() const noexcept override;
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
@@ -36,12 +36,13 @@ class NullWindow_C final : public IWindow {
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
     void Close() override;
-    bool IsOpen() const override;
-    void* GetNativeWindow() const override;
-    NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI GetWindowAPI() const override;
-    int GetWidth() const override;
-    int GetHeight() const override;
+    [[nodiscard]] bool IsOpen() const noexcept override;
+    [[nodiscard]] void* GetNativeWindow() const noexcept override;
+    [[nodiscard]] NativeWindowHandle GetNativeHandle() const noexcept override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
+    [[nodiscard]] int GetWidth() const noexcept override;
+    [[nodiscard]] int GetHeight() const noexcept override;
+    [[nodiscard]] float GetDPIScale() const noexcept override;
 
    private:
     WindowDescriptor descriptor_{};

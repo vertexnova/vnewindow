@@ -58,7 +58,7 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI win
     }
     switch (window_api) {
         case WindowAPI::eNullWindow:
-            return std::make_shared<NullWindowManager_C>();
+            return std::make_shared<NullWindowManager>();
 #if VNE_XWIN_HAS_WIN32
         case WindowAPI::eWin32Window:
             return std::make_shared<Win32WindowManager_C>();
@@ -81,7 +81,7 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI win
 #endif
 #if VNE_XWIN_HAS_UIKIT
         case WindowAPI::eIosUikitWindow:
-            return std::make_shared<UIKitWindowManager_C>();
+            return std::make_shared<UIKitWindowManager>();
 #endif
 #if VNE_XWIN_HAS_ANDROID
         case WindowAPI::eAndroidSurfaceWindow:
@@ -108,7 +108,7 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager() {
     if (mgr) {
         return mgr;
     }
-    return std::make_shared<NullWindowManager_C>();
+    return std::make_shared<NullWindowManager>();
 }
 
 WindowAPI WindowFactory::GetBestWindowAPIForPlatform() {
