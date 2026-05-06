@@ -223,6 +223,14 @@ endif()
 
 if(_vx_wayland)
     add_dependencies(vnexwin vnexwin_wayland_protocols)
+    # wayland-scanner emits C-style casts in generated headers; -Werror -Wold-style-cast otherwise breaks CI.
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|AppleClang")
+        set_source_files_properties(
+            platform/linux/wayland/wayland_window.cpp
+            platform/linux/wayland/wayland_window_manager.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-old-style-cast"
+        )
+    endif()
 endif()
 
 target_include_directories(vnexwin

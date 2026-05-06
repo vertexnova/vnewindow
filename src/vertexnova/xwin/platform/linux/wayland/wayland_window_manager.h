@@ -57,7 +57,7 @@ class WaylandWindowManager_C final : public IWindowManager {
     wl_display* NativeDisplay() const { return display_; }
     wl_compositor* NativeCompositor() const { return compositor_; }
     xdg_wm_base* NativeXdgWmBase() const { return xdg_wm_base_; }
-    float OutputScale() const { return output_scale_; }
+    float OutputScale() const { return static_cast<float>(output_scale_); }
 
     WaylandWindowManager_C();
     ~WaylandWindowManager_C() override;
