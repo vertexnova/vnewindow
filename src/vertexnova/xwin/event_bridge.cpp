@@ -133,18 +133,18 @@ void eventBridgeMouseMove(IWindow* window,
 void eventBridgeMouseScroll(IWindow* window,
                             const WindowDescriptor& descriptor,
                             const EventBridgeCallbacks& callbacks,
-                            float xOffset,
-                            float yOffset) {
+                            float x_offset,
+                            float y_offset) {
     if (descriptor.enable_input) {
-        vne::events::Input::updateMouseScroll(xOffset, yOffset);
+        vne::events::Input::updateMouseScroll(x_offset, y_offset);
     }
     if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(
-            std::make_unique<vne::events::MouseScrolledEvent>(static_cast<double>(xOffset),
-                                                              static_cast<double>(yOffset)));
+            std::make_unique<vne::events::MouseScrolledEvent>(static_cast<double>(x_offset),
+                                                              static_cast<double>(y_offset)));
     }
     if (callbacks.onMouseScroll) {
-        callbacks.onMouseScroll(window, xOffset, yOffset);
+        callbacks.onMouseScroll(window, x_offset, y_offset);
     }
 }
 

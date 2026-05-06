@@ -33,7 +33,7 @@ struct EventBridgeCallbacks {
     std::function<void(IWindow*, vne::events::MouseButton button, bool pressed, double x, double y, uint8_t modifiers)>
         onMouseButton;
     std::function<void(IWindow*, double x, double y, uint8_t modifiers)> onMouseMove;
-    std::function<void(IWindow*, float xOffset, float yOffset)> onMouseScroll;
+    std::function<void(IWindow*, float x_offset, float y_offset)> onMouseScroll;
     std::function<void(IWindow*, uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase)> onTouch;
     std::function<void(IWindow*, bool focused)> onWindowFocus;
     std::function<void(IWindow*, const char*)> onTextInput;
