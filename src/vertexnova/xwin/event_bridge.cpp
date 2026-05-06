@@ -61,8 +61,8 @@ void eventBridgeKeyDown(IWindow* window,
             pushKeyPressed(key, modifiers);
         }
     }
-    if (callbacks.onKeyDown) {
-        callbacks.onKeyDown(window, key, modifiers, repeat);
+    if (callbacks.on_key_down) {
+        callbacks.on_key_down(window, key, modifiers, repeat);
     }
 }
 
@@ -81,8 +81,8 @@ void eventBridgeKeyUp(IWindow* window,
     if (descriptor.enable_events) {
         pushKeyReleased(key, modifiers);
     }
-    if (callbacks.onKeyUp) {
-        callbacks.onKeyUp(window, key, modifiers);
+    if (callbacks.on_key_up) {
+        callbacks.on_key_up(window, key, modifiers);
     }
 }
 
@@ -107,8 +107,8 @@ void eventBridgeMouseButton(IWindow* window,
                 std::make_unique<vne::events::MouseButtonReleasedEvent>(button, modifiers, x, y));
         }
     }
-    if (callbacks.onMouseButton) {
-        callbacks.onMouseButton(window, button, pressed, x, y, modifiers);
+    if (callbacks.on_mouse_button) {
+        callbacks.on_mouse_button(window, button, pressed, x, y, modifiers);
     }
 }
 
@@ -125,8 +125,8 @@ void eventBridgeMouseMove(IWindow* window,
         vne::events::EventManager::instance().pushEvent(
             std::make_unique<vne::events::MouseMovedEvent>(x, y, modifiers));
     }
-    if (callbacks.onMouseMove) {
-        callbacks.onMouseMove(window, x, y, modifiers);
+    if (callbacks.on_mouse_move) {
+        callbacks.on_mouse_move(window, x, y, modifiers);
     }
 }
 
@@ -143,8 +143,8 @@ void eventBridgeMouseScroll(IWindow* window,
             std::make_unique<vne::events::MouseScrolledEvent>(static_cast<double>(x_offset),
                                                               static_cast<double>(y_offset)));
     }
-    if (callbacks.onMouseScroll) {
-        callbacks.onMouseScroll(window, x_offset, y_offset);
+    if (callbacks.on_mouse_scroll) {
+        callbacks.on_mouse_scroll(window, x_offset, y_offset);
     }
 }
 
@@ -155,7 +155,7 @@ void eventBridgeTouch(IWindow* window,
                       double x,
                       double y,
                       EventBridgeTouchPhase phase) {
-    if (!descriptor.enable_events && !callbacks.onTouch) {
+    if (!descriptor.enable_events && !callbacks.on_touch) {
         return;
     }
     if (descriptor.enable_events) {
@@ -174,8 +174,8 @@ void eventBridgeTouch(IWindow* window,
                 break;
         }
     }
-    if (callbacks.onTouch) {
-        callbacks.onTouch(window, touch_id, x, y, phase);
+    if (callbacks.on_touch) {
+        callbacks.on_touch(window, touch_id, x, y, phase);
     }
 }
 
@@ -212,8 +212,8 @@ void eventBridgeWindowFocus(IWindow* window,
     if (descriptor.enable_events) {
         vne::events::EventManager::instance().pushEvent(std::make_unique<vne::events::WindowFocusEvent>(focused));
     }
-    if (callbacks.onWindowFocus) {
-        callbacks.onWindowFocus(window, focused);
+    if (callbacks.on_window_focus) {
+        callbacks.on_window_focus(window, focused);
     }
 }
 
@@ -225,8 +225,8 @@ void eventBridgeTextInput(IWindow* window,
         return;
     }
     (void)descriptor;
-    if (callbacks.onTextInput) {
-        callbacks.onTextInput(window, utf8_text);
+    if (callbacks.on_text_input) {
+        callbacks.on_text_input(window, utf8_text);
     }
 }
 

@@ -28,15 +28,15 @@ enum class EventBridgeTouchPhase : std::uint8_t { eDown = 0, eUp = 1, eMove = 2 
  *        (when enabled on the window descriptor), one concern per slot.
  */
 struct EventBridgeCallbacks {
-    std::function<void(IWindow*, vne::events::KeyCode key, uint8_t modifiers, bool repeat)> onKeyDown;
-    std::function<void(IWindow*, vne::events::KeyCode key, uint8_t modifiers)> onKeyUp;
+    std::function<void(IWindow*, vne::events::KeyCode key, uint8_t modifiers, bool repeat)> on_key_down;
+    std::function<void(IWindow*, vne::events::KeyCode key, uint8_t modifiers)> on_key_up;
     std::function<void(IWindow*, vne::events::MouseButton button, bool pressed, double x, double y, uint8_t modifiers)>
-        onMouseButton;
-    std::function<void(IWindow*, double x, double y, uint8_t modifiers)> onMouseMove;
-    std::function<void(IWindow*, float x_offset, float y_offset)> onMouseScroll;
-    std::function<void(IWindow*, uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase)> onTouch;
-    std::function<void(IWindow*, bool focused)> onWindowFocus;
-    std::function<void(IWindow*, const char*)> onTextInput;
+        on_mouse_button;
+    std::function<void(IWindow*, double x, double y, uint8_t modifiers)> on_mouse_move;
+    std::function<void(IWindow*, float x_offset, float y_offset)> on_mouse_scroll;
+    std::function<void(IWindow*, uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase)> on_touch;
+    std::function<void(IWindow*, bool focused)> on_window_focus;
+    std::function<void(IWindow*, const char*)> on_text_input;
 };
 
 }  // namespace vne::xwin

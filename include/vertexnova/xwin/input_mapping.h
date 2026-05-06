@@ -26,6 +26,15 @@
 #include <functional>
 
 namespace vne::xwin {
+namespace {
+constexpr std::uint32_t kWin32ScanShift = 16U;
+constexpr std::uint32_t kWin32ExtShift = 24U;
+constexpr std::uint64_t kWin32VkMask = 0xFFFFULL;
+constexpr std::uint64_t kWin32ScanMask = 0xFFULL;
+constexpr std::uint64_t kWin32ExtMask = 0x1ULL;
+constexpr std::uint64_t kWin32MsgMask = 0xFFFFFFFFULL;
+constexpr std::uint32_t kWin32WParamShift = 32U;
+}  // namespace
 
 /**
  * Optional per-window translation hooks. If a slot is empty, or returns eUnknown / zero where
@@ -53,35 +62,35 @@ struct WindowInputMapping {
 
 /** @brief Win32 WM_KEY* token: low 16 = VK; bits 16–23 = scan; bit 24 = extended (from lParam). */
 [[nodiscard]] inline uint64_t packWin32NativeKey(std::uintptr_t vk, std::uintptr_t l_param) noexcept {
-    const std::uint32_t scan = (static_cast<std::uint32_t>(l_param) >> 16U) & 0xFFU;
-    const std::uint32_t ext = (static_cast<std::uint32_t>(l_param) & (1U << 24)) != 0 ? 1U : 0U;
-    uint64_t p = static_cast<uint64_t>(vk) & 0xFFFFULL;
-    p |= (static_cast<uint64_t>(scan) << 16);
-    p |= (static_cast<uint64_t>(ext) << 24);
+    const auto scan = (static_cast<std::uint32_t>(l_param) >> kWin32ScanShift) & static_cast<std::uint32_t>(kWin32ScanMask);
+    const auto ext = (static_cast<std::uint32_t>(l_param) & (1U << kWin32ExtShift)) != 0U ? 1U : 0U;
+    uint64_t p = static_cast<uint64_t>(vk) & kWin32VkMask;
+    p |= (static_cast<uint64_t>(scan) << kWin32ScanShift);
+    p |= (static_cast<uint64_t>(ext) << kWin32ExtShift);
     return p;
 }
 
 inline void unpackWin32NativeKey(uint64_t packed, std::uintptr_t* vk_out, std::uintptr_t* l_param_out) noexcept {
-    *vk_out = static_cast<std::uintptr_t>(packed & 0xFFFFULL);
-    const std::uint32_t scan = static_cast<std::uint32_t>((packed >> 16) & 0xFFULL);
-    const std::uint32_t ext = static_cast<std::uint32_t>((packed >> 24) & 1ULL);
-    std::uintptr_t lp = static_cast<std::uintptr_t>(scan) << 16U;
+    *vk_out = static_cast<std::uintptr_t>(packed & kWin32VkMask);
+    const auto scan = static_cast<std::uint32_t>((packed >> kWin32ScanShift) & kWin32ScanMask);
+    const auto ext = static_cast<std::uint32_t>((packed >> kWin32ExtShift) & kWin32ExtMask);
+    std::uintptr_t lp = static_cast<std::uintptr_t>(scan) << kWin32ScanShift;
     if (ext != 0U) {
-        lp |= static_cast<std::uintptr_t>(1U) << 24U;
+        lp |= static_cast<std::uintptr_t>(1U) << kWin32ExtShift;
     }
     *l_param_out = lp;
 }
 
 /** @brief Win32 mouse: low 32 = UINT msg, high 32 = WPARAM for XBUTTON. */
 [[nodiscard]] inline uint64_t packWin32Mouse(unsigned int msg, std::uintptr_t w_param) noexcept {
-    uint64_t p = static_cast<uint64_t>(msg) & 0xFFFFFFFFULL;
-    p |= (static_cast<uint64_t>(w_param) << 32);
+    uint64_t p = static_cast<uint64_t>(msg) & kWin32MsgMask;
+    p |= (static_cast<uint64_t>(w_param) << kWin32WParamShift);
     return p;
 }
 
 inline void unpackWin32Mouse(uint64_t packed, unsigned int* msg_out, std::uintptr_t* w_param_out) noexcept {
-    *msg_out = static_cast<unsigned int>(packed & 0xFFFFFFFFULL);
-    *w_param_out = static_cast<std::uintptr_t>(packed >> 32);
+    *msg_out = static_cast<unsigned int>(packed & kWin32MsgMask);
+    *w_param_out = static_cast<std::uintptr_t>(packed >> kWin32WParamShift);
 }
 
 /** @brief Cocoa / UIKit NSEvent.keyCode (CGKeyCode). */

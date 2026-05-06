@@ -47,8 +47,8 @@ int main() {
     }
 
     vne::xwin::EventBridgeCallbacks hooks{};
-    hooks.onKeyDown = [](vne::xwin::IWindow* win, vne::events::KeyCode key, std::uint8_t /*mods*/, bool repeat) {
-        VNE_LOG_INFO << "onKeyDown window=" << win << " key=" << static_cast<int>(key) << " repeat=" << repeat;
+    hooks.on_key_down = [](vne::xwin::IWindow* win, vne::events::KeyCode key, std::uint8_t /*mods*/, bool repeat) {
+        VNE_LOG_INFO << "on_key_down window=" << win << " key=" << static_cast<int>(key) << " repeat=" << repeat;
     };
 
     mgr->setEventBridgeCallbacks(std::move(hooks));

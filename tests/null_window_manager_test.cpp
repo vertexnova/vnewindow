@@ -55,7 +55,7 @@ TEST_F(NullWindowManagerTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
 
     bool called = false;
     EventBridgeCallbacks cb{};
-    cb.onWindowFocus = [&called](vne::xwin::IWindow*, bool) { called = true; };
+    cb.on_window_focus = [&called](vne::xwin::IWindow*, bool) { called = true; };
 
     mgr->setEventBridgeCallbacks(std::move(cb));
     mgr->processEvents();
