@@ -42,17 +42,17 @@ std::wstring Utf8ToWide(const std::string& utf8) {
 
 }  // namespace
 
-Win32Window_C::Win32Window_C() = default;
+Win32Window::Win32Window() = default;
 
-Win32Window_C::~Win32Window_C() {
-    destroy_window();
+Win32Window::~Win32Window() {
+    destroyWindow();
 }
 
-void Win32Window_C::SetEventOwner(Win32WindowManager_C* owner) {
-    event_owner_ = owner;
+void Win32Window::setEventOwner(Win32WindowManager* owner) {
+    owner_ = owner;
 }
 
-void Win32Window_C::create_window(const WindowDescriptor& descriptor) {
+void Win32Window::createWindow(const WindowDescriptor& descriptor) {
     desc_ = descriptor;
     HINSTANCE hinst = GetModuleHandleW(nullptr);
 
@@ -61,7 +61,7 @@ void Win32Window_C::create_window(const WindowDescriptor& descriptor) {
         WNDCLASSEXW wc{};
         wc.cbSize = sizeof(wc);
         wc.style = CS_OWNDC;
-        wc.lpfnWndProc = &Win32Window_C::StaticWndProc;
+        wc.lpfnWndProc = &Win32Window::staticWndProc;
         wc.hInstance = hinst;
         wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
         wc.lpszClassName = kClassName;
@@ -97,7 +97,7 @@ void Win32Window_C::create_window(const WindowDescriptor& descriptor) {
     }
 }
 
-void Win32Window_C::destroy_window() {
+void Win32Window::destroyWindow() {
     if (hwnd_) {
         ::DestroyWindow(hwnd_);
         hwnd_ = nullptr;
@@ -105,20 +105,20 @@ void Win32Window_C::destroy_window() {
     open_ = false;
 }
 
-LRESULT CALLBACK Win32Window_C::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    Win32Window_C* self = nullptr;
+LRESULT CALLBACK Win32Window::staticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    Win32Window* self = nullptr;
     if (msg == WM_NCCREATE) {
         auto* cs = reinterpret_cast<CREATESTRUCTW*>(lParam);
-        self = static_cast<Win32Window_C*>(cs->lpCreateParams);
+        self = static_cast<Win32Window*>(cs->lpCreateParams);
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
         self->hwnd_ = hwnd;
     } else {
-        self = reinterpret_cast<Win32Window_C*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+        self = reinterpret_cast<Win32Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
     }
     if (!self) {
         return DefWindowProcW(hwnd, msg, wParam, lParam);
     }
-    const LRESULT out = self->HandleMessage(hwnd, msg, wParam, lParam);
+    const LRESULT out = self->handleMessage(hwnd, msg, wParam, lParam);
     if (msg == WM_NCDESTROY) {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
         self->hwnd_ = nullptr;
@@ -126,18 +126,18 @@ LRESULT CALLBACK Win32Window_C::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam
     return out;
 }
 
-LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     const EventBridgeCallbacks empty_callbacks{};
-    const EventBridgeCallbacks& cb = event_owner_ ? event_owner_->eventBridgeCallbacks() : empty_callbacks;
+    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks;
 
     switch (msg) {
         case WM_CLOSE:
             eventBridgeWindowClose(this, desc_, cb);
             open_ = false;
-            if (event_owner_) {
+            if (owner_) {
                 WindowEventData ev{};
                 ev.type = WindowEventType::eClose;
-                event_owner_->NotifyWindowEvent(this, ev);
+                owner_->notifyWindowEvent(this, ev);
             }
             ::DestroyWindow(hwnd);
             return 0;
@@ -146,11 +146,11 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 desc_.size.width = static_cast<uint32_t>(LOWORD(lParam));
                 desc_.size.height = static_cast<uint32_t>(HIWORD(lParam));
                 eventBridgeWindowResize(this, desc_, cb, desc_.size.width, desc_.size.height);
-                if (event_owner_) {
+                if (owner_) {
                     WindowEventData ev{};
                     ev.type = WindowEventType::eResize;
                     ev.size = desc_.size;
-                    event_owner_->NotifyWindowEvent(this, ev);
+                    owner_->notifyWindowEvent(this, ev);
                 }
             }
             return 0;
@@ -160,20 +160,20 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             return 0;
         case WM_SETFOCUS:
             eventBridgeWindowFocus(this, desc_, cb, true);
-            if (event_owner_) {
+            if (owner_) {
                 WindowEventData ev{};
                 ev.type = WindowEventType::eFocus;
                 ev.focused = true;
-                event_owner_->NotifyWindowEvent(this, ev);
+                owner_->notifyWindowEvent(this, ev);
             }
             return 0;
         case WM_KILLFOCUS:
             eventBridgeWindowFocus(this, desc_, cb, false);
-            if (event_owner_) {
+            if (owner_) {
                 WindowEventData ev{};
                 ev.type = WindowEventType::eFocus;
                 ev.focused = false;
-                event_owner_->NotifyWindowEvent(this, ev);
+                owner_->notifyWindowEvent(this, ev);
             }
             return 0;
         case WM_KEYDOWN:
@@ -328,12 +328,12 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
     }
 }
 
-void Win32Window_C::Initialize(const WindowDescriptor& descriptor) {
-    destroy_window();
-    create_window(descriptor);
+void Win32Window::Initialize(const WindowDescriptor& descriptor) {
+    destroyWindow();
+    createWindow(descriptor);
 }
 
-void Win32Window_C::PollEvents() {
+void Win32Window::PollEvents() {
     if (!hwnd_) {
         return;
     }
@@ -344,16 +344,16 @@ void Win32Window_C::PollEvents() {
     }
 }
 
-void Win32Window_C::SwapBuffers() {}
+void Win32Window::SwapBuffers() {}
 
-void Win32Window_C::SetTitle(const std::string& title) {
+void Win32Window::SetTitle(const std::string& title) {
     desc_.title = title;
     if (hwnd_) {
         SetWindowTextW(hwnd_, Utf8ToWide(title).c_str());
     }
 }
 
-void Win32Window_C::SetWindowMode(WindowMode mode) {
+void Win32Window::SetWindowMode(WindowMode mode) {
     mode_ = mode;
     if (!hwnd_) {
         return;
@@ -384,11 +384,11 @@ void Win32Window_C::SetWindowMode(WindowMode mode) {
     SetWindowPos(hwnd_, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER);
 }
 
-WindowMode Win32Window_C::GetWindowMode() const {
+WindowMode Win32Window::GetWindowMode() const noexcept {
     return mode_;
 }
 
-void Win32Window_C::SetFullscreen(bool enabled) {
+void Win32Window::SetFullscreen(bool enabled) {
     if (!hwnd_ || enabled == fullscreen_) {
         return;
     }
@@ -423,34 +423,34 @@ void Win32Window_C::SetFullscreen(bool enabled) {
     fullscreen_ = enabled;
 }
 
-bool Win32Window_C::IsFullscreen() const {
+bool Win32Window::IsFullscreen() const noexcept {
     return fullscreen_;
 }
 
-void Win32Window_C::Minimize() {
+void Win32Window::Minimize() {
     if (hwnd_) {
         ShowWindow(hwnd_, SW_MINIMIZE);
     }
 }
 
-void Win32Window_C::Maximize() {
+void Win32Window::Maximize() {
     if (hwnd_) {
         ShowWindow(hwnd_, SW_MAXIMIZE);
     }
 }
 
-void Win32Window_C::Restore() {
+void Win32Window::Restore() {
     if (hwnd_) {
         ShowWindow(hwnd_, SW_RESTORE);
     }
 }
 
-void Win32Window_C::SetWindowLimits(const WindowLimits& limits) {
+void Win32Window::SetWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
-    // Limits are enforced in WM_GETMINMAXINFO inside HandleMessage
+    // Limits are enforced in WM_GETMINMAXINFO inside handleMessage
 }
 
-void Win32Window_C::SetCursor(WindowCursor cursor) {
+void Win32Window::SetCursor(WindowCursor cursor) {
     switch (cursor) {
         case WindowCursor::eHidden:
             while (ShowCursor(FALSE) >= 0) {
@@ -476,7 +476,7 @@ void Win32Window_C::SetCursor(WindowCursor cursor) {
     }
 }
 
-void Win32Window_C::SetPosition(int x, int y) {
+void Win32Window::SetPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
     if (hwnd_) {
@@ -484,7 +484,7 @@ void Win32Window_C::SetPosition(int x, int y) {
     }
 }
 
-void Win32Window_C::GetPosition(int& x, int& y) const {
+void Win32Window::GetPosition(int& x, int& y) const {
     x = desc_.position.x;
     y = desc_.position.y;
     if (hwnd_) {
@@ -496,7 +496,7 @@ void Win32Window_C::GetPosition(int& x, int& y) const {
     }
 }
 
-void Win32Window_C::Resize(uint32_t width, uint32_t height) {
+void Win32Window::Resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     if (hwnd_) {
@@ -510,7 +510,7 @@ void Win32Window_C::Resize(uint32_t width, uint32_t height) {
     }
 }
 
-void Win32Window_C::Close() {
+void Win32Window::Close() {
     if (hwnd_) {
         ::DestroyWindow(hwnd_);
         hwnd_ = nullptr;
@@ -518,34 +518,34 @@ void Win32Window_C::Close() {
     open_ = false;
 }
 
-bool Win32Window_C::IsOpen() const {
+bool Win32Window::IsOpen() const noexcept {
     return open_ && hwnd_ != nullptr;
 }
 
-void* Win32Window_C::GetNativeWindow() const {
+void* Win32Window::GetNativeWindow() const noexcept {
     return hwnd_;
 }
 
-NativeWindowHandle Win32Window_C::GetNativeHandle() const {
+NativeWindowHandle Win32Window::GetNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eWin32Window;
     handle.hwnd = hwnd_;
     return handle;
 }
 
-WindowAPI Win32Window_C::GetWindowAPI() const {
+WindowAPI Win32Window::GetWindowAPI() const noexcept {
     return WindowAPI::eWin32Window;
 }
 
-int Win32Window_C::GetWidth() const {
+int Win32Window::GetWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int Win32Window_C::GetHeight() const {
+int Win32Window::GetHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-float Win32Window_C::GetDPIScale() const {
+float Win32Window::GetDPIScale() const noexcept {
     if (!hwnd_) {
         return 1.0F;
     }
@@ -558,7 +558,7 @@ float Win32Window_C::GetDPIScale() const {
     return 1.0F;
 }
 
-std::string Win32Window_C::GetClipboardText() const {
+std::string Win32Window::GetClipboardText() const {
     if (!OpenClipboard(hwnd_)) {
         return {};
     }
@@ -583,7 +583,7 @@ std::string Win32Window_C::GetClipboardText() const {
     return result;
 }
 
-void Win32Window_C::SetClipboardText(const std::string& text) {
+void Win32Window::SetClipboardText(const std::string& text) {
     if (!OpenClipboard(hwnd_)) {
         return;
     }
@@ -609,7 +609,7 @@ void Win32Window_C::SetClipboardText(const std::string& text) {
     CloseClipboard();
 }
 
-void Win32Window_C::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
+void Win32Window::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
     if (!hwnd_ || !rgba_pixels || width == 0 || height == 0) {
         return;
     }

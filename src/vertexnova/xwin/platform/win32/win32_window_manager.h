@@ -12,34 +12,33 @@
 
 #include "vertexnova/xwin/window_manager.h"
 
-#include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace vne::xwin {
 
-class Win32WindowManager_C final : public IWindowManager {
+class Win32WindowManager final : public IWindowManager {
    public:
-    /** @brief Invoked by Win32Window_C for resize/close notifications. */
-    void NotifyWindowEvent(IWindow* window, const WindowEventData& event);
+    /** @brief Invoked by Win32Window for resize/close notifications. */
+    void notifyWindowEvent(IWindow* window, const WindowEventData& event);
 
-    Win32WindowManager_C();
-    ~Win32WindowManager_C() override;
+    Win32WindowManager();
+    ~Win32WindowManager() override;
 
     bool Initialize() override;
     void Shutdown() override;
-    bool IsInitialized() const override;
+    [[nodiscard]] bool IsInitialized() const noexcept override;
 
     std::shared_ptr<IWindow> OpenWindow(const WindowDescriptor& descriptor) override;
     std::shared_ptr<IWindow> OpenWindow(const std::string& title, uint32_t width, uint32_t height) override;
     void RemoveWindow(std::shared_ptr<IWindow> window) override;
     void DestroyAllWindows() override;
 
-    size_t GetWindowCount() const override;
-    std::vector<std::shared_ptr<IWindow>> GetWindows() const override;
-    std::shared_ptr<IWindow> GetPrimaryWindow() const override;
-    std::shared_ptr<IWindow> GetFocusedWindow() const override;
+    [[nodiscard]] size_t GetWindowCount() const noexcept override;
+    [[nodiscard]] std::vector<std::shared_ptr<IWindow>> GetWindows() const override;
+    [[nodiscard]] std::shared_ptr<IWindow> GetPrimaryWindow() const noexcept override;
+    [[nodiscard]] std::shared_ptr<IWindow> GetFocusedWindow() const noexcept override;
     void SetPrimaryWindow(std::shared_ptr<IWindow> window) override;
     void FocusWindow(std::shared_ptr<IWindow> window) override;
 
@@ -47,20 +46,20 @@ class Win32WindowManager_C final : public IWindowManager {
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
     void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) override;
 
-    /** @brief Used by Win32Window_C when forwarding input to optional callbacks. */
-    [[nodiscard]] const EventBridgeCallbacks& eventBridgeCallbacks() const { return event_bridge_callbacks_; }
-    bool ShouldClose() const override;
-    bool ShouldCloseAll() const override;
+    /** @brief Used by Win32Window when forwarding input to optional callbacks. */
+    [[nodiscard]] const EventBridgeCallbacks& eventBridgeCallbacks() const noexcept { return event_bridge_callbacks_; }
+    [[nodiscard]] bool ShouldClose() const noexcept override;
+    [[nodiscard]] bool ShouldCloseAll() const noexcept override;
 
-    WindowAPI GetWindowAPI() const override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
     std::string GetPlatformInfo() const override;
-    bool IsFeatureSupported(const std::string& feature) const override;
-    std::string GetProperties() const override;
+    [[nodiscard]] bool IsFeatureSupported(const std::string& feature) const override;
+    [[nodiscard]] std::string GetProperties() const override;
     void SetProperties(const std::string& properties) override;
 
-    uint64_t GetCurrentTime() const override;
-    void Sleep(uint32_t milliseconds) const override;
-    double GetPlatformTime() const override;
+    [[nodiscard]] uint64_t GetCurrentTime() const noexcept override;
+    void Sleep(uint32_t milliseconds) const noexcept override;
+    [[nodiscard]] double GetPlatformTime() const noexcept override;
 
    private:
     std::vector<std::shared_ptr<IWindow>> windows_;

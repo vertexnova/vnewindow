@@ -21,21 +21,21 @@
 
 namespace vne::xwin {
 
-class Win32WindowManager_C;
+class Win32WindowManager;
 
-class Win32Window_C final : public IWindow {
+class Win32Window final : public IWindow {
    public:
-    Win32Window_C();
-    ~Win32Window_C() override;
+    Win32Window();
+    ~Win32Window() override;
 
     void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
     void SetWindowMode(WindowMode mode) override;
-    WindowMode GetWindowMode() const override;
+    [[nodiscard]] WindowMode GetWindowMode() const noexcept override;
     void SetFullscreen(bool enabled) override;
-    bool IsFullscreen() const override;
+    [[nodiscard]] bool IsFullscreen() const noexcept override;
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
@@ -45,29 +45,29 @@ class Win32Window_C final : public IWindow {
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
     void Close() override;
-    bool IsOpen() const override;
-    void* GetNativeWindow() const override;
-    NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI GetWindowAPI() const override;
-    int GetWidth() const override;
-    int GetHeight() const override;
-    float GetDPIScale() const override;
-    std::string GetClipboardText() const override;
+    [[nodiscard]] bool IsOpen() const noexcept override;
+    [[nodiscard]] void* GetNativeWindow() const noexcept override;
+    [[nodiscard]] NativeWindowHandle GetNativeHandle() const noexcept override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
+    [[nodiscard]] int GetWidth() const noexcept override;
+    [[nodiscard]] int GetHeight() const noexcept override;
+    [[nodiscard]] float GetDPIScale() const noexcept override;
+    [[nodiscard]] std::string GetClipboardText() const override;
     void SetClipboardText(const std::string& text) override;
     void SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) override;
 
-    /** @brief Used by Win32WindowManager_C to deliver manager-level callbacks. */
-    void SetEventOwner(Win32WindowManager_C* owner);
+    /** @brief Used by Win32WindowManager to deliver manager-level callbacks. */
+    void setEventOwner(Win32WindowManager* owner);
 
-    LRESULT HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    LRESULT handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
    private:
-    static LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-    void create_window(const WindowDescriptor& descriptor);
-    void destroy_window();
+    static LRESULT CALLBACK staticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    void createWindow(const WindowDescriptor& descriptor);
+    void destroyWindow();
 
     HWND hwnd_ = nullptr;
-    Win32WindowManager_C* event_owner_ = nullptr;
+    Win32WindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
     bool fullscreen_ = false;

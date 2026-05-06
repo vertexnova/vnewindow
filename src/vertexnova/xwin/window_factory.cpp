@@ -61,7 +61,7 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI win
             return std::make_shared<NullWindowManager>();
 #if VNE_XWIN_HAS_WIN32
         case WindowAPI::eWin32Window:
-            return std::make_shared<Win32WindowManager_C>();
+            return std::make_shared<Win32WindowManager>();
 #endif
 #if VNE_XWIN_HAS_COCOA
         case WindowAPI::eCocoaWindow:
