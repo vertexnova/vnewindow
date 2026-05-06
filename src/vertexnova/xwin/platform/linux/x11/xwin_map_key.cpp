@@ -13,12 +13,12 @@
 #include "xwin_map_key.h"
 
 #include <X11/keysym.h>
+#include <limits>
 
 namespace vne::xwin {
 namespace {
 constexpr std::uint64_t kPrintableAsciiFirst = 32U;
 constexpr std::uint64_t kPrintableAsciiLast = 126U;
-constexpr std::uint64_t kKeysymScanUpperBound = 0x10000U;
 }  // namespace
 
 using vne::events::KeyCode;
@@ -192,7 +192,7 @@ std::uint64_t mapEventsKeyCodeToX11Keysym(KeyCode target) {
     if (target == KeyCode::eUnknown) {
         return 0;
     }
-    for (std::uint64_t sym = kPrintableAsciiFirst; sym < kKeysymScanUpperBound; ++sym) {
+    for (std::uint64_t sym = kPrintableAsciiFirst; sym <= static_cast<std::uint64_t>(std::numeric_limits<std::uint16_t>::max()); ++sym) {
         if (mapX11Keysym(static_cast<KeySym>(sym)) == target) {
             return sym;
         }
