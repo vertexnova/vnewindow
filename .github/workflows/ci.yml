@@ -468,7 +468,8 @@ jobs:
             build-linux-clang-
 
       - name: Install clang and clang-tidy
-        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake clang clang-tidy
+        # Match build-reusable Linux deps: cached configure expects X11 when libx11-dev was present.
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake clang clang-tidy libx11-dev
 
       - name: Configure CMake (refresh compile_commands)
         run: |
