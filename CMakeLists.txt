@@ -93,6 +93,19 @@ elseif(VNE_TARGET_PLATFORM STREQUAL "Web")
     add_compile_definitions(VNE_PLATFORM_WEB)
 endif()
 
+# Library type + PIC must be decided before add_subdirectory(deps): embedded static
+# libs (vneevents, vnelogging) must compile with -fPIC when linked into libvnexwin.so.
+set(VNE_XWIN_LIB_TYPE "shared" CACHE STRING "Library type for vne::xwin: static or shared (one per build)")
+set_property(CACHE VNE_XWIN_LIB_TYPE PROPERTY STRINGS "static" "shared")
+if(NOT VNE_XWIN_LIB_TYPE STREQUAL "static" AND NOT VNE_XWIN_LIB_TYPE STREQUAL "shared")
+    message(FATAL_ERROR
+        "VNE_XWIN_LIB_TYPE must be 'static' or 'shared'. Got: ${VNE_XWIN_LIB_TYPE}")
+endif()
+if(VNE_XWIN_LIB_TYPE STREQUAL "shared")
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    message(STATUS "VneCrossWindow: VNE_XWIN_LIB_TYPE=shared -> CMAKE_POSITION_INDEPENDENT_CODE=ON (before deps)")
+endif()
+
 #==============================================================================
 # Internal Libraries (deps/internal) - use if already in build, else add
 #==============================================================================
@@ -175,6 +188,8 @@ include_directories(${CMAKE_BINARY_DIR})
 # Build Options
 #==============================================================================
 # Option naming and deps:
+# - VNE_XWIN_LIB_TYPE (+ PIC when shared) is set before internal deps; see block
+#   after platform compile definitions.
 # - Use VNE_XWIN_* for vne::xwin-only options so there is no conflict when
 #   this project is used as a submodule (parent can set VNE_XWIN_TESTS=OFF
 #   without affecting BUILD_TESTS used by other deps).
@@ -200,18 +215,6 @@ endif()
 
 option(VNE_XWIN_TESTS "Build vne::xwin test suite (turn OFF when used as submodule)" ON)
 option(VNE_XWIN_EXAMPLES "Build vne::xwin example programs (turn OFF when used as submodule)" OFF)
-set(VNE_XWIN_LIB_TYPE "shared" CACHE STRING "Library type for vne::xwin: static or shared (one per build)")
-set_property(CACHE VNE_XWIN_LIB_TYPE PROPERTY STRINGS "static" "shared")
-if(NOT VNE_XWIN_LIB_TYPE STREQUAL "static" AND NOT VNE_XWIN_LIB_TYPE STREQUAL "shared")
-    message(FATAL_ERROR
-        "VNE_XWIN_LIB_TYPE must be 'static' or 'shared'. Got: ${VNE_XWIN_LIB_TYPE}")
-endif()
-
-# Same as vneio: PIC for all translation units when building libvnexwin as shared (submodule / consumer safe).
-if(VNE_XWIN_LIB_TYPE STREQUAL "shared")
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    message(STATUS "VneCrossWindow: VNE_XWIN_LIB_TYPE=shared -> CMAKE_POSITION_INDEPENDENT_CODE=ON")
-endif()
 
 option(ENABLE_DOXYGEN "Enable Doxygen documentation builds" OFF)
 option(ENABLE_COVERAGE "Enable code coverage reporting" OFF)
