@@ -17,9 +17,9 @@
 #include <chrono>
 #include <thread>
 
-/* <windows.h> defines GetCurrentTime as a macro (GetTickCount); break it before defining our method. */
-#ifdef GetCurrentTime
-#undef GetCurrentTime
+/* <windows.h> defines getCurrentTime as a macro (GetTickCount); break it before defining our method. */
+#ifdef getCurrentTime
+#undef getCurrentTime
 #endif
 
 namespace vne::xwin {
@@ -27,7 +27,7 @@ namespace vne::xwin {
 Win32WindowManager::Win32WindowManager() = default;
 
 Win32WindowManager::~Win32WindowManager() {
-    Shutdown();
+    shutdown();
 }
 
 void Win32WindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
@@ -36,28 +36,28 @@ void Win32WindowManager::notifyWindowEvent(IWindow* window, const WindowEventDat
     }
 }
 
-bool Win32WindowManager::Initialize() {
+bool Win32WindowManager::initialize() {
     initialized_ = true;
     return true;
 }
 
-void Win32WindowManager::Shutdown() {
-    DestroyAllWindows();
+void Win32WindowManager::shutdown() {
+    destroyAllWindows();
     initialized_ = false;
 }
 
-bool Win32WindowManager::IsInitialized() const noexcept {
+bool Win32WindowManager::isInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> Win32WindowManager::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> Win32WindowManager::openWindow(const WindowDescriptor& descriptor) {
     if (!initialized_) {
         return nullptr;
     }
     auto w = std::make_shared<Win32Window>();
     w->setEventOwner(this);
-    w->Initialize(descriptor);
-    if (!w->IsOpen()) {
+    w->initialize(descriptor);
+    if (!w->isOpen()) {
         return nullptr;
     }
     windows_.push_back(w);
@@ -68,16 +68,16 @@ std::shared_ptr<IWindow> Win32WindowManager::OpenWindow(const WindowDescriptor& 
     return w;
 }
 
-std::shared_ptr<IWindow> Win32WindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<IWindow> Win32WindowManager::openWindow(const std::string& title, uint32_t width, uint32_t height) {
     WindowDescriptor descriptor(title, width, height);
-    return OpenWindow(descriptor);
+    return openWindow(descriptor);
 }
 
-void Win32WindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
+void Win32WindowManager::removeWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
-    window->Close();
+    window->close();
     auto it = std::find(windows_.begin(), windows_.end(), window);
     if (it != windows_.end()) {
         windows_.erase(it);
@@ -90,10 +90,10 @@ void Win32WindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void Win32WindowManager::DestroyAllWindows() {
+void Win32WindowManager::destroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
-            w->Close();
+            w->close();
         }
     }
     windows_.clear();
@@ -101,39 +101,39 @@ void Win32WindowManager::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t Win32WindowManager::GetWindowCount() const noexcept {
+size_t Win32WindowManager::getWindowCount() const noexcept {
     return windows_.size();
 }
 
-std::vector<std::shared_ptr<IWindow>> Win32WindowManager::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> Win32WindowManager::getWindows() const {
     return windows_;
 }
 
-std::shared_ptr<IWindow> Win32WindowManager::GetPrimaryWindow() const noexcept {
+std::shared_ptr<IWindow> Win32WindowManager::getPrimaryWindow() const noexcept {
     return primary_;
 }
 
-std::shared_ptr<IWindow> Win32WindowManager::GetFocusedWindow() const noexcept {
+std::shared_ptr<IWindow> Win32WindowManager::getFocusedWindow() const noexcept {
     return focused_;
 }
 
-void Win32WindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
+void Win32WindowManager::setPrimaryWindow(std::shared_ptr<IWindow> window) {
     primary_ = std::move(window);
 }
 
-void Win32WindowManager::FocusWindow(std::shared_ptr<IWindow> window) {
+void Win32WindowManager::focusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
 }
 
-void Win32WindowManager::ProcessEvents() {
+void Win32WindowManager::processEvents() {
     for (auto& w : windows_) {
         if (w) {
-            w->PollEvents();
+            w->pollEvents();
         }
     }
 }
 
-void Win32WindowManager::SetEventCallback(const WindowManagerEventCallback_T& callback) {
+void Win32WindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
     callback_ = callback;
 }
 
@@ -141,57 +141,57 @@ void Win32WindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks)
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
-bool Win32WindowManager::ShouldClose() const noexcept {
+bool Win32WindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {
-        if (w && !w->IsOpen()) {
+        if (w && !w->isOpen()) {
             return true;
         }
     }
     return false;
 }
 
-bool Win32WindowManager::ShouldCloseAll() const noexcept {
+bool Win32WindowManager::shouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
     for (const auto& w : windows_) {
-        if (w && w->IsOpen()) {
+        if (w && w->isOpen()) {
             return false;
         }
     }
     return true;
 }
 
-WindowAPI Win32WindowManager::GetWindowAPI() const noexcept {
+WindowAPI Win32WindowManager::getWindowAPI() const noexcept {
     return WindowAPI::eWin32Window;
 }
 
-std::string Win32WindowManager::GetPlatformInfo() const {
+std::string Win32WindowManager::getPlatformInfo() const {
     return "Microsoft Windows (Win32)";
 }
 
-bool Win32WindowManager::IsFeatureSupported(const std::string& feature) const {
+bool Win32WindowManager::isFeatureSupported(const std::string& feature) const {
     return feature == "resize" || feature == "dpi" || feature == "fullscreen";
 }
 
-std::string Win32WindowManager::GetProperties() const {
+std::string Win32WindowManager::getProperties() const {
     return properties_;
 }
 
-void Win32WindowManager::SetProperties(const std::string& properties) {
+void Win32WindowManager::setProperties(const std::string& properties) {
     properties_ = properties;
 }
 
-uint64_t Win32WindowManager::GetCurrentTime() const noexcept {
+uint64_t Win32WindowManager::getCurrentTime() const noexcept {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-void Win32WindowManager::Sleep(uint32_t milliseconds) const noexcept {
+void Win32WindowManager::sleep(uint32_t milliseconds) const noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
-double Win32WindowManager::GetPlatformTime() const noexcept {
+double Win32WindowManager::getPlatformTime() const noexcept {
     using namespace std::chrono;
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }

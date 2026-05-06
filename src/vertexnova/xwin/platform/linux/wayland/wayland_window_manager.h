@@ -65,39 +65,39 @@ class WaylandWindowManager final : public IWindowManager {
     WaylandWindowManager();
     ~WaylandWindowManager() override;
 
-    [[nodiscard]] bool Initialize() override;
-    void Shutdown() override;
-    [[nodiscard]] bool IsInitialized() const noexcept override;
+    [[nodiscard]] bool initialize() override;
+    void shutdown() override;
+    [[nodiscard]] bool isInitialized() const noexcept override;
 
-    [[nodiscard]] std::shared_ptr<IWindow> OpenWindow(const WindowDescriptor& descriptor) override;
-    [[nodiscard]] std::shared_ptr<IWindow> OpenWindow(const std::string& title,
+    [[nodiscard]] std::shared_ptr<IWindow> openWindow(const WindowDescriptor& descriptor) override;
+    [[nodiscard]] std::shared_ptr<IWindow> openWindow(const std::string& title,
                                                       uint32_t width,
                                                       uint32_t height) override;
-    void RemoveWindow(std::shared_ptr<IWindow> window) override;
-    void DestroyAllWindows() override;
+    void removeWindow(std::shared_ptr<IWindow> window) override;
+    void destroyAllWindows() override;
 
-    [[nodiscard]] size_t GetWindowCount() const noexcept override;
-    [[nodiscard]] std::vector<std::shared_ptr<IWindow>> GetWindows() const override;
-    [[nodiscard]] std::shared_ptr<IWindow> GetPrimaryWindow() const noexcept override;
-    [[nodiscard]] std::shared_ptr<IWindow> GetFocusedWindow() const noexcept override;
-    void SetPrimaryWindow(std::shared_ptr<IWindow> window) override;
-    void FocusWindow(std::shared_ptr<IWindow> window) override;
+    [[nodiscard]] size_t getWindowCount() const noexcept override;
+    [[nodiscard]] std::vector<std::shared_ptr<IWindow>> getWindows() const override;
+    [[nodiscard]] std::shared_ptr<IWindow> getPrimaryWindow() const noexcept override;
+    [[nodiscard]] std::shared_ptr<IWindow> getFocusedWindow() const noexcept override;
+    void setPrimaryWindow(std::shared_ptr<IWindow> window) override;
+    void focusWindow(std::shared_ptr<IWindow> window) override;
 
-    void ProcessEvents() override;
-    void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
+    void processEvents() override;
+    void setEventCallback(const WindowManagerEventCallback_T& callback) override;
     void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) override;
-    [[nodiscard]] bool ShouldClose() const noexcept override;
-    [[nodiscard]] bool ShouldCloseAll() const noexcept override;
+    [[nodiscard]] bool shouldClose() const noexcept override;
+    [[nodiscard]] bool shouldCloseAll() const noexcept override;
 
-    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
-    [[nodiscard]] std::string GetPlatformInfo() const override;
-    [[nodiscard]] bool IsFeatureSupported(const std::string& feature) const override;
-    [[nodiscard]] std::string GetProperties() const override;
-    void SetProperties(const std::string& properties) override;
+    [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
+    [[nodiscard]] std::string getPlatformInfo() const override;
+    [[nodiscard]] bool isFeatureSupported(const std::string& feature) const override;
+    [[nodiscard]] std::string getProperties() const override;
+    void setProperties(const std::string& properties) override;
 
-    [[nodiscard]] uint64_t GetCurrentTime() const noexcept override;
-    void Sleep(uint32_t milliseconds) const noexcept override;
-    [[nodiscard]] double GetPlatformTime() const noexcept override;
+    [[nodiscard]] uint64_t getCurrentTime() const noexcept override;
+    void sleep(uint32_t milliseconds) const noexcept override;
+    [[nodiscard]] double getPlatformTime() const noexcept override;
 
    private:
     void bindCompositor(struct wl_registry* registry, uint32_t name, uint32_t version);

@@ -50,9 +50,9 @@ namespace vne::xwin {
 
 std::string WindowFactory::last_error_;
 
-std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI window_api) {
-    ClearLastError();
-    if (!IsWindowAPISupported(window_api)) {
+std::shared_ptr<IWindowManager> WindowFactory::createWindowManager(WindowAPI window_api) {
+    clearLastError();
+    if (!isWindowAPISupported(window_api)) {
         last_error_ = "Requested window API is not supported in this build.";
         return nullptr;
     }
@@ -93,25 +93,25 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI win
     }
 }
 
-std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI window_api,
+std::shared_ptr<IWindowManager> WindowFactory::createWindowManager(WindowAPI window_api,
                                                                    const std::string& properties) {
-    auto mgr = CreateWindowManager(window_api);
+    auto mgr = createWindowManager(window_api);
     if (mgr) {
-        mgr->SetProperties(properties);
+        mgr->setProperties(properties);
     }
     return mgr;
 }
 
-std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager() {
-    const WindowAPI api = GetBestWindowAPIForPlatform();
-    auto mgr = CreateWindowManager(api);
+std::shared_ptr<IWindowManager> WindowFactory::createWindowManager() {
+    const WindowAPI api = getBestWindowAPIForPlatform();
+    auto mgr = createWindowManager(api);
     if (mgr) {
         return mgr;
     }
     return std::make_shared<NullWindowManager>();
 }
 
-WindowAPI WindowFactory::GetBestWindowAPIForPlatform() {
+WindowAPI WindowFactory::getBestWindowAPIForPlatform() {
 #if VNE_XWIN_HAS_WASM
     return WindowAPI::eWasmWindow;
 #elif VNE_XWIN_HAS_WIN32
@@ -150,7 +150,7 @@ WindowAPI WindowFactory::GetBestWindowAPIForPlatform() {
 #endif
 }
 
-bool WindowFactory::IsWindowAPISupported(WindowAPI window_api) {
+bool WindowFactory::isWindowAPISupported(WindowAPI window_api) {
     switch (window_api) {
         case WindowAPI::eNullWindow:
             return VNE_XWIN_HAS_NULL != 0;
@@ -187,7 +187,7 @@ bool WindowFactory::IsWindowAPISupported(WindowAPI window_api) {
     }
 }
 
-std::string WindowFactory::GetSupportedWindowAPIs() {
+std::string WindowFactory::getSupportedWindowAPIs() {
     std::ostringstream o;
     bool first = true;
     auto add = [&](const char* name) {
@@ -224,7 +224,7 @@ std::string WindowFactory::GetSupportedWindowAPIs() {
     return o.str();
 }
 
-std::string WindowFactory::GetWindowAPIInfo(WindowAPI window_api) {
+std::string WindowFactory::getWindowAPIInfo(WindowAPI window_api) {
     switch (window_api) {
         case WindowAPI::eNullWindow:
             return "Null backend for headless tests and CI.";
@@ -247,29 +247,29 @@ std::string WindowFactory::GetWindowAPIInfo(WindowAPI window_api) {
     }
 }
 
-std::string WindowFactory::GetWindowAPICapabilities(WindowAPI window_api) {
-    return GetWindowAPIInfo(window_api);
+std::string WindowFactory::getWindowAPICapabilities(WindowAPI window_api) {
+    return getWindowAPIInfo(window_api);
 }
 
-std::string WindowFactory::GetVersion() {
-    return get_version() ? std::string(get_version()) : std::string();
+std::string WindowFactory::getVersion() {
+    return libraryVersion() ? std::string(libraryVersion()) : std::string();
 }
 
-std::string WindowFactory::GetBuildInfo() {
+std::string WindowFactory::getBuildInfo() {
     std::ostringstream o;
-    o << PROJECT_NAME << " " << PROJECT_VERSION << " | APIs: " << GetSupportedWindowAPIs();
+    o << PROJECT_NAME << " " << PROJECT_VERSION << " | APIs: " << getSupportedWindowAPIs();
     return o.str();
 }
 
-bool WindowFactory::IsAvailable() {
+bool WindowFactory::isAvailable() {
     return true;
 }
 
-std::string WindowFactory::GetLastError() {
+std::string WindowFactory::getLastError() {
     return last_error_;
 }
 
-void WindowFactory::ClearLastError() {
+void WindowFactory::clearLastError() {
     last_error_.clear();
 }
 

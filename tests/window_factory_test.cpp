@@ -25,49 +25,49 @@ using vne::xwin::WindowFactory;
 
 class WindowFactoryTest : public ::testing::Test {};
 
-TEST_F(WindowFactoryTest, GetBuildInfo) {
-    const std::string info = WindowFactory::GetBuildInfo();
+TEST_F(WindowFactoryTest, getBuildInfo) {
+    const std::string info = WindowFactory::getBuildInfo();
     EXPECT_FALSE(info.empty());
 }
 
 TEST_F(WindowFactoryTest, NullBackendOpenWindow) {
-    auto mgr = WindowFactory::CreateWindowManager(WindowAPI::eNullWindow);
+    auto mgr = WindowFactory::createWindowManager(WindowAPI::eNullWindow);
     ASSERT_NE(mgr, nullptr);
-    EXPECT_TRUE(mgr->Initialize());
-    auto w = mgr->OpenWindow("test", 64, 48);
+    EXPECT_TRUE(mgr->initialize());
+    auto w = mgr->openWindow("test", 64, 48);
     ASSERT_NE(w, nullptr);
-    EXPECT_TRUE(w->IsOpen());
-    EXPECT_EQ(w->GetWindowAPI(), WindowAPI::eNullWindow);
-    mgr->Shutdown();
+    EXPECT_TRUE(w->isOpen());
+    EXPECT_EQ(w->getWindowAPI(), WindowAPI::eNullWindow);
+    mgr->shutdown();
 }
 
 namespace {
 
 bool try_desktop_smoke(WindowAPI api) {
-    auto mgr = WindowFactory::CreateWindowManager(api);
+    auto mgr = WindowFactory::createWindowManager(api);
     if (!mgr) {
         return false;
     }
-    if (!mgr->Initialize()) {
+    if (!mgr->initialize()) {
         return false;
     }
-    auto w = mgr->OpenWindow("vnexwin_smoke", 32, 32);
-    if (!w || !w->IsOpen()) {
-        mgr->Shutdown();
+    auto w = mgr->openWindow("vnexwin_smoke", 32, 32);
+    if (!w || !w->isOpen()) {
+        mgr->shutdown();
         return false;
     }
 
-    w->PollEvents();
-    w->Resize(64, 48);
-    (void)w->GetNativeWindow();
-    const auto handle = w->GetNativeHandle();
+    w->pollEvents();
+    w->resize(64, 48);
+    (void)w->getNativeWindow();
+    const auto handle = w->getNativeHandle();
     EXPECT_EQ(handle.api, api);
-    (void)w->GetDPIScale();
-    (void)w->GetFramebufferWidth();
-    (void)w->GetFramebufferHeight();
+    (void)w->getDpiScale();
+    (void)w->getFramebufferWidth();
+    (void)w->getFramebufferHeight();
 
-    mgr->RemoveWindow(w);
-    mgr->Shutdown();
+    mgr->removeWindow(w);
+    mgr->shutdown();
     return true;
 }
 

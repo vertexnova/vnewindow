@@ -25,12 +25,12 @@ using vne::xwin::WindowFactory;
 namespace {
 
 std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
-    auto mgr = WindowFactory::CreateWindowManager(WindowAPI::eNullWindow);
+    auto mgr = WindowFactory::createWindowManager(WindowAPI::eNullWindow);
     EXPECT_NE(mgr, nullptr);
     if (!mgr) {
         return nullptr;
     }
-    EXPECT_TRUE(mgr->Initialize());
+    EXPECT_TRUE(mgr->initialize());
     return mgr;
 }
 
@@ -41,12 +41,12 @@ class NullWindowManagerTest : public ::testing::Test {};
 TEST_F(NullWindowManagerTest, MonitorQueriesUseBaseDefaults) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    EXPECT_EQ(mgr->GetMonitorCount(), 0U);
-    EXPECT_EQ(mgr->GetPrimaryMonitorIndex(), 0U);
-    const auto info = mgr->GetMonitorInfo(0);
+    EXPECT_EQ(mgr->getMonitorCount(), 0U);
+    EXPECT_EQ(mgr->getPrimaryMonitorIndex(), 0U);
+    const auto info = mgr->getMonitorInfo(0);
     EXPECT_TRUE(info.name.empty());
     EXPECT_FLOAT_EQ(info.dpi_scale, 1.0F);
-    mgr->Shutdown();
+    mgr->shutdown();
 }
 
 TEST_F(NullWindowManagerTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
@@ -58,13 +58,13 @@ TEST_F(NullWindowManagerTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
     cb.onWindowFocus = [&called](vne::xwin::IWindow*, bool) { called = true; };
 
     mgr->setEventBridgeCallbacks(std::move(cb));
-    mgr->ProcessEvents();
+    mgr->processEvents();
 
-    auto w = mgr->OpenWindow("eb", 16, 16);
+    auto w = mgr->openWindow("eb", 16, 16);
     ASSERT_NE(w, nullptr);
-    mgr->ProcessEvents();
+    mgr->processEvents();
     EXPECT_FALSE(called);
 
-    w->Close();
-    mgr->Shutdown();
+    w->close();
+    mgr->shutdown();
 }

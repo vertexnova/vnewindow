@@ -108,7 +108,7 @@ void WaylandWindow::applyToplevelClose() {
     }
 }
 
-void WaylandWindow::Initialize(const WindowDescriptor& descriptor) {
+void WaylandWindow::initialize(const WindowDescriptor& descriptor) {
     destroySurfaces();
     desc_ = descriptor;
     if (!owner_ || !owner_->nativeCompositor() || !owner_->nativeXdgWmBase()) {
@@ -136,7 +136,7 @@ void WaylandWindow::Initialize(const WindowDescriptor& descriptor) {
         xdg_toplevel_set_title(toplevel_, desc_.title.c_str());
     }
     if (desc_.limits.has_min_size || desc_.limits.has_max_size) {
-        SetWindowLimits(desc_.limits);
+        setWindowLimits(desc_.limits);
     }
     wl_surface_commit(surface_);
     if (owner_->nativeDisplay()) {
@@ -145,15 +145,15 @@ void WaylandWindow::Initialize(const WindowDescriptor& descriptor) {
     open_ = true;
 }
 
-void WaylandWindow::PollEvents() {
+void WaylandWindow::pollEvents() {
     if (owner_ && owner_->nativeDisplay()) {
         wl_display_dispatch_pending(owner_->nativeDisplay());
     }
 }
 
-void WaylandWindow::SwapBuffers() {}
+void WaylandWindow::swapBuffers() {}
 
-void WaylandWindow::SetTitle(const std::string& title) {
+void WaylandWindow::setTitle(const std::string& title) {
     desc_.title = title;
     if (toplevel_) {
         xdg_toplevel_set_title(toplevel_, title.c_str());
@@ -164,15 +164,15 @@ void WaylandWindow::SetTitle(const std::string& title) {
     }
 }
 
-void WaylandWindow::SetWindowMode(WindowMode mode) {
+void WaylandWindow::setWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode WaylandWindow::GetWindowMode() const noexcept {
+WindowMode WaylandWindow::getWindowMode() const noexcept {
     return desc_.mode;
 }
 
-void WaylandWindow::SetFullscreen(bool enabled) {
+void WaylandWindow::setFullscreen(bool enabled) {
     if (!toplevel_) {
         return;
     }
@@ -188,21 +188,21 @@ void WaylandWindow::SetFullscreen(bool enabled) {
     fullscreen_ = enabled;
 }
 
-bool WaylandWindow::IsFullscreen() const noexcept {
+bool WaylandWindow::isFullscreen() const noexcept {
     return fullscreen_;
 }
 
-void WaylandWindow::SetPosition(int x, int y) {
+void WaylandWindow::setPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
 }
 
-void WaylandWindow::GetPosition(int& x, int& y) const {
+void WaylandWindow::getPosition(int& x, int& y) const {
     x = desc_.position.x;
     y = desc_.position.y;
 }
 
-void WaylandWindow::Resize(uint32_t width, uint32_t height) {
+void WaylandWindow::resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     if (surface_ && owner_ && owner_->nativeDisplay()) {
@@ -211,19 +211,19 @@ void WaylandWindow::Resize(uint32_t width, uint32_t height) {
     }
 }
 
-void WaylandWindow::Close() {
+void WaylandWindow::close() {
     destroySurfaces();
 }
 
-bool WaylandWindow::IsOpen() const noexcept {
+bool WaylandWindow::isOpen() const noexcept {
     return open_ && surface_ != nullptr;
 }
 
-void* WaylandWindow::GetNativeWindow() const noexcept {
+void* WaylandWindow::getNativeWindow() const noexcept {
     return surface_;
 }
 
-NativeWindowHandle WaylandWindow::GetNativeHandle() const noexcept {
+NativeWindowHandle WaylandWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eWaylandWindow;
     handle.wl_display = owner_ ? owner_->nativeDisplay() : nullptr;
@@ -231,23 +231,23 @@ NativeWindowHandle WaylandWindow::GetNativeHandle() const noexcept {
     return handle;
 }
 
-WindowAPI WaylandWindow::GetWindowAPI() const noexcept {
+WindowAPI WaylandWindow::getWindowAPI() const noexcept {
     return WindowAPI::eWaylandWindow;
 }
 
-int WaylandWindow::GetWidth() const noexcept {
+int WaylandWindow::getWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int WaylandWindow::GetHeight() const noexcept {
+int WaylandWindow::getHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-float WaylandWindow::GetDPIScale() const noexcept {
+float WaylandWindow::getDpiScale() const noexcept {
     return owner_ ? owner_->outputScale() : 1.0F;
 }
 
-void WaylandWindow::Minimize() {
+void WaylandWindow::minimize() {
     if (!toplevel_) {
         return;
     }
@@ -258,7 +258,7 @@ void WaylandWindow::Minimize() {
     }
 }
 
-void WaylandWindow::Maximize() {
+void WaylandWindow::maximize() {
     if (!toplevel_) {
         return;
     }
@@ -269,7 +269,7 @@ void WaylandWindow::Maximize() {
     }
 }
 
-void WaylandWindow::Restore() {
+void WaylandWindow::restore() {
     if (!toplevel_) {
         return;
     }
@@ -284,7 +284,7 @@ void WaylandWindow::Restore() {
     }
 }
 
-void WaylandWindow::SetWindowLimits(const WindowLimits& limits) {
+void WaylandWindow::setWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
     if (!toplevel_) {
         return;
@@ -309,7 +309,7 @@ void WaylandWindow::SetWindowLimits(const WindowLimits& limits) {
     }
 }
 
-void WaylandWindow::SetCursor(WindowCursor cursor) {
+void WaylandWindow::setCursor(WindowCursor cursor) {
     // Cursor images require wl_shm + wl_cursor; compositors may also offer cursor-shape-v1.
     // Until those globals are bound, this is a deliberate no-op.
     (void)cursor;

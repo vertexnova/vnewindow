@@ -36,60 +36,60 @@ class IWindowManager {
    public:
     virtual ~IWindowManager() = default;
 
-    [[nodiscard]] virtual bool Initialize() = 0;
-    virtual void Shutdown() = 0;
-    [[nodiscard]] virtual bool IsInitialized() const noexcept = 0;
+    [[nodiscard]] virtual bool initialize() = 0;
+    virtual void shutdown() = 0;
+    [[nodiscard]] virtual bool isInitialized() const noexcept = 0;
 
-    [[nodiscard]] virtual std::shared_ptr<IWindow> OpenWindow(const WindowDescriptor& descriptor) = 0;
-    [[nodiscard]] virtual std::shared_ptr<IWindow> OpenWindow(const std::string& title,
+    [[nodiscard]] virtual std::shared_ptr<IWindow> openWindow(const WindowDescriptor& descriptor) = 0;
+    [[nodiscard]] virtual std::shared_ptr<IWindow> openWindow(const std::string& title,
                                                               uint32_t width,
                                                               uint32_t height) = 0;
-    virtual void RemoveWindow(std::shared_ptr<IWindow> window) = 0;
-    virtual void DestroyAllWindows() = 0;
+    virtual void removeWindow(std::shared_ptr<IWindow> window) = 0;
+    virtual void destroyAllWindows() = 0;
 
-    [[nodiscard]] virtual size_t GetWindowCount() const noexcept = 0;
-    [[nodiscard]] virtual std::vector<std::shared_ptr<IWindow>> GetWindows() const = 0;
-    [[nodiscard]] virtual std::shared_ptr<IWindow> GetPrimaryWindow() const noexcept = 0;
-    [[nodiscard]] virtual std::shared_ptr<IWindow> GetFocusedWindow() const noexcept = 0;
-    virtual void SetPrimaryWindow(std::shared_ptr<IWindow> window) = 0;
-    virtual void FocusWindow(std::shared_ptr<IWindow> window) = 0;
+    [[nodiscard]] virtual size_t getWindowCount() const noexcept = 0;
+    [[nodiscard]] virtual std::vector<std::shared_ptr<IWindow>> getWindows() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<IWindow> getPrimaryWindow() const noexcept = 0;
+    [[nodiscard]] virtual std::shared_ptr<IWindow> getFocusedWindow() const noexcept = 0;
+    virtual void setPrimaryWindow(std::shared_ptr<IWindow> window) = 0;
+    virtual void focusWindow(std::shared_ptr<IWindow> window) = 0;
 
-    virtual void ProcessEvents() = 0;
-    virtual void SetEventCallback(const WindowManagerEventCallback_T& callback) = 0;
+    virtual void processEvents() = 0;
+    virtual void setEventCallback(const WindowManagerEventCallback_T& callback) = 0;
     /**
      * @brief Optional granular hooks after vne::events updates (see event_bridge_callbacks.h).
      *
      * After each frame: call vne::events::EventManager::instance().processEvents() if you use the
      * queued events, then vne::events::Input::nextFrame() once after your simulation step (see
-     * vneevents input documentation). xwin does not call nextFrame() inside ProcessEvents().
+     * vneevents input documentation). xwin does not call nextFrame() inside processEvents().
      */
     virtual void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) = 0;
-    [[nodiscard]] virtual bool ShouldClose() const noexcept = 0;
-    [[nodiscard]] virtual bool ShouldCloseAll() const noexcept = 0;
+    [[nodiscard]] virtual bool shouldClose() const noexcept = 0;
+    [[nodiscard]] virtual bool shouldCloseAll() const noexcept = 0;
 
-    [[nodiscard]] virtual WindowAPI GetWindowAPI() const noexcept = 0;
-    [[nodiscard]] virtual std::string GetPlatformInfo() const = 0;
-    [[nodiscard]] virtual bool IsFeatureSupported(const std::string& feature) const = 0;
+    [[nodiscard]] virtual WindowAPI getWindowAPI() const noexcept = 0;
+    [[nodiscard]] virtual std::string getPlatformInfo() const = 0;
+    [[nodiscard]] virtual bool isFeatureSupported(const std::string& feature) const = 0;
 
-    [[nodiscard]] virtual std::string GetProperties() const = 0;
-    virtual void SetProperties(const std::string& properties) = 0;
-    [[nodiscard]] virtual uint32_t GetMonitorCount() const noexcept;
-    [[nodiscard]] virtual MonitorInfo GetMonitorInfo(uint32_t index) const;
-    [[nodiscard]] virtual uint32_t GetPrimaryMonitorIndex() const noexcept;
+    [[nodiscard]] virtual std::string getProperties() const = 0;
+    virtual void setProperties(const std::string& properties) = 0;
+    [[nodiscard]] virtual uint32_t getMonitorCount() const noexcept;
+    [[nodiscard]] virtual MonitorInfo getMonitorInfo(uint32_t index) const;
+    [[nodiscard]] virtual uint32_t getPrimaryMonitorIndex() const noexcept;
 
-    [[nodiscard]] virtual uint64_t GetCurrentTime() const noexcept = 0;
-    virtual void Sleep(uint32_t milliseconds) const noexcept = 0;
-    [[nodiscard]] virtual double GetPlatformTime() const noexcept = 0;
+    [[nodiscard]] virtual uint64_t getCurrentTime() const noexcept = 0;
+    virtual void sleep(uint32_t milliseconds) const noexcept = 0;
+    [[nodiscard]] virtual double getPlatformTime() const noexcept = 0;
 };
 
-inline uint32_t IWindowManager::GetMonitorCount() const noexcept {
+inline uint32_t IWindowManager::getMonitorCount() const noexcept {
     return 0;
 }
-inline MonitorInfo IWindowManager::GetMonitorInfo(uint32_t index) const {
+inline MonitorInfo IWindowManager::getMonitorInfo(uint32_t index) const {
     (void)index;
     return {};
 }
-inline uint32_t IWindowManager::GetPrimaryMonitorIndex() const noexcept {
+inline uint32_t IWindowManager::getPrimaryMonitorIndex() const noexcept {
     return 0;
 }
 

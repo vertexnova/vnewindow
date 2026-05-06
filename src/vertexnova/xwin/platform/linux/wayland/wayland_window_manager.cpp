@@ -711,7 +711,7 @@ void WaylandWindowManager::bindSeat(struct wl_registry* registry, uint32_t name,
 WaylandWindowManager::WaylandWindowManager() = default;
 
 WaylandWindowManager::~WaylandWindowManager() {
-    Shutdown();
+    shutdown();
 }
 
 void WaylandWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
@@ -720,7 +720,7 @@ void WaylandWindowManager::notifyWindowEvent(IWindow* window, const WindowEventD
     }
 }
 
-bool WaylandWindowManager::Initialize() {
+bool WaylandWindowManager::initialize() {
     display_ = wl_display_connect(nullptr);
     if (!display_) {
         return false;
@@ -733,11 +733,11 @@ bool WaylandWindowManager::Initialize() {
     }
     wl_registry_add_listener(registry_, &kRegistryListener, this);
     if (wl_display_roundtrip(display_) < 0) {
-        Shutdown();
+        shutdown();
         return false;
     }
     if (!compositor_ || !xdg_wm_base_) {
-        Shutdown();
+        shutdown();
         return false;
     }
     // Second roundtrip picks up seat capabilities
@@ -786,24 +786,24 @@ void WaylandWindowManager::teardownGlobals() {
     }
 }
 
-void WaylandWindowManager::Shutdown() {
-    DestroyAllWindows();
+void WaylandWindowManager::shutdown() {
+    destroyAllWindows();
     teardownGlobals();
     initialized_ = false;
 }
 
-bool WaylandWindowManager::IsInitialized() const noexcept {
+bool WaylandWindowManager::isInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> WaylandWindowManager::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> WaylandWindowManager::openWindow(const WindowDescriptor& descriptor) {
     if (!initialized_ || !display_ || !compositor_ || !xdg_wm_base_) {
         return nullptr;
     }
     auto w = std::make_shared<WaylandWindow>();
     w->setEventOwner(this);
-    w->Initialize(descriptor);
-    if (!w->IsOpen()) {
+    w->initialize(descriptor);
+    if (!w->isOpen()) {
         return nullptr;
     }
     windows_.push_back(w);
@@ -814,15 +814,15 @@ std::shared_ptr<IWindow> WaylandWindowManager::OpenWindow(const WindowDescriptor
     return w;
 }
 
-std::shared_ptr<IWindow> WaylandWindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
-    return OpenWindow(WindowDescriptor(title, width, height));
+std::shared_ptr<IWindow> WaylandWindowManager::openWindow(const std::string& title, uint32_t width, uint32_t height) {
+    return openWindow(WindowDescriptor(title, width, height));
 }
 
-void WaylandWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
+void WaylandWindowManager::removeWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
-    window->Close();
+    window->close();
     auto it = std::find(windows_.begin(), windows_.end(), window);
     if (it != windows_.end()) {
         windows_.erase(it);
@@ -835,10 +835,10 @@ void WaylandWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void WaylandWindowManager::DestroyAllWindows() {
+void WaylandWindowManager::destroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
-            w->Close();
+            w->close();
         }
     }
     windows_.clear();
@@ -846,83 +846,83 @@ void WaylandWindowManager::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t WaylandWindowManager::GetWindowCount() const noexcept {
+size_t WaylandWindowManager::getWindowCount() const noexcept {
     return windows_.size();
 }
-std::vector<std::shared_ptr<IWindow>> WaylandWindowManager::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> WaylandWindowManager::getWindows() const {
     return windows_;
 }
-std::shared_ptr<IWindow> WaylandWindowManager::GetPrimaryWindow() const noexcept {
+std::shared_ptr<IWindow> WaylandWindowManager::getPrimaryWindow() const noexcept {
     return primary_;
 }
-std::shared_ptr<IWindow> WaylandWindowManager::GetFocusedWindow() const noexcept {
+std::shared_ptr<IWindow> WaylandWindowManager::getFocusedWindow() const noexcept {
     return focused_;
 }
-void WaylandWindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> w) {
+void WaylandWindowManager::setPrimaryWindow(std::shared_ptr<IWindow> w) {
     primary_ = std::move(w);
 }
-void WaylandWindowManager::FocusWindow(std::shared_ptr<IWindow> w) {
+void WaylandWindowManager::focusWindow(std::shared_ptr<IWindow> w) {
     focused_ = std::move(w);
 }
 
-void WaylandWindowManager::ProcessEvents() {
+void WaylandWindowManager::processEvents() {
     if (display_) {
         wl_display_dispatch_pending(display_);
     }
 }
 
-void WaylandWindowManager::SetEventCallback(const WindowManagerEventCallback_T& cb) {
+void WaylandWindowManager::setEventCallback(const WindowManagerEventCallback_T& cb) {
     callback_ = cb;
 }
 void WaylandWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks cbs) {
     event_bridge_callbacks_ = std::move(cbs);
 }
 
-bool WaylandWindowManager::ShouldClose() const noexcept {
+bool WaylandWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {
-        if (w && !w->IsOpen()) {
+        if (w && !w->isOpen()) {
             return true;
         }
     }
     return false;
 }
 
-bool WaylandWindowManager::ShouldCloseAll() const noexcept {
+bool WaylandWindowManager::shouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
     for (const auto& w : windows_) {
-        if (w && w->IsOpen()) {
+        if (w && w->isOpen()) {
             return false;
         }
     }
     return true;
 }
 
-WindowAPI WaylandWindowManager::GetWindowAPI() const noexcept {
+WindowAPI WaylandWindowManager::getWindowAPI() const noexcept {
     return WindowAPI::eWaylandWindow;
 }
-std::string WaylandWindowManager::GetPlatformInfo() const {
+std::string WaylandWindowManager::getPlatformInfo() const {
     return "Linux / Wayland (xdg-shell)";
 }
-bool WaylandWindowManager::IsFeatureSupported(const std::string& f) const {
+bool WaylandWindowManager::isFeatureSupported(const std::string& f) const {
     return f == "resize" || f == "close" || f == "wayland" || f == "touch";
 }
-std::string WaylandWindowManager::GetProperties() const {
+std::string WaylandWindowManager::getProperties() const {
     return properties_;
 }
-void WaylandWindowManager::SetProperties(const std::string& p) {
+void WaylandWindowManager::setProperties(const std::string& p) {
     properties_ = p;
 }
 
-uint64_t WaylandWindowManager::GetCurrentTime() const noexcept {
+uint64_t WaylandWindowManager::getCurrentTime() const noexcept {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
-void WaylandWindowManager::Sleep(uint32_t ms) const noexcept {
+void WaylandWindowManager::sleep(uint32_t ms) const noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
-double WaylandWindowManager::GetPlatformTime() const noexcept {
+double WaylandWindowManager::getPlatformTime() const noexcept {
     using namespace std::chrono;
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }

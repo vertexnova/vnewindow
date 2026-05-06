@@ -52,7 +52,7 @@ const EventBridgeCallbacks& WasmWindow::eventBridgeCallbacks() const noexcept {
     return owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
 }
 
-void WasmWindow::Initialize(const WindowDescriptor& descriptor) {
+void WasmWindow::initialize(const WindowDescriptor& descriptor) {
     desc_ = descriptor;
 #ifdef __EMSCRIPTEN__
     canvas_tag_ = const_cast<char*>("#canvas");
@@ -340,29 +340,29 @@ EM_BOOL WasmWindow::FullscreenChangeCallback(int /*event_type*/, const Emscripte
 // IWindow interface
 // ---------------------------------------------------------------------------
 
-void WasmWindow::PollEvents() {
+void WasmWindow::pollEvents() {
     // Input is driven by Emscripten's JS event loop via the callbacks registered
-    // in Initialize(). Nothing to poll manually.
+    // in initialize(). Nothing to poll manually.
 }
 
-void WasmWindow::SwapBuffers() {}
+void WasmWindow::swapBuffers() {}
 
-void WasmWindow::SetTitle(const std::string& title) {
+void WasmWindow::setTitle(const std::string& title) {
     desc_.title = title;
 #ifdef __EMSCRIPTEN__
     emscripten_set_window_title(title.c_str());
 #endif
 }
 
-void WasmWindow::SetWindowMode(WindowMode mode) {
+void WasmWindow::setWindowMode(WindowMode mode) {
     desc_.mode = mode;
 }
 
-WindowMode WasmWindow::GetWindowMode() const noexcept {
+WindowMode WasmWindow::getWindowMode() const noexcept {
     return WindowMode::eWindowed;
 }
 
-void WasmWindow::SetFullscreen(bool enabled) {
+void WasmWindow::setFullscreen(bool enabled) {
 #ifdef __EMSCRIPTEN__
     if (enabled) {
         emscripten_request_fullscreen("#canvas", 1);
@@ -374,21 +374,21 @@ void WasmWindow::SetFullscreen(bool enabled) {
 #endif
 }
 
-bool WasmWindow::IsFullscreen() const noexcept {
+bool WasmWindow::isFullscreen() const noexcept {
     return fullscreen_;
 }
 
-void WasmWindow::SetPosition(int x, int y) {
+void WasmWindow::setPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
 }
 
-void WasmWindow::GetPosition(int& x, int& y) const {
+void WasmWindow::getPosition(int& x, int& y) const {
     x = desc_.position.x;
     y = desc_.position.y;
 }
 
-void WasmWindow::Resize(uint32_t width, uint32_t height) {
+void WasmWindow::resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
 #ifdef __EMSCRIPTEN__
@@ -396,38 +396,38 @@ void WasmWindow::Resize(uint32_t width, uint32_t height) {
 #endif
 }
 
-void WasmWindow::Close() {
+void WasmWindow::close() {
     should_close_ = true;
 }
 
-bool WasmWindow::IsOpen() const noexcept {
+bool WasmWindow::isOpen() const noexcept {
     return !should_close_ && initialized_;
 }
 
-void* WasmWindow::GetNativeWindow() const noexcept {
+void* WasmWindow::getNativeWindow() const noexcept {
     return canvas_tag_;
 }
 
-NativeWindowHandle WasmWindow::GetNativeHandle() const noexcept {
+NativeWindowHandle WasmWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eWasmWindow;
     handle.canvas_id = "#canvas";
     return handle;
 }
 
-WindowAPI WasmWindow::GetWindowAPI() const noexcept {
+WindowAPI WasmWindow::getWindowAPI() const noexcept {
     return WindowAPI::eWasmWindow;
 }
 
-int WasmWindow::GetWidth() const noexcept {
+int WasmWindow::getWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int WasmWindow::GetHeight() const noexcept {
+int WasmWindow::getHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-uint32_t WasmWindow::GetFramebufferWidth() const noexcept {
+uint32_t WasmWindow::getFramebufferWidth() const noexcept {
 #ifdef __EMSCRIPTEN__
     int w = 0, h = 0;
     emscripten_get_canvas_element_size("#canvas", &w, &h);
@@ -438,7 +438,7 @@ uint32_t WasmWindow::GetFramebufferWidth() const noexcept {
     return static_cast<uint32_t>(desc_.size.width);
 }
 
-uint32_t WasmWindow::GetFramebufferHeight() const noexcept {
+uint32_t WasmWindow::getFramebufferHeight() const noexcept {
 #ifdef __EMSCRIPTEN__
     int w = 0, h = 0;
     emscripten_get_canvas_element_size("#canvas", &w, &h);
@@ -449,7 +449,7 @@ uint32_t WasmWindow::GetFramebufferHeight() const noexcept {
     return static_cast<uint32_t>(desc_.size.height);
 }
 
-float WasmWindow::GetDPIScale() const noexcept {
+float WasmWindow::getDpiScale() const noexcept {
 #ifdef __EMSCRIPTEN__
     return static_cast<float>(emscripten_get_device_pixel_ratio());
 #else
@@ -457,23 +457,23 @@ float WasmWindow::GetDPIScale() const noexcept {
 #endif
 }
 
-void WasmWindow::Minimize() {
+void WasmWindow::minimize() {
     // Browser tabs cannot be minimized programmatically from canvas.
 }
 
-void WasmWindow::Maximize() {
-    // No standard browser API; fullscreen is handled by SetFullscreen.
+void WasmWindow::maximize() {
+    // No standard browser API; fullscreen is handled by setFullscreen.
 }
 
-void WasmWindow::Restore() {
-    // See SetFullscreen / Maximize.
+void WasmWindow::restore() {
+    // See setFullscreen / maximize.
 }
 
-void WasmWindow::SetWindowLimits(const WindowLimits& limits) {
+void WasmWindow::setWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
 }
 
-void WasmWindow::SetCursor(WindowCursor cursor) {
+void WasmWindow::setCursor(WindowCursor cursor) {
 #ifdef __EMSCRIPTEN__
     const char* css = "auto";
     switch (cursor) {

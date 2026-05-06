@@ -24,7 +24,7 @@ namespace vne::xwin {
 CocoaWindowManager::CocoaWindowManager() = default;
 
 CocoaWindowManager::~CocoaWindowManager() {
-    Shutdown();
+    shutdown();
 }
 
 void CocoaWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
@@ -33,30 +33,30 @@ void CocoaWindowManager::notifyWindowEvent(IWindow* window, const WindowEventDat
     }
 }
 
-bool CocoaWindowManager::Initialize() {
+bool CocoaWindowManager::initialize() {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
     initialized_ = true;
     return true;
 }
 
-void CocoaWindowManager::Shutdown() {
-    DestroyAllWindows();
+void CocoaWindowManager::shutdown() {
+    destroyAllWindows();
     initialized_ = false;
 }
 
-bool CocoaWindowManager::IsInitialized() const noexcept {
+bool CocoaWindowManager::isInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> CocoaWindowManager::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> CocoaWindowManager::openWindow(const WindowDescriptor& descriptor) {
     if (!initialized_) {
         return nullptr;
     }
     auto w = std::make_shared<CocoaWindow>();
     w->setEventOwner(this);
-    w->Initialize(descriptor);
-    if (!w->IsOpen()) {
+    w->initialize(descriptor);
+    if (!w->isOpen()) {
         return nullptr;
     }
     windows_.push_back(w);
@@ -67,16 +67,16 @@ std::shared_ptr<IWindow> CocoaWindowManager::OpenWindow(const WindowDescriptor& 
     return w;
 }
 
-std::shared_ptr<IWindow> CocoaWindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<IWindow> CocoaWindowManager::openWindow(const std::string& title, uint32_t width, uint32_t height) {
     WindowDescriptor descriptor(title, width, height);
-    return OpenWindow(descriptor);
+    return openWindow(descriptor);
 }
 
-void CocoaWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
+void CocoaWindowManager::removeWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
-    window->Close();
+    window->close();
     auto it = std::find(windows_.begin(), windows_.end(), window);
     if (it != windows_.end()) {
         windows_.erase(it);
@@ -89,10 +89,10 @@ void CocoaWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void CocoaWindowManager::DestroyAllWindows() {
+void CocoaWindowManager::destroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
-            w->Close();
+            w->close();
         }
     }
     windows_.clear();
@@ -100,31 +100,31 @@ void CocoaWindowManager::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t CocoaWindowManager::GetWindowCount() const noexcept {
+size_t CocoaWindowManager::getWindowCount() const noexcept {
     return windows_.size();
 }
 
-std::vector<std::shared_ptr<IWindow>> CocoaWindowManager::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> CocoaWindowManager::getWindows() const {
     return windows_;
 }
 
-std::shared_ptr<IWindow> CocoaWindowManager::GetPrimaryWindow() const noexcept {
+std::shared_ptr<IWindow> CocoaWindowManager::getPrimaryWindow() const noexcept {
     return primary_;
 }
 
-std::shared_ptr<IWindow> CocoaWindowManager::GetFocusedWindow() const noexcept {
+std::shared_ptr<IWindow> CocoaWindowManager::getFocusedWindow() const noexcept {
     return focused_;
 }
 
-void CocoaWindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
+void CocoaWindowManager::setPrimaryWindow(std::shared_ptr<IWindow> window) {
     primary_ = std::move(window);
 }
 
-void CocoaWindowManager::FocusWindow(std::shared_ptr<IWindow> window) {
+void CocoaWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
 }
 
-void CocoaWindowManager::ProcessEvents() {
+void CocoaWindowManager::processEvents() {
     for (;;) {
         NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny
                                          untilDate:[NSDate distantPast]
@@ -137,7 +137,7 @@ void CocoaWindowManager::ProcessEvents() {
     }
 }
 
-void CocoaWindowManager::SetEventCallback(const WindowManagerEventCallback_T& callback) {
+void CocoaWindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
     callback_ = callback;
 }
 
@@ -145,57 +145,57 @@ void CocoaWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks)
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
-bool CocoaWindowManager::ShouldClose() const noexcept {
+bool CocoaWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {
-        if (w && !w->IsOpen()) {
+        if (w && !w->isOpen()) {
             return true;
         }
     }
     return false;
 }
 
-bool CocoaWindowManager::ShouldCloseAll() const noexcept {
+bool CocoaWindowManager::shouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
     for (const auto& w : windows_) {
-        if (w && w->IsOpen()) {
+        if (w && w->isOpen()) {
             return false;
         }
     }
     return true;
 }
 
-WindowAPI CocoaWindowManager::GetWindowAPI() const noexcept {
+WindowAPI CocoaWindowManager::getWindowAPI() const noexcept {
     return WindowAPI::eCocoaWindow;
 }
 
-std::string CocoaWindowManager::GetPlatformInfo() const {
+std::string CocoaWindowManager::getPlatformInfo() const {
     return "macOS / AppKit";
 }
 
-bool CocoaWindowManager::IsFeatureSupported(const std::string& feature) const {
+bool CocoaWindowManager::isFeatureSupported(const std::string& feature) const {
     return feature == "resize" || feature == "dpi" || feature == "fullscreen";
 }
 
-std::string CocoaWindowManager::GetProperties() const {
+std::string CocoaWindowManager::getProperties() const {
     return properties_;
 }
 
-void CocoaWindowManager::SetProperties(const std::string& properties) {
+void CocoaWindowManager::setProperties(const std::string& properties) {
     properties_ = properties;
 }
 
-uint64_t CocoaWindowManager::GetCurrentTime() const noexcept {
+uint64_t CocoaWindowManager::getCurrentTime() const noexcept {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-void CocoaWindowManager::Sleep(uint32_t milliseconds) const noexcept {
+void CocoaWindowManager::sleep(uint32_t milliseconds) const noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
-double CocoaWindowManager::GetPlatformTime() const noexcept {
+double CocoaWindowManager::getPlatformTime() const noexcept {
     using namespace std::chrono;
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }

@@ -33,7 +33,7 @@ TimeStep::TimeStep(double target_fps) noexcept
     std::fill(delta_time_history_, delta_time_history_ + SMOOTHING_SAMPLES, 0.016);
 }
 
-bool TimeStep::Update() noexcept {
+bool TimeStep::update() noexcept {
     const auto now = Clock_T::now();
 
     if (frame_rate_limit_enabled_ && target_fps_ > 0.0) {
@@ -41,15 +41,15 @@ bool TimeStep::Update() noexcept {
         const double remain = target_frame_time_ - since_last_render;
         if (remain > 0.0) {
             if (sleep_pacing_enabled_) {
-                SleepRemainder(remain);
+                sleepRemainder(remain);
             }
             return false;
         }
     }
 
     double raw_delta = std::chrono::duration<double>(now - last_frame_time_).count();
-    raw_delta = ClampDeltaTime(raw_delta);
-    delta_time_ = smoothing_enabled_ ? CalculateSmoothedDeltaTime(raw_delta) : raw_delta;
+    raw_delta = clampDeltaTime(raw_delta);
+    delta_time_ = smoothing_enabled_ ? calculateSmoothedDeltaTime(raw_delta) : raw_delta;
 
     last_frame_time_ = now;
     last_render_time_ = now;
@@ -61,7 +61,7 @@ bool TimeStep::Update() noexcept {
     return true;
 }
 
-void TimeStep::Reset() noexcept {
+void TimeStep::reset() noexcept {
     last_frame_time_ = Clock_T::now();
     start_time_ = last_frame_time_;
     last_render_time_ = last_frame_time_;
@@ -75,16 +75,16 @@ void TimeStep::Reset() noexcept {
     history_filled_ = false;
 }
 
-double TimeStep::GetElapsedTime() const noexcept {
+double TimeStep::getElapsedTime() const noexcept {
     const auto now = Clock_T::now();
     return std::chrono::duration<double>(now - start_time_).count();
 }
 
-double TimeStep::GetFrameRate() const noexcept {
+double TimeStep::getFrameRate() const noexcept {
     return delta_time_ > 0.0 ? 1.0 / delta_time_ : 0.0;
 }
 
-double TimeStep::GetAverageFrameRate(uint32_t frame_count) const noexcept {
+double TimeStep::getAverageFrameRate(uint32_t frame_count) const noexcept {
     if (frame_count == 0) {
         return 0.0;
     }
@@ -96,12 +96,12 @@ double TimeStep::GetAverageFrameRate(uint32_t frame_count) const noexcept {
     return samples > 0 ? samples / total_time : 0.0;
 }
 
-void TimeStep::SetTargetFrameRate(double target_fps) noexcept {
+void TimeStep::setTargetFrameRate(double target_fps) noexcept {
     target_fps_ = target_fps;
     target_frame_time_ = target_fps > 0.0 ? 1.0 / target_fps : 0.0;
 }
 
-bool TimeStep::ShouldRender() const noexcept {
+bool TimeStep::shouldRender() const noexcept {
     if (!frame_rate_limit_enabled_ || target_fps_ <= 0.0) {
         return true;
     }
@@ -110,7 +110,7 @@ bool TimeStep::ShouldRender() const noexcept {
     return time_since_last_render >= target_frame_time_;
 }
 
-double TimeStep::CalculateSmoothedDeltaTime(double raw_delta) noexcept {
+double TimeStep::calculateSmoothedDeltaTime(double raw_delta) noexcept {
     delta_time_history_[history_index_] = raw_delta;
     history_index_ = (history_index_ + 1) % SMOOTHING_SAMPLES;
     if (!history_filled_ && history_index_ == 0) {
@@ -121,11 +121,11 @@ double TimeStep::CalculateSmoothedDeltaTime(double raw_delta) noexcept {
     return sum / static_cast<double>(sample_count);
 }
 
-double TimeStep::ClampDeltaTime(double delta) const noexcept {
+double TimeStep::clampDeltaTime(double delta) const noexcept {
     return std::clamp(delta, 0.0, max_delta_time_limit_);
 }
 
-void TimeStep::SleepRemainder(double seconds) const noexcept {
+void TimeStep::sleepRemainder(double seconds) const noexcept {
     using namespace std::chrono;
     if (seconds <= 0.0) {
         return;

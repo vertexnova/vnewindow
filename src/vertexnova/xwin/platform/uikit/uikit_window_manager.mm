@@ -24,7 +24,7 @@ namespace vne::xwin {
 UIKitWindowManager::UIKitWindowManager() = default;
 
 UIKitWindowManager::~UIKitWindowManager() {
-    Shutdown();
+    shutdown();
 }
 
 void UIKitWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
@@ -33,28 +33,28 @@ void UIKitWindowManager::notifyWindowEvent(IWindow* window, const WindowEventDat
     }
 }
 
-bool UIKitWindowManager::Initialize() {
+bool UIKitWindowManager::initialize() {
     initialized_ = true;
     return true;
 }
 
-void UIKitWindowManager::Shutdown() {
-    DestroyAllWindows();
+void UIKitWindowManager::shutdown() {
+    destroyAllWindows();
     initialized_ = false;
 }
 
-bool UIKitWindowManager::IsInitialized() const noexcept {
+bool UIKitWindowManager::isInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> UIKitWindowManager::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> UIKitWindowManager::openWindow(const WindowDescriptor& descriptor) {
     if (!initialized_) {
         return nullptr;
     }
     auto w = std::make_shared<UIKitWindow>();
     w->setEventOwner(this);
-    w->Initialize(descriptor);
-    if (!w->IsOpen()) {
+    w->initialize(descriptor);
+    if (!w->isOpen()) {
         return nullptr;
     }
     windows_.push_back(w);
@@ -65,16 +65,16 @@ std::shared_ptr<IWindow> UIKitWindowManager::OpenWindow(const WindowDescriptor& 
     return w;
 }
 
-std::shared_ptr<IWindow> UIKitWindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<IWindow> UIKitWindowManager::openWindow(const std::string& title, uint32_t width, uint32_t height) {
     WindowDescriptor descriptor(title, width, height);
-    return OpenWindow(descriptor);
+    return openWindow(descriptor);
 }
 
-void UIKitWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
+void UIKitWindowManager::removeWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
-    window->Close();
+    window->close();
     auto it = std::find(windows_.begin(), windows_.end(), window);
     if (it != windows_.end()) {
         windows_.erase(it);
@@ -87,10 +87,10 @@ void UIKitWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void UIKitWindowManager::DestroyAllWindows() {
+void UIKitWindowManager::destroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
-            w->Close();
+            w->close();
         }
     }
     windows_.clear();
@@ -98,33 +98,33 @@ void UIKitWindowManager::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t UIKitWindowManager::GetWindowCount() const noexcept {
+size_t UIKitWindowManager::getWindowCount() const noexcept {
     return windows_.size();
 }
 
-std::vector<std::shared_ptr<IWindow>> UIKitWindowManager::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> UIKitWindowManager::getWindows() const {
     return windows_;
 }
 
-std::shared_ptr<IWindow> UIKitWindowManager::GetPrimaryWindow() const noexcept {
+std::shared_ptr<IWindow> UIKitWindowManager::getPrimaryWindow() const noexcept {
     return primary_;
 }
 
-std::shared_ptr<IWindow> UIKitWindowManager::GetFocusedWindow() const noexcept {
+std::shared_ptr<IWindow> UIKitWindowManager::getFocusedWindow() const noexcept {
     return focused_;
 }
 
-void UIKitWindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
+void UIKitWindowManager::setPrimaryWindow(std::shared_ptr<IWindow> window) {
     primary_ = std::move(window);
 }
 
-void UIKitWindowManager::FocusWindow(std::shared_ptr<IWindow> window) {
+void UIKitWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
 }
 
-void UIKitWindowManager::ProcessEvents() {}
+void UIKitWindowManager::processEvents() {}
 
-void UIKitWindowManager::SetEventCallback(const WindowManagerEventCallback_T& callback) {
+void UIKitWindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
     callback_ = callback;
 }
 
@@ -132,57 +132,57 @@ void UIKitWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks)
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
-bool UIKitWindowManager::ShouldClose() const noexcept {
+bool UIKitWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {
-        if (w && !w->IsOpen()) {
+        if (w && !w->isOpen()) {
             return true;
         }
     }
     return false;
 }
 
-bool UIKitWindowManager::ShouldCloseAll() const noexcept {
+bool UIKitWindowManager::shouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
     for (const auto& w : windows_) {
-        if (w && w->IsOpen()) {
+        if (w && w->isOpen()) {
             return false;
         }
     }
     return true;
 }
 
-WindowAPI UIKitWindowManager::GetWindowAPI() const noexcept {
+WindowAPI UIKitWindowManager::getWindowAPI() const noexcept {
     return WindowAPI::eIosUikitWindow;
 }
 
-std::string UIKitWindowManager::GetPlatformInfo() const {
+std::string UIKitWindowManager::getPlatformInfo() const {
     return "iOS / UIKit";
 }
 
-bool UIKitWindowManager::IsFeatureSupported(const std::string& feature) const {
+bool UIKitWindowManager::isFeatureSupported(const std::string& feature) const {
     return feature == "resize" || feature == "dpi" || feature == "uikit";
 }
 
-std::string UIKitWindowManager::GetProperties() const {
+std::string UIKitWindowManager::getProperties() const {
     return properties_;
 }
 
-void UIKitWindowManager::SetProperties(const std::string& properties) {
+void UIKitWindowManager::setProperties(const std::string& properties) {
     properties_ = properties;
 }
 
-uint64_t UIKitWindowManager::GetCurrentTime() const noexcept {
+uint64_t UIKitWindowManager::getCurrentTime() const noexcept {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-void UIKitWindowManager::Sleep(uint32_t milliseconds) const noexcept {
+void UIKitWindowManager::sleep(uint32_t milliseconds) const noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
-double UIKitWindowManager::GetPlatformTime() const noexcept {
+double UIKitWindowManager::getPlatformTime() const noexcept {
     using namespace std::chrono;
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }

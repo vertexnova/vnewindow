@@ -15,7 +15,7 @@
 
 namespace vne::xwin {
 
-const char* get_version() noexcept {
+const char* libraryVersion() noexcept {
     return PROJECT_VERSION;
 }
 

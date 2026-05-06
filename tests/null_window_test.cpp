@@ -24,12 +24,12 @@ using vne::xwin::WindowMode;
 namespace {
 
 std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
-    auto mgr = WindowFactory::CreateWindowManager(WindowAPI::eNullWindow);
+    auto mgr = WindowFactory::createWindowManager(WindowAPI::eNullWindow);
     EXPECT_NE(mgr, nullptr);
     if (!mgr) {
         return nullptr;
     }
-    EXPECT_TRUE(mgr->Initialize());
+    EXPECT_TRUE(mgr->initialize());
     return mgr;
 }
 
@@ -40,9 +40,9 @@ class NullWindowTest : public ::testing::Test {};
 TEST_F(NullWindowTest, NativeHandleFieldsAreDefaulted) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->OpenWindow("test", 64, 48);
+    auto w = mgr->openWindow("test", 64, 48);
     ASSERT_NE(w, nullptr);
-    const auto handle = w->GetNativeHandle();
+    const auto handle = w->getNativeHandle();
     EXPECT_EQ(handle.api, WindowAPI::eNullWindow);
     EXPECT_EQ(handle.hwnd, nullptr);
     EXPECT_EQ(handle.ns_view, nullptr);
@@ -57,88 +57,88 @@ TEST_F(NullWindowTest, NativeHandleFieldsAreDefaulted) {
     EXPECT_EQ(handle.canvas_id, nullptr);
     EXPECT_EQ(handle.x11_window_id, 0U);
     EXPECT_EQ(handle.xcb_window_id, 0U);
-    w->Close();
-    mgr->Shutdown();
+    w->close();
+    mgr->shutdown();
 }
 
 TEST_F(NullWindowTest, CreatePollResizeClose) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->OpenWindow("life", 128, 96);
+    auto w = mgr->openWindow("life", 128, 96);
     ASSERT_NE(w, nullptr);
-    w->PollEvents();
-    w->SwapBuffers();
-    w->Resize(200, 100);
-    EXPECT_EQ(w->GetWidth(), 200);
-    EXPECT_EQ(w->GetHeight(), 100);
-    w->Close();
-    EXPECT_FALSE(w->IsOpen());
-    mgr->Shutdown();
+    w->pollEvents();
+    w->swapBuffers();
+    w->resize(200, 100);
+    EXPECT_EQ(w->getWidth(), 200);
+    EXPECT_EQ(w->getHeight(), 100);
+    w->close();
+    EXPECT_FALSE(w->isOpen());
+    mgr->shutdown();
 }
 
 TEST_F(NullWindowTest, SetModeAndFullscreen) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->OpenWindow("mode", 100, 80);
+    auto w = mgr->openWindow("mode", 100, 80);
     ASSERT_NE(w, nullptr);
-    EXPECT_EQ(w->GetWindowMode(), WindowMode::eWindowed);
+    EXPECT_EQ(w->getWindowMode(), WindowMode::eWindowed);
 
-    w->SetWindowMode(WindowMode::eFullscreen);
-    EXPECT_EQ(w->GetWindowMode(), WindowMode::eFullscreen);
-    w->SetFullscreen(true);
-    EXPECT_TRUE(w->IsFullscreen());
+    w->setWindowMode(WindowMode::eFullscreen);
+    EXPECT_EQ(w->getWindowMode(), WindowMode::eFullscreen);
+    w->setFullscreen(true);
+    EXPECT_TRUE(w->isFullscreen());
 
-    w->SetWindowMode(WindowMode::eBorderless);
-    EXPECT_EQ(w->GetWindowMode(), WindowMode::eBorderless);
+    w->setWindowMode(WindowMode::eBorderless);
+    EXPECT_EQ(w->getWindowMode(), WindowMode::eBorderless);
 
-    w->SetWindowMode(WindowMode::eWindowed);
-    w->SetFullscreen(false);
-    EXPECT_EQ(w->GetWindowMode(), WindowMode::eWindowed);
-    EXPECT_FALSE(w->IsFullscreen());
+    w->setWindowMode(WindowMode::eWindowed);
+    w->setFullscreen(false);
+    EXPECT_EQ(w->getWindowMode(), WindowMode::eWindowed);
+    EXPECT_FALSE(w->isFullscreen());
 
-    w->Close();
-    mgr->Shutdown();
+    w->close();
+    mgr->shutdown();
 }
 
 TEST_F(NullWindowTest, MinimizeMaximizeRestoreNoop) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->OpenWindow("mmr", 32, 32);
+    auto w = mgr->openWindow("mmr", 32, 32);
     ASSERT_NE(w, nullptr);
-    w->Minimize();
-    w->Maximize();
-    w->Restore();
-    w->Close();
-    mgr->Shutdown();
+    w->minimize();
+    w->maximize();
+    w->restore();
+    w->close();
+    mgr->shutdown();
 }
 
 TEST_F(NullWindowTest, DpiAndFramebufferDefaults) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->OpenWindow("dpi", 100, 50);
+    auto w = mgr->openWindow("dpi", 100, 50);
     ASSERT_NE(w, nullptr);
-    EXPECT_FLOAT_EQ(w->GetDPIScale(), 1.0F);
-    EXPECT_EQ(w->GetWidth(), 100);
-    EXPECT_EQ(w->GetHeight(), 50);
-    EXPECT_EQ(w->GetFramebufferWidth(), 100U);
-    EXPECT_EQ(w->GetFramebufferHeight(), 50U);
+    EXPECT_FLOAT_EQ(w->getDpiScale(), 1.0F);
+    EXPECT_EQ(w->getWidth(), 100);
+    EXPECT_EQ(w->getHeight(), 50);
+    EXPECT_EQ(w->getFramebufferWidth(), 100U);
+    EXPECT_EQ(w->getFramebufferHeight(), 50U);
 
-    w->Resize(200, 40);
-    EXPECT_EQ(w->GetFramebufferWidth(), 200U);
-    EXPECT_EQ(w->GetFramebufferHeight(), 40U);
+    w->resize(200, 40);
+    EXPECT_EQ(w->getFramebufferWidth(), 200U);
+    EXPECT_EQ(w->getFramebufferHeight(), 40U);
 
-    w->Close();
-    mgr->Shutdown();
+    w->close();
+    mgr->shutdown();
 }
 
 TEST_F(NullWindowTest, ClipboardRoundTripDefaultNoOp) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
-    auto w = mgr->OpenWindow("clip", 16, 16);
+    auto w = mgr->openWindow("clip", 16, 16);
     ASSERT_NE(w, nullptr);
-    EXPECT_TRUE(w->GetClipboardText().empty());
-    w->SetClipboardText("hello");
-    EXPECT_TRUE(w->GetClipboardText().empty());
-    w->Close();
-    mgr->Shutdown();
+    EXPECT_TRUE(w->getClipboardText().empty());
+    w->setClipboardText("hello");
+    EXPECT_TRUE(w->getClipboardText().empty());
+    w->close();
+    mgr->shutdown();
 }

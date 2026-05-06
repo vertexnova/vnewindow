@@ -18,16 +18,16 @@ int main() {
 
     using vne::xwin::WindowFactory;
 
-    VNE_LOG_INFO << "vne::xwin " << WindowFactory::GetBuildInfo();
-    VNE_LOG_INFO << "Version: " << vne::xwin::get_version();
+    VNE_LOG_INFO << "vne::xwin " << WindowFactory::getBuildInfo();
+    VNE_LOG_INFO << "Version: " << vne::xwin::libraryVersion();
 
-    auto mgr = WindowFactory::CreateWindowManager(vne::xwin::WindowAPI::eNullWindow);
-    if (mgr && mgr->Initialize()) {
-        auto w = mgr->OpenWindow("hello_xwin", 320, 240);
+    auto mgr = WindowFactory::createWindowManager(vne::xwin::WindowAPI::eNullWindow);
+    if (mgr && mgr->initialize()) {
+        auto w = mgr->openWindow("hello_xwin", 320, 240);
         if (w) {
-            VNE_LOG_INFO << "Null window size: " << w->GetWidth() << "x" << w->GetHeight();
+            VNE_LOG_INFO << "Null window size: " << w->getWidth() << "x" << w->getHeight();
         }
-        mgr->Shutdown();
+        mgr->shutdown();
     }
 
     return 0;

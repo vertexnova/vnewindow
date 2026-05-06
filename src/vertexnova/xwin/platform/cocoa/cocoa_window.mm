@@ -331,7 +331,7 @@
     if (xwin_) {
         xwin_->handleWindowClose();
     }
-    return NO;  // CocoaWindow::Close() calls destroyNative()
+    return NO;  // CocoaWindow::close() calls destroyNative()
 }
 
 - (void)windowDidResize:(NSNotification*)notification {
@@ -400,7 +400,7 @@ void CocoaWindow::destroyNative() {
     open_ = false;
 }
 
-void CocoaWindow::Initialize(const WindowDescriptor& descriptor) {
+void CocoaWindow::initialize(const WindowDescriptor& descriptor) {
     destroyNative();
     desc_ = descriptor;
 
@@ -447,7 +447,7 @@ void CocoaWindow::Initialize(const WindowDescriptor& descriptor) {
     open_ = true;
 }
 
-void CocoaWindow::PollEvents() {
+void CocoaWindow::pollEvents() {
     for (;;) {
         NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny
                                          untilDate:[NSDate distantPast]
@@ -460,7 +460,7 @@ void CocoaWindow::PollEvents() {
     }
 }
 
-void CocoaWindow::SwapBuffers() {}
+void CocoaWindow::swapBuffers() {}
 
 // ---- Event dispatch helpers (called from ObjC) ----
 
@@ -537,7 +537,7 @@ void CocoaWindow::setFullscreenState(bool fs) {
 
 // ---- IWindow interface ----
 
-void CocoaWindow::SetTitle(const std::string& title) {
+void CocoaWindow::setTitle(const std::string& title) {
     desc_.title = title;
     if (ns_window_) {
         NSWindow* win = (__bridge NSWindow*)ns_window_;
@@ -545,18 +545,18 @@ void CocoaWindow::SetTitle(const std::string& title) {
     }
 }
 
-void CocoaWindow::SetWindowMode(WindowMode mode) {
+void CocoaWindow::setWindowMode(WindowMode mode) {
     desc_.mode = mode;
     if (!ns_window_) {
         return;
     }
     NSWindow* win = (__bridge NSWindow*)ns_window_;
     if (mode == WindowMode::eFullscreen) {
-        SetFullscreen(true);
+        setFullscreen(true);
         return;
     }
     if (fullscreen_) {
-        SetFullscreen(false);
+        setFullscreen(false);
     }
     if (mode == WindowMode::eBorderless) {
         [win setStyleMask:NSWindowStyleMaskBorderless];
@@ -570,11 +570,11 @@ void CocoaWindow::SetWindowMode(WindowMode mode) {
                        | NSWindowStyleMaskResizable)];
 }
 
-WindowMode CocoaWindow::GetWindowMode() const noexcept {
+WindowMode CocoaWindow::getWindowMode() const noexcept {
     return desc_.mode;
 }
 
-void CocoaWindow::SetFullscreen(bool enabled) {
+void CocoaWindow::setFullscreen(bool enabled) {
     if (!ns_window_) {
         return;
     }
@@ -586,17 +586,17 @@ void CocoaWindow::SetFullscreen(bool enabled) {
     // fullscreen_ updated via windowDidEnterFullScreen: / windowDidExitFullScreen:
 }
 
-bool CocoaWindow::IsFullscreen() const noexcept {
+bool CocoaWindow::isFullscreen() const noexcept {
     return fullscreen_;
 }
 
-void CocoaWindow::Minimize() {
+void CocoaWindow::minimize() {
     if (ns_window_) {
         [(__bridge NSWindow*)ns_window_ miniaturize:nil];
     }
 }
 
-void CocoaWindow::Maximize() {
+void CocoaWindow::maximize() {
     if (ns_window_) {
         NSWindow* win = (__bridge NSWindow*)ns_window_;
         if (!win.isZoomed) {
@@ -605,7 +605,7 @@ void CocoaWindow::Maximize() {
     }
 }
 
-void CocoaWindow::Restore() {
+void CocoaWindow::restore() {
     if (ns_window_) {
         NSWindow* win = (__bridge NSWindow*)ns_window_;
         if (win.isMiniaturized) {
@@ -616,7 +616,7 @@ void CocoaWindow::Restore() {
     }
 }
 
-void CocoaWindow::SetPosition(int x, int y) {
+void CocoaWindow::setPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
     if (ns_window_) {
@@ -625,7 +625,7 @@ void CocoaWindow::SetPosition(int x, int y) {
     }
 }
 
-void CocoaWindow::GetPosition(int& x, int& y) const {
+void CocoaWindow::getPosition(int& x, int& y) const {
     if (ns_window_) {
         NSRect r = ((__bridge NSWindow*)ns_window_).frame;
         x = static_cast<int>(r.origin.x);
@@ -636,7 +636,7 @@ void CocoaWindow::GetPosition(int& x, int& y) const {
     y = desc_.position.y;
 }
 
-void CocoaWindow::Resize(uint32_t width, uint32_t height) {
+void CocoaWindow::resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     if (ns_window_) {
@@ -648,7 +648,7 @@ void CocoaWindow::Resize(uint32_t width, uint32_t height) {
     }
 }
 
-void CocoaWindow::SetWindowLimits(const WindowLimits& limits) {
+void CocoaWindow::setWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
     if (!ns_window_) {
         return;
@@ -662,7 +662,7 @@ void CocoaWindow::SetWindowLimits(const WindowLimits& limits) {
     }
 }
 
-void CocoaWindow::SetCursor(WindowCursor cursor) {
+void CocoaWindow::setCursor(WindowCursor cursor) {
     switch (cursor) {
         case WindowCursor::eHidden:
             [NSCursor hide];
@@ -679,19 +679,19 @@ void CocoaWindow::SetCursor(WindowCursor cursor) {
     }
 }
 
-void CocoaWindow::Close() {
+void CocoaWindow::close() {
     destroyNative();
 }
 
-bool CocoaWindow::IsOpen() const noexcept {
+bool CocoaWindow::isOpen() const noexcept {
     return open_ && ns_window_ != nullptr;
 }
 
-void* CocoaWindow::GetNativeWindow() const noexcept {
+void* CocoaWindow::getNativeWindow() const noexcept {
     return ns_view_;
 }
 
-NativeWindowHandle CocoaWindow::GetNativeHandle() const noexcept {
+NativeWindowHandle CocoaWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eCocoaWindow;
     handle.ns_view = ns_view_;
@@ -699,19 +699,19 @@ NativeWindowHandle CocoaWindow::GetNativeHandle() const noexcept {
     return handle;
 }
 
-WindowAPI CocoaWindow::GetWindowAPI() const noexcept {
+WindowAPI CocoaWindow::getWindowAPI() const noexcept {
     return WindowAPI::eCocoaWindow;
 }
 
-int CocoaWindow::GetWidth() const noexcept {
+int CocoaWindow::getWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int CocoaWindow::GetHeight() const noexcept {
+int CocoaWindow::getHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-float CocoaWindow::GetDPIScale() const noexcept {
+float CocoaWindow::getDpiScale() const noexcept {
     if (!ns_window_) {
         return 1.0F;
     }
@@ -725,7 +725,7 @@ void CocoaWindow::handleTextInput(const char* utf8_text) {
     eventBridgeTextInput(this, desc_, cb, utf8_text);
 }
 
-std::string CocoaWindow::GetClipboardText() const {
+std::string CocoaWindow::getClipboardText() const {
     NSPasteboard* pb = [NSPasteboard generalPasteboard];
     NSString* str = [pb stringForType:NSPasteboardTypeString];
     if (!str) {
@@ -735,7 +735,7 @@ std::string CocoaWindow::GetClipboardText() const {
     return utf8 ? std::string(utf8) : std::string{};
 }
 
-void CocoaWindow::SetClipboardText(const std::string& text) {
+void CocoaWindow::setClipboardText(const std::string& text) {
     NSPasteboard* pb = [NSPasteboard generalPasteboard];
     [pb clearContents];
     [pb setString:[NSString stringWithUTF8String:text.c_str()] forType:NSPasteboardTypeString];

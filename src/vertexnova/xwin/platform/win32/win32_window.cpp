@@ -328,12 +328,12 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
     }
 }
 
-void Win32Window::Initialize(const WindowDescriptor& descriptor) {
+void Win32Window::initialize(const WindowDescriptor& descriptor) {
     destroyWindow();
     createWindow(descriptor);
 }
 
-void Win32Window::PollEvents() {
+void Win32Window::pollEvents() {
     if (!hwnd_) {
         return;
     }
@@ -344,26 +344,26 @@ void Win32Window::PollEvents() {
     }
 }
 
-void Win32Window::SwapBuffers() {}
+void Win32Window::swapBuffers() {}
 
-void Win32Window::SetTitle(const std::string& title) {
+void Win32Window::setTitle(const std::string& title) {
     desc_.title = title;
     if (hwnd_) {
         SetWindowTextW(hwnd_, Utf8ToWide(title).c_str());
     }
 }
 
-void Win32Window::SetWindowMode(WindowMode mode) {
+void Win32Window::setWindowMode(WindowMode mode) {
     mode_ = mode;
     if (!hwnd_) {
         return;
     }
     if (mode == WindowMode::eFullscreen) {
-        SetFullscreen(true);
+        setFullscreen(true);
         return;
     }
     if (fullscreen_) {
-        SetFullscreen(false);
+        setFullscreen(false);
     }
     if (mode == WindowMode::eBorderless) {
         HMONITOR mon = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
@@ -384,11 +384,11 @@ void Win32Window::SetWindowMode(WindowMode mode) {
     SetWindowPos(hwnd_, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER);
 }
 
-WindowMode Win32Window::GetWindowMode() const noexcept {
+WindowMode Win32Window::getWindowMode() const noexcept {
     return mode_;
 }
 
-void Win32Window::SetFullscreen(bool enabled) {
+void Win32Window::setFullscreen(bool enabled) {
     if (!hwnd_ || enabled == fullscreen_) {
         return;
     }
@@ -423,34 +423,34 @@ void Win32Window::SetFullscreen(bool enabled) {
     fullscreen_ = enabled;
 }
 
-bool Win32Window::IsFullscreen() const noexcept {
+bool Win32Window::isFullscreen() const noexcept {
     return fullscreen_;
 }
 
-void Win32Window::Minimize() {
+void Win32Window::minimize() {
     if (hwnd_) {
         ShowWindow(hwnd_, SW_MINIMIZE);
     }
 }
 
-void Win32Window::Maximize() {
+void Win32Window::maximize() {
     if (hwnd_) {
         ShowWindow(hwnd_, SW_MAXIMIZE);
     }
 }
 
-void Win32Window::Restore() {
+void Win32Window::restore() {
     if (hwnd_) {
         ShowWindow(hwnd_, SW_RESTORE);
     }
 }
 
-void Win32Window::SetWindowLimits(const WindowLimits& limits) {
+void Win32Window::setWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
     // Limits are enforced in WM_GETMINMAXINFO inside handleMessage
 }
 
-void Win32Window::SetCursor(WindowCursor cursor) {
+void Win32Window::setCursor(WindowCursor cursor) {
     switch (cursor) {
         case WindowCursor::eHidden:
             while (ShowCursor(FALSE) >= 0) {
@@ -476,7 +476,7 @@ void Win32Window::SetCursor(WindowCursor cursor) {
     }
 }
 
-void Win32Window::SetPosition(int x, int y) {
+void Win32Window::setPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
     if (hwnd_) {
@@ -484,7 +484,7 @@ void Win32Window::SetPosition(int x, int y) {
     }
 }
 
-void Win32Window::GetPosition(int& x, int& y) const {
+void Win32Window::getPosition(int& x, int& y) const {
     x = desc_.position.x;
     y = desc_.position.y;
     if (hwnd_) {
@@ -496,7 +496,7 @@ void Win32Window::GetPosition(int& x, int& y) const {
     }
 }
 
-void Win32Window::Resize(uint32_t width, uint32_t height) {
+void Win32Window::resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     if (hwnd_) {
@@ -510,7 +510,7 @@ void Win32Window::Resize(uint32_t width, uint32_t height) {
     }
 }
 
-void Win32Window::Close() {
+void Win32Window::close() {
     if (hwnd_) {
         ::DestroyWindow(hwnd_);
         hwnd_ = nullptr;
@@ -518,34 +518,34 @@ void Win32Window::Close() {
     open_ = false;
 }
 
-bool Win32Window::IsOpen() const noexcept {
+bool Win32Window::isOpen() const noexcept {
     return open_ && hwnd_ != nullptr;
 }
 
-void* Win32Window::GetNativeWindow() const noexcept {
+void* Win32Window::getNativeWindow() const noexcept {
     return hwnd_;
 }
 
-NativeWindowHandle Win32Window::GetNativeHandle() const noexcept {
+NativeWindowHandle Win32Window::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eWin32Window;
     handle.hwnd = hwnd_;
     return handle;
 }
 
-WindowAPI Win32Window::GetWindowAPI() const noexcept {
+WindowAPI Win32Window::getWindowAPI() const noexcept {
     return WindowAPI::eWin32Window;
 }
 
-int Win32Window::GetWidth() const noexcept {
+int Win32Window::getWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int Win32Window::GetHeight() const noexcept {
+int Win32Window::getHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-float Win32Window::GetDPIScale() const noexcept {
+float Win32Window::getDpiScale() const noexcept {
     if (!hwnd_) {
         return 1.0F;
     }
@@ -558,7 +558,7 @@ float Win32Window::GetDPIScale() const noexcept {
     return 1.0F;
 }
 
-std::string Win32Window::GetClipboardText() const {
+std::string Win32Window::getClipboardText() const {
     if (!OpenClipboard(hwnd_)) {
         return {};
     }
@@ -583,7 +583,7 @@ std::string Win32Window::GetClipboardText() const {
     return result;
 }
 
-void Win32Window::SetClipboardText(const std::string& text) {
+void Win32Window::setClipboardText(const std::string& text) {
     if (!OpenClipboard(hwnd_)) {
         return;
     }
@@ -609,7 +609,7 @@ void Win32Window::SetClipboardText(const std::string& text) {
     CloseClipboard();
 }
 
-void Win32Window::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
+void Win32Window::setWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
     if (!hwnd_ || !rgba_pixels || width == 0 || height == 0) {
         return;
     }

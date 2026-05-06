@@ -17,6 +17,7 @@
 namespace vne::xwin {
 
 /** @brief Library version string (from CMake PROJECT_VERSION). */
-VNE_XWIN_API const char* get_version() noexcept;
+/** @brief Nul-terminated PROJECT_VERSION string (CMake); prefer WindowFactory::getVersion() for std::string. */
+VNE_XWIN_API const char* libraryVersion() noexcept;
 
 }  // namespace vne::xwin

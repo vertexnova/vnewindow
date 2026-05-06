@@ -1,7 +1,7 @@
 /*
  * Demonstrates vne::events integration: optional EventBridgeCallbacks struct,
- * EventManager::processEvents(), and Input::nextFrame() after ProcessEvents().
- * Close the window to exit (null backend exits immediately).
+ * EventManager::processEvents(), and Input::nextFrame() after processEvents().
+ * close the window to exit (null backend exits immediately).
  */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
@@ -29,9 +29,9 @@ int main() {
 
     using vne::xwin::WindowFactory;
 
-    auto mgr = WindowFactory::CreateWindowManager();
-    if (!mgr || !mgr->Initialize()) {
-        VNE_LOG_ERROR << "No window manager (see WindowFactory::GetLastError)";
+    auto mgr = WindowFactory::createWindowManager();
+    if (!mgr || !mgr->initialize()) {
+        VNE_LOG_ERROR << "No window manager (see WindowFactory::getLastError)";
         return 1;
     }
 
@@ -39,10 +39,10 @@ int main() {
     desc.enable_events = true;
     desc.enable_input = true;
 
-    auto w = mgr->OpenWindow(desc);
+    auto w = mgr->openWindow(desc);
     if (!w) {
-        VNE_LOG_ERROR << "OpenWindow failed";
-        mgr->Shutdown();
+        VNE_LOG_ERROR << "openWindow failed";
+        mgr->shutdown();
         return 1;
     }
 
@@ -53,26 +53,26 @@ int main() {
 
     mgr->setEventBridgeCallbacks(std::move(hooks));
 
-    if (w->GetWindowAPI() == vne::xwin::WindowAPI::eNullWindow) {
+    if (w->getWindowAPI() == vne::xwin::WindowAPI::eNullWindow) {
         VNE_LOG_INFO << "Null backend has no native input; closing window for a clean smoke run.";
-        mgr->RemoveWindow(w);
+        mgr->removeWindow(w);
     }
 
-    if (mgr->GetWindowCount() == 0U) {
-        mgr->Shutdown();
+    if (mgr->getWindowCount() == 0U) {
+        mgr->shutdown();
         return 0;
     }
 
     VNE_LOG_INFO << "Event loop: move mouse / type keys; close window to quit. "
                     "Call vne::events::Input::nextFrame() once per frame after your update logic.";
 
-    while (mgr->GetWindowCount() > 0U && !mgr->ShouldClose()) {
-        mgr->ProcessEvents();
+    while (mgr->getWindowCount() > 0U && !mgr->shouldClose()) {
+        mgr->processEvents();
         vne::events::EventManager::instance().processEvents();
         vne::events::Input::nextFrame();
-        mgr->Sleep(16);
+        mgr->sleep(16);
     }
 
-    mgr->Shutdown();
+    mgr->shutdown();
     return 0;
 }

@@ -22,7 +22,7 @@ namespace vne::xwin {
 AndroidWindowManager::AndroidWindowManager() = default;
 
 AndroidWindowManager::~AndroidWindowManager() {
-    Shutdown();
+    shutdown();
 }
 
 void AndroidWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
@@ -31,27 +31,27 @@ void AndroidWindowManager::notifyWindowEvent(IWindow* window, const WindowEventD
     }
 }
 
-bool AndroidWindowManager::Initialize() {
+bool AndroidWindowManager::initialize() {
     initialized_ = true;
     return true;
 }
 
-void AndroidWindowManager::Shutdown() {
-    DestroyAllWindows();
+void AndroidWindowManager::shutdown() {
+    destroyAllWindows();
     initialized_ = false;
 }
 
-bool AndroidWindowManager::IsInitialized() const noexcept {
+bool AndroidWindowManager::isInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> AndroidWindowManager::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> AndroidWindowManager::openWindow(const WindowDescriptor& descriptor) {
     if (!initialized_) {
         return nullptr;
     }
     auto w = std::make_shared<AndroidWindow>();
-    w->Initialize(descriptor);
-    if (!w->IsOpen()) {
+    w->initialize(descriptor);
+    if (!w->isOpen()) {
         return nullptr;
     }
     windows_.push_back(w);
@@ -62,16 +62,16 @@ std::shared_ptr<IWindow> AndroidWindowManager::OpenWindow(const WindowDescriptor
     return w;
 }
 
-std::shared_ptr<IWindow> AndroidWindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<IWindow> AndroidWindowManager::openWindow(const std::string& title, uint32_t width, uint32_t height) {
     WindowDescriptor descriptor(title, width, height);
-    return OpenWindow(descriptor);
+    return openWindow(descriptor);
 }
 
-void AndroidWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
+void AndroidWindowManager::removeWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
-    window->Close();
+    window->close();
     auto it = std::find(windows_.begin(), windows_.end(), window);
     if (it != windows_.end()) {
         windows_.erase(it);
@@ -84,10 +84,10 @@ void AndroidWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void AndroidWindowManager::DestroyAllWindows() {
+void AndroidWindowManager::destroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
-            w->Close();
+            w->close();
         }
     }
     windows_.clear();
@@ -95,33 +95,33 @@ void AndroidWindowManager::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t AndroidWindowManager::GetWindowCount() const noexcept {
+size_t AndroidWindowManager::getWindowCount() const noexcept {
     return windows_.size();
 }
 
-std::vector<std::shared_ptr<IWindow>> AndroidWindowManager::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> AndroidWindowManager::getWindows() const {
     return windows_;
 }
 
-std::shared_ptr<IWindow> AndroidWindowManager::GetPrimaryWindow() const noexcept {
+std::shared_ptr<IWindow> AndroidWindowManager::getPrimaryWindow() const noexcept {
     return primary_;
 }
 
-std::shared_ptr<IWindow> AndroidWindowManager::GetFocusedWindow() const noexcept {
+std::shared_ptr<IWindow> AndroidWindowManager::getFocusedWindow() const noexcept {
     return focused_;
 }
 
-void AndroidWindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
+void AndroidWindowManager::setPrimaryWindow(std::shared_ptr<IWindow> window) {
     primary_ = std::move(window);
 }
 
-void AndroidWindowManager::FocusWindow(std::shared_ptr<IWindow> window) {
+void AndroidWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
 }
 
-void AndroidWindowManager::ProcessEvents() {}
+void AndroidWindowManager::processEvents() {}
 
-void AndroidWindowManager::SetEventCallback(const WindowManagerEventCallback_T& callback) {
+void AndroidWindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
     callback_ = callback;
 }
 
@@ -129,57 +129,57 @@ void AndroidWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callback
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
-bool AndroidWindowManager::ShouldClose() const noexcept {
+bool AndroidWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {
-        if (w && !w->IsOpen()) {
+        if (w && !w->isOpen()) {
             return true;
         }
     }
     return false;
 }
 
-bool AndroidWindowManager::ShouldCloseAll() const noexcept {
+bool AndroidWindowManager::shouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
     for (const auto& w : windows_) {
-        if (w && w->IsOpen()) {
+        if (w && w->isOpen()) {
             return false;
         }
     }
     return true;
 }
 
-WindowAPI AndroidWindowManager::GetWindowAPI() const noexcept {
+WindowAPI AndroidWindowManager::getWindowAPI() const noexcept {
     return WindowAPI::eAndroidSurfaceWindow;
 }
 
-std::string AndroidWindowManager::GetPlatformInfo() const {
+std::string AndroidWindowManager::getPlatformInfo() const {
     return "Android / ANativeWindow";
 }
 
-bool AndroidWindowManager::IsFeatureSupported(const std::string& feature) const {
+bool AndroidWindowManager::isFeatureSupported(const std::string& feature) const {
     return feature == "native_window" || feature == "resize";
 }
 
-std::string AndroidWindowManager::GetProperties() const {
+std::string AndroidWindowManager::getProperties() const {
     return properties_;
 }
 
-void AndroidWindowManager::SetProperties(const std::string& properties) {
+void AndroidWindowManager::setProperties(const std::string& properties) {
     properties_ = properties;
 }
 
-uint64_t AndroidWindowManager::GetCurrentTime() const noexcept {
+uint64_t AndroidWindowManager::getCurrentTime() const noexcept {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-void AndroidWindowManager::Sleep(uint32_t milliseconds) const noexcept {
+void AndroidWindowManager::sleep(uint32_t milliseconds) const noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
-double AndroidWindowManager::GetPlatformTime() const noexcept {
+double AndroidWindowManager::getPlatformTime() const noexcept {
     using namespace std::chrono;
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }

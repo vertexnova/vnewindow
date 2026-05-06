@@ -55,7 +55,7 @@ void X11Window::destroyNative() {
     open_ = false;
 }
 
-void X11Window::Initialize(const WindowDescriptor& descriptor) {
+void X11Window::initialize(const WindowDescriptor& descriptor) {
     destroyNative();
     if (!display_) {
         return;
@@ -92,13 +92,13 @@ void X11Window::Initialize(const WindowDescriptor& descriptor) {
 
     // Apply size limits from descriptor
     if (desc_.limits.has_min_size || desc_.limits.has_max_size) {
-        SetWindowLimits(desc_.limits);
+        setWindowLimits(desc_.limits);
     }
 
     open_ = true;
 }
 
-void X11Window::PollEvents() {
+void X11Window::pollEvents() {
     if (!display_ || !window_) {
         return;
     }
@@ -243,9 +243,9 @@ void X11Window::PollEvents() {
     }
 }
 
-void X11Window::SwapBuffers() {}
+void X11Window::swapBuffers() {}
 
-void X11Window::SetTitle(const std::string& title) {
+void X11Window::setTitle(const std::string& title) {
     desc_.title = title;
     if (display_ && window_) {
         XStoreName(display_, window_, title.c_str());
@@ -253,17 +253,17 @@ void X11Window::SetTitle(const std::string& title) {
     }
 }
 
-void X11Window::SetWindowMode(WindowMode mode) {
+void X11Window::setWindowMode(WindowMode mode) {
     desc_.mode = mode;
     if (!display_ || !window_) {
         return;
     }
     if (mode == WindowMode::eFullscreen) {
-        SetFullscreen(true);
+        setFullscreen(true);
         return;
     }
     if (fullscreen_) {
-        SetFullscreen(false);
+        setFullscreen(false);
     }
     if (mode == WindowMode::eBorderless) {
         struct MotifWmHints {
@@ -285,7 +285,7 @@ void X11Window::SetWindowMode(WindowMode mode) {
     }
 }
 
-WindowMode X11Window::GetWindowMode() const noexcept {
+WindowMode X11Window::getWindowMode() const noexcept {
     return desc_.mode;
 }
 
@@ -306,7 +306,7 @@ void X11Window::sendEwmhState(bool add, Atom atom1, Atom atom2) {
     XFlush(display_);
 }
 
-void X11Window::SetFullscreen(bool enabled) {
+void X11Window::setFullscreen(bool enabled) {
     if (!display_ || !window_ || enabled == fullscreen_) {
         return;
     }
@@ -315,18 +315,18 @@ void X11Window::SetFullscreen(bool enabled) {
     fullscreen_ = enabled;
 }
 
-bool X11Window::IsFullscreen() const noexcept {
+bool X11Window::isFullscreen() const noexcept {
     return fullscreen_;
 }
 
-void X11Window::Minimize() {
+void X11Window::minimize() {
     if (display_ && window_) {
         XIconifyWindow(display_, window_, screen_);
         XFlush(display_);
     }
 }
 
-void X11Window::Maximize() {
+void X11Window::maximize() {
     if (!display_ || !window_) {
         return;
     }
@@ -335,7 +335,7 @@ void X11Window::Maximize() {
     sendEwmhState(true, maxH, maxV);
 }
 
-void X11Window::Restore() {
+void X11Window::restore() {
     if (display_ && window_) {
         // Unset maximized states first, then map
         Atom maxH = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
@@ -346,7 +346,7 @@ void X11Window::Restore() {
     }
 }
 
-void X11Window::SetWindowLimits(const WindowLimits& limits) {
+void X11Window::setWindowLimits(const WindowLimits& limits) {
     desc_.limits = limits;
     if (!display_ || !window_) {
         return;
@@ -371,7 +371,7 @@ void X11Window::SetWindowLimits(const WindowLimits& limits) {
     XFlush(display_);
 }
 
-void X11Window::SetCursor(WindowCursor cursor) {
+void X11Window::setCursor(WindowCursor cursor) {
     if (!display_ || !window_) {
         return;
     }
@@ -397,7 +397,7 @@ void X11Window::SetCursor(WindowCursor cursor) {
     XFlush(display_);
 }
 
-void X11Window::SetPosition(int x, int y) {
+void X11Window::setPosition(int x, int y) {
     desc_.position.x = x;
     desc_.position.y = y;
     if (display_ && window_) {
@@ -406,12 +406,12 @@ void X11Window::SetPosition(int x, int y) {
     }
 }
 
-void X11Window::GetPosition(int& x, int& y) const {
+void X11Window::getPosition(int& x, int& y) const {
     x = desc_.position.x;
     y = desc_.position.y;
 }
 
-void X11Window::Resize(uint32_t width, uint32_t height) {
+void X11Window::resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     if (display_ && window_) {
@@ -420,19 +420,19 @@ void X11Window::Resize(uint32_t width, uint32_t height) {
     }
 }
 
-void X11Window::Close() {
+void X11Window::close() {
     destroyNative();
 }
 
-bool X11Window::IsOpen() const noexcept {
+bool X11Window::isOpen() const noexcept {
     return open_ && window_ != 0;
 }
 
-void* X11Window::GetNativeWindow() const noexcept {
+void* X11Window::getNativeWindow() const noexcept {
     return reinterpret_cast<void*>(static_cast<uintptr_t>(window_));
 }
 
-NativeWindowHandle X11Window::GetNativeHandle() const noexcept {
+NativeWindowHandle X11Window::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eX11Window;
     handle.x11_display = display_;
@@ -442,19 +442,19 @@ NativeWindowHandle X11Window::GetNativeHandle() const noexcept {
     return handle;
 }
 
-WindowAPI X11Window::GetWindowAPI() const noexcept {
+WindowAPI X11Window::getWindowAPI() const noexcept {
     return WindowAPI::eX11Window;
 }
 
-int X11Window::GetWidth() const noexcept {
+int X11Window::getWidth() const noexcept {
     return static_cast<int>(desc_.size.width);
 }
 
-int X11Window::GetHeight() const noexcept {
+int X11Window::getHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
 }
 
-float X11Window::GetDPIScale() const noexcept {
+float X11Window::getDpiScale() const noexcept {
     if (!display_) {
         return 1.0F;
     }
@@ -467,7 +467,7 @@ float X11Window::GetDPIScale() const noexcept {
     return dpi / 96.0F;
 }
 
-std::string X11Window::GetClipboardText() const {
+std::string X11Window::getClipboardText() const {
     if (!display_ || !window_) {
         return {};
     }
@@ -483,7 +483,7 @@ std::string X11Window::GetClipboardText() const {
     return {};
 }
 
-void X11Window::SetClipboardText(const std::string& text) {
+void X11Window::setClipboardText(const std::string& text) {
     if (!display_ || !window_) {
         return;
     }
@@ -493,7 +493,7 @@ void X11Window::SetClipboardText(const std::string& text) {
     XFlush(display_);
 }
 
-void X11Window::SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
+void X11Window::setWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
     if (!display_ || !window_ || rgba_pixels == nullptr || width == 0U || height == 0U) {
         return;
     }

@@ -29,35 +29,35 @@ class TimeStep {
     TimeStep(TimeStep&&) = delete;
     TimeStep& operator=(TimeStep&&) = delete;
 
-    [[nodiscard]] bool Update() noexcept;
-    void Reset() noexcept;
+    [[nodiscard]] bool update() noexcept;
+    void reset() noexcept;
 
-    [[nodiscard]] double GetDeltaTime() const noexcept { return delta_time_; }
-    [[nodiscard]] double GetDeltaTimeMs() const noexcept { return delta_time_ * 1000.0; }
-    [[nodiscard]] double GetElapsedTime() const noexcept;
-    [[nodiscard]] double GetFrameRate() const noexcept;
-    [[nodiscard]] double GetAverageFrameRate(uint32_t frame_count = 60) const noexcept;
+    [[nodiscard]] double getDeltaTime() const noexcept { return delta_time_; }
+    [[nodiscard]] double getDeltaTimeMs() const noexcept { return delta_time_ * 1000.0; }
+    [[nodiscard]] double getElapsedTime() const noexcept;
+    [[nodiscard]] double getFrameRate() const noexcept;
+    [[nodiscard]] double getAverageFrameRate(uint32_t frame_count = 60) const noexcept;
 
-    void SetTargetFrameRate(double target_fps) noexcept;
-    [[nodiscard]] double GetTargetFrameRate() const noexcept { return target_fps_; }
-    [[nodiscard]] bool ShouldRender() const noexcept;
-    void SetFrameRateLimitEnabled(bool enabled) noexcept { frame_rate_limit_enabled_ = enabled; }
-    [[nodiscard]] bool IsFrameRateLimitEnabled() const noexcept { return frame_rate_limit_enabled_; }
+    void setTargetFrameRate(double target_fps) noexcept;
+    [[nodiscard]] double getTargetFrameRate() const noexcept { return target_fps_; }
+    [[nodiscard]] bool shouldRender() const noexcept;
+    void setFrameRateLimitEnabled(bool enabled) noexcept { frame_rate_limit_enabled_ = enabled; }
+    [[nodiscard]] bool isFrameRateLimitEnabled() const noexcept { return frame_rate_limit_enabled_; }
 
-    [[nodiscard]] double GetMinDeltaTime() const noexcept { return min_delta_time_; }
-    [[nodiscard]] double GetMaxDeltaTime() const noexcept { return max_delta_time_; }
-    [[nodiscard]] uint64_t GetFrameCount() const noexcept { return frame_count_; }
+    [[nodiscard]] double getMinDeltaTime() const noexcept { return min_delta_time_; }
+    [[nodiscard]] double getMaxDeltaTime() const noexcept { return max_delta_time_; }
+    [[nodiscard]] uint64_t getFrameCount() const noexcept { return frame_count_; }
 
-    void SetMaxDeltaTime(double max_delta) noexcept { max_delta_time_limit_ = max_delta; }
-    void SetSmoothingEnabled(bool enabled) noexcept { smoothing_enabled_ = enabled; }
-    [[nodiscard]] bool IsSmoothingEnabled() const noexcept { return smoothing_enabled_; }
-    void SetSleepPacingEnabled(bool enabled) noexcept { sleep_pacing_enabled_ = enabled; }
-    [[nodiscard]] bool IsSleepPacingEnabled() const noexcept { return sleep_pacing_enabled_; }
+    void setMaxDeltaTime(double max_delta) noexcept { max_delta_time_limit_ = max_delta; }
+    void setSmoothingEnabled(bool enabled) noexcept { smoothing_enabled_ = enabled; }
+    [[nodiscard]] bool isSmoothingEnabled() const noexcept { return smoothing_enabled_; }
+    void setSleepPacingEnabled(bool enabled) noexcept { sleep_pacing_enabled_ = enabled; }
+    [[nodiscard]] bool isSleepPacingEnabled() const noexcept { return sleep_pacing_enabled_; }
 
    private:
-    [[nodiscard]] double CalculateSmoothedDeltaTime(double raw_delta) noexcept;
-    [[nodiscard]] double ClampDeltaTime(double delta) const noexcept;
-    void SleepRemainder(double seconds) const noexcept;
+    [[nodiscard]] double calculateSmoothedDeltaTime(double raw_delta) noexcept;
+    [[nodiscard]] double clampDeltaTime(double delta) const noexcept;
+    void sleepRemainder(double seconds) const noexcept;
 
     using Clock_T = std::chrono::steady_clock;
     Clock_T::time_point last_frame_time_;

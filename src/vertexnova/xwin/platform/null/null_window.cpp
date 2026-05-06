@@ -13,28 +13,28 @@
 
 namespace vne::xwin {
 
-void NullWindow::Initialize(const WindowDescriptor& descriptor) {
+void NullWindow::initialize(const WindowDescriptor& descriptor) {
     descriptor_ = descriptor;
     open_ = true;
 }
 
-void NullWindow::PollEvents() {}
+void NullWindow::pollEvents() {}
 
-void NullWindow::SwapBuffers() {}
+void NullWindow::swapBuffers() {}
 
-void NullWindow::SetTitle(const std::string& title) {
+void NullWindow::setTitle(const std::string& title) {
     descriptor_.title = title;
 }
 
-void NullWindow::SetWindowMode(WindowMode mode) {
+void NullWindow::setWindowMode(WindowMode mode) {
     descriptor_.mode = mode;
 }
 
-WindowMode NullWindow::GetWindowMode() const noexcept {
+WindowMode NullWindow::getWindowMode() const noexcept {
     return descriptor_.mode;
 }
 
-void NullWindow::SetFullscreen(bool enabled) {
+void NullWindow::setFullscreen(bool enabled) {
     if (enabled) {
         descriptor_.mode = WindowMode::eFullscreen;
     } else {
@@ -42,68 +42,68 @@ void NullWindow::SetFullscreen(bool enabled) {
     }
 }
 
-bool NullWindow::IsFullscreen() const noexcept {
+bool NullWindow::isFullscreen() const noexcept {
     return descriptor_.mode == WindowMode::eFullscreen;
 }
 
-void NullWindow::Minimize() {}
+void NullWindow::minimize() {}
 
-void NullWindow::Maximize() {}
+void NullWindow::maximize() {}
 
-void NullWindow::Restore() {}
+void NullWindow::restore() {}
 
-void NullWindow::SetWindowLimits(const WindowLimits& limits) {
+void NullWindow::setWindowLimits(const WindowLimits& limits) {
     descriptor_.limits = limits;
 }
 
-void NullWindow::SetCursor(WindowCursor cursor) {
+void NullWindow::setCursor(WindowCursor cursor) {
     (void)cursor;
 }
 
-void NullWindow::SetPosition(int x, int y) {
+void NullWindow::setPosition(int x, int y) {
     descriptor_.position.x = x;
     descriptor_.position.y = y;
 }
 
-void NullWindow::GetPosition(int& x, int& y) const {
+void NullWindow::getPosition(int& x, int& y) const {
     x = descriptor_.position.x;
     y = descriptor_.position.y;
 }
 
-void NullWindow::Resize(uint32_t width, uint32_t height) {
+void NullWindow::resize(uint32_t width, uint32_t height) {
     descriptor_.size.width = width;
     descriptor_.size.height = height;
 }
 
-void NullWindow::Close() {
+void NullWindow::close() {
     open_ = false;
 }
 
-bool NullWindow::IsOpen() const noexcept {
+bool NullWindow::isOpen() const noexcept {
     return open_;
 }
 
-void* NullWindow::GetNativeWindow() const noexcept {
+void* NullWindow::getNativeWindow() const noexcept {
     return nullptr;
 }
 
-NativeWindowHandle NullWindow::GetNativeHandle() const noexcept {
+NativeWindowHandle NullWindow::getNativeHandle() const noexcept {
     return {};
 }
 
-WindowAPI NullWindow::GetWindowAPI() const noexcept {
+WindowAPI NullWindow::getWindowAPI() const noexcept {
     return WindowAPI::eNullWindow;
 }
 
-int NullWindow::GetWidth() const noexcept {
+int NullWindow::getWidth() const noexcept {
     return static_cast<int>(descriptor_.size.width);
 }
 
-int NullWindow::GetHeight() const noexcept {
+int NullWindow::getHeight() const noexcept {
     return static_cast<int>(descriptor_.size.height);
 }
 
-float NullWindow::GetDPIScale() const noexcept {
+float NullWindow::getDpiScale() const noexcept {
     return 1.0F;
 }
 
