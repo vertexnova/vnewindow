@@ -35,9 +35,9 @@ std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
 
 }  // namespace
 
-class NullWindow_CTest : public ::testing::Test {};
+class NullWindowTest : public ::testing::Test {};
 
-TEST_F(NullWindow_CTest, NativeHandleFieldsAreDefaulted) {
+TEST_F(NullWindowTest, NativeHandleFieldsAreDefaulted) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
     auto w = mgr->CreateWindow("test", 64, 48);
@@ -61,7 +61,7 @@ TEST_F(NullWindow_CTest, NativeHandleFieldsAreDefaulted) {
     mgr->Shutdown();
 }
 
-TEST_F(NullWindow_CTest, CreatePollResizeClose) {
+TEST_F(NullWindowTest, CreatePollResizeClose) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
     auto w = mgr->CreateWindow("life", 128, 96);
@@ -76,7 +76,7 @@ TEST_F(NullWindow_CTest, CreatePollResizeClose) {
     mgr->Shutdown();
 }
 
-TEST_F(NullWindow_CTest, SetModeAndFullscreen) {
+TEST_F(NullWindowTest, SetModeAndFullscreen) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
     auto w = mgr->CreateWindow("mode", 100, 80);
@@ -100,7 +100,7 @@ TEST_F(NullWindow_CTest, SetModeAndFullscreen) {
     mgr->Shutdown();
 }
 
-TEST_F(NullWindow_CTest, MinimizeMaximizeRestoreNoop) {
+TEST_F(NullWindowTest, MinimizeMaximizeRestoreNoop) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
     auto w = mgr->CreateWindow("mmr", 32, 32);
@@ -112,7 +112,7 @@ TEST_F(NullWindow_CTest, MinimizeMaximizeRestoreNoop) {
     mgr->Shutdown();
 }
 
-TEST_F(NullWindow_CTest, DpiAndFramebufferDefaults) {
+TEST_F(NullWindowTest, DpiAndFramebufferDefaults) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
     auto w = mgr->CreateWindow("dpi", 100, 50);
@@ -131,7 +131,7 @@ TEST_F(NullWindow_CTest, DpiAndFramebufferDefaults) {
     mgr->Shutdown();
 }
 
-TEST_F(NullWindow_CTest, ClipboardRoundTripDefaultNoOp) {
+TEST_F(NullWindowTest, ClipboardRoundTripDefaultNoOp) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
     auto w = mgr->CreateWindow("clip", 16, 16);

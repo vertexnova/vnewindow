@@ -36,9 +36,9 @@ std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
 
 }  // namespace
 
-class NullWindowManager_CTest : public ::testing::Test {};
+class NullWindowManagerTest : public ::testing::Test {};
 
-TEST_F(NullWindowManager_CTest, MonitorQueriesUseBaseDefaults) {
+TEST_F(NullWindowManagerTest, MonitorQueriesUseBaseDefaults) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
     EXPECT_EQ(mgr->GetMonitorCount(), 0U);
@@ -49,7 +49,7 @@ TEST_F(NullWindowManager_CTest, MonitorQueriesUseBaseDefaults) {
     mgr->Shutdown();
 }
 
-TEST_F(NullWindowManager_CTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
+TEST_F(NullWindowManagerTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
 
