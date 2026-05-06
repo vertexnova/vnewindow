@@ -23,7 +23,9 @@ if(NOT DEFINED PROJECT_VERSION_INIT)
     set(PROJECT_VERSION_INIT "1.0.0")
 endif()
 
-project(vnecrosswindow VERSION ${PROJECT_VERSION_INIT} LANGUAGES CXX)
+# Root enables C so nested gtest project(LANGUAGES CXX C) does not leave C half-configured
+# (Clang CI: missing CMAKE_C_COMPILE_OBJECT when parent was CXX-only).
+project(vnecrosswindow VERSION ${PROJECT_VERSION_INIT} LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
