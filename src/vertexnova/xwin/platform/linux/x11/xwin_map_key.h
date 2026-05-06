@@ -22,4 +22,7 @@ std::uint8_t mapX11Modifiers(unsigned int state);
 /** @brief Primary keysym from a key event (index 0). */
 vne::events::KeyCode mapX11Keysym(KeySym sym);
 
+/** @brief Best-effort reverse (first keysym that maps to key). */
+std::uint64_t mapEventsKeyCodeToX11Keysym(vne::events::KeyCode key);
+
 }  // namespace vne::xwin

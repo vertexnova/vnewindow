@@ -18,6 +18,8 @@
 
 namespace vne::xwin {
 
+struct WindowInputMapping;
+
 struct WindowDescriptor {
     std::string title = "VneXWin";
     WindowSize size = {800, 600};
@@ -39,6 +41,9 @@ struct WindowDescriptor {
     size_t platform_data_size = 0;
     bool enable_events = true;
     bool enable_input = true;
+
+    /** Optional per-window native ↔ vne::events mapping; must outlive the window if non-null. */
+    const WindowInputMapping* input_mapping = nullptr;
 
     WindowDescriptor() = default;
 

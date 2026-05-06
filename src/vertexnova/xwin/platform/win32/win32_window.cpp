@@ -12,8 +12,10 @@
 #include "win32_window.h"
 
 #include "win32_window_manager.h"
-#include "xwin_map_key.h"
+#include "win32_map_key.h"
 #include "event_bridge.h"
+
+#include <vertexnova/xwin/input_mapping.h>
 
 #include <vertexnova/events/types.h>
 
@@ -178,9 +180,15 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         case WM_SYSKEYDOWN: {
             const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onKeyDown);
             if (want_vne) {
-                const vne::events::KeyCode kc = mapWin32Key(wParam, lParam);
+                const vne::events::KeyCode kc =
+                    mapNativeKeyToEvents(WindowAPI::eWin32Window,
+                                           packWin32NativeKey(wParam, lParam),
+                                           desc_.input_mapping);
                 if (kc != vne::events::KeyCode::eUnknown) {
-                    const std::uint8_t mods = mapWin32ModifierFlags();
+                    const std::uint8_t mods =
+                        mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                                   static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                                   desc_.input_mapping);
                     const bool repeat = (lParam & (1 << 30)) != 0;
                     eventBridgeKeyDown(this, desc_, cb, kc, mods, repeat);
                 }
@@ -194,9 +202,15 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         case WM_SYSKEYUP: {
             const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onKeyUp);
             if (want_vne) {
-                const vne::events::KeyCode kc = mapWin32Key(wParam, lParam);
+                const vne::events::KeyCode kc =
+                    mapNativeKeyToEvents(WindowAPI::eWin32Window,
+                                           packWin32NativeKey(wParam, lParam),
+                                           desc_.input_mapping);
                 if (kc != vne::events::KeyCode::eUnknown) {
-                    const std::uint8_t mods = mapWin32ModifierFlags();
+                    const std::uint8_t mods =
+                        mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                                   static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                                   desc_.input_mapping);
                     eventBridgeKeyUp(this, desc_, cb, kc, mods);
                 }
             }
@@ -217,8 +231,14 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             if (want_vne) {
                 const int x = GET_X_LPARAM(lParam);
                 const int y = GET_Y_LPARAM(lParam);
-                const std::uint8_t mods = mapWin32ModifierFlags();
-                const vne::events::MouseButton btn = mapWin32MouseButtonFromMessage(msg, wParam);
+                const std::uint8_t mods =
+                    mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                               static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                               desc_.input_mapping);
+                const vne::events::MouseButton btn =
+                    mapNativeMouseToEvents(WindowAPI::eWin32Window,
+                                           packWin32Mouse(msg, wParam),
+                                           desc_.input_mapping);
                 const bool down =
                     (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
                 eventBridgeMouseButton(this,
@@ -237,7 +257,10 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             if (want_vne) {
                 const int x = GET_X_LPARAM(lParam);
                 const int y = GET_Y_LPARAM(lParam);
-                const std::uint8_t mods = mapWin32ModifierFlags();
+                const std::uint8_t mods =
+                    mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                               static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                               desc_.input_mapping);
                 eventBridgeMouseMove(this, desc_, cb, static_cast<double>(x), static_cast<double>(y), mods);
             }
             return 0;

@@ -26,7 +26,13 @@ std::uint8_t mapWin32ModifierFlags();
 /** @brief Map WM_KEY* / WM_SYSKEY* wParam/lParam to KeyCode (eUnknown if unmapped). */
 vne::events::KeyCode mapWin32Key(WPARAM vk, LPARAM lParam);
 
+/** @brief Packed token for input_mapping (see packWin32NativeKey in input_mapping.h). */
+uint64_t mapEventsKeyCodeToWin32Packed(vne::events::KeyCode key);
+
 /** @brief Left/right/middle/extra from WM_*BUTTON* / double-click messages. */
 vne::events::MouseButton mapWin32MouseButtonFromMessage(UINT msg, WPARAM wParam);
+
+/** @brief Synthetic WM_*BUTTON* message token for a logical MouseButton (down stroke). */
+uint64_t mapEventsMouseButtonToWin32Packed(vne::events::MouseButton button);
 
 }  // namespace vne::xwin

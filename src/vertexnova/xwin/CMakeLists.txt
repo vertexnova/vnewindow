@@ -92,6 +92,7 @@ set(XWIN_SOURCES
     window_factory.cpp
     time_step.cpp
     event_bridge.cpp
+    input_mapping.cpp
     platform/null/null_window.cpp
     platform/null/null_window_manager.cpp
 )
@@ -100,7 +101,7 @@ if(_vx_win32)
     list(APPEND XWIN_SOURCES
         platform/win32/win32_window.cpp
         platform/win32/win32_window_manager.cpp
-        platform/win32/xwin_map_key.cpp
+        platform/win32/win32_map_key.cpp
     )
 endif()
 
@@ -111,9 +112,12 @@ endif()
 if(_vx_cocoa)
     list(APPEND XWIN_SOURCES
         platform/cocoa/cocoa_window.mm
-        platform/cocoa/cocoa_map_key.mm
         platform/cocoa/cocoa_window_manager.mm
     )
+endif()
+
+if(_vx_cocoa OR _vx_uikit)
+    list(APPEND XWIN_SOURCES platform/cocoa/cocoa_map_key.mm)
 endif()
 
 if(_vx_uikit)

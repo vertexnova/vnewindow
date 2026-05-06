@@ -11,10 +11,10 @@
 
 #include "cocoa_window.h"
 
-#include "cocoa_map_key.h"
 #include "cocoa_window_manager.h"
 #include "event_bridge.h"
 
+#include "vertexnova/xwin/input_mapping.h"
 #include "vertexnova/xwin/xwin_types.h"
 
 #import <Cocoa/Cocoa.h>
@@ -67,8 +67,12 @@
     if (!xwin_) {
         return;
     }
-    const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
-    const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
+    const vne::events::KeyCode kc = vne::xwin::mapNativeKeyToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                      vne::xwin::packCocoaNativeKey(ev.keyCode),
+                                                                      xwin_->input_mapping());
+    const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                  static_cast<uint64_t>(ev.modifierFlags),
+                                                                  xwin_->input_mapping());
     const bool repeat = ev.isARepeat;
     xwin_->handleKeyDown(kc, mods, repeat);
 }
@@ -77,8 +81,12 @@
     if (!xwin_) {
         return;
     }
-    const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
-    const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
+    const vne::events::KeyCode kc = vne::xwin::mapNativeKeyToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                      vne::xwin::packCocoaNativeKey(ev.keyCode),
+                                                                      xwin_->input_mapping());
+    const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                  static_cast<uint64_t>(ev.modifierFlags),
+                                                                  xwin_->input_mapping());
     xwin_->handleKeyUp(kc, mods);
 }
 
@@ -87,11 +95,15 @@
         return;
     }
     // Treat modifier-only changes as key press/release based on current flags
-    const vne::events::KeyCode kc = vne::xwin::mapCocoaKeyCode(ev.keyCode);
+    const vne::events::KeyCode kc = vne::xwin::mapNativeKeyToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                      vne::xwin::packCocoaNativeKey(ev.keyCode),
+                                                                      xwin_->input_mapping());
     if (kc == vne::events::KeyCode::eUnknown) {
         return;
     }
-    const uint8_t mods = vne::xwin::mapCocoaModifiers(ev.modifierFlags);
+    const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                  static_cast<uint64_t>(ev.modifierFlags),
+                                                                  xwin_->input_mapping());
     // Heuristic: if the modifier bit is still set it was just pressed, otherwise released
     const bool is_press = (mods != 0);
     if (is_press) {
@@ -108,66 +120,102 @@
         return;
     }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    xwin_->handleMouseButton(vne::events::MouseButton::eLeft,
+    const auto btn = vne::xwin::mapNativeMouseToEvents(
+        vne::xwin::WindowAPI::eCocoaWindow,
+        vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
+        xwin_->input_mapping());
+    xwin_->handleMouseButton(btn,
                              true,
                              p.x,
                              p.y,
-                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                   static_cast<uint64_t>(ev.modifierFlags),
+                                                                   xwin_->input_mapping()));
 }
 - (void)mouseUp:(NSEvent*)ev {
     if (!xwin_) {
         return;
     }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    xwin_->handleMouseButton(vne::events::MouseButton::eLeft,
+    const auto btn = vne::xwin::mapNativeMouseToEvents(
+        vne::xwin::WindowAPI::eCocoaWindow,
+        vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
+        xwin_->input_mapping());
+    xwin_->handleMouseButton(btn,
                              false,
                              p.x,
                              p.y,
-                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                   static_cast<uint64_t>(ev.modifierFlags),
+                                                                   xwin_->input_mapping()));
 }
 - (void)rightMouseDown:(NSEvent*)ev {
     if (!xwin_) {
         return;
     }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    xwin_->handleMouseButton(vne::events::MouseButton::eRight,
+    const auto btn = vne::xwin::mapNativeMouseToEvents(
+        vne::xwin::WindowAPI::eCocoaWindow,
+        vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
+        xwin_->input_mapping());
+    xwin_->handleMouseButton(btn,
                              true,
                              p.x,
                              p.y,
-                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                   static_cast<uint64_t>(ev.modifierFlags),
+                                                                   xwin_->input_mapping()));
 }
 - (void)rightMouseUp:(NSEvent*)ev {
     if (!xwin_) {
         return;
     }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    xwin_->handleMouseButton(vne::events::MouseButton::eRight,
+    const auto btn = vne::xwin::mapNativeMouseToEvents(
+        vne::xwin::WindowAPI::eCocoaWindow,
+        vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
+        xwin_->input_mapping());
+    xwin_->handleMouseButton(btn,
                              false,
                              p.x,
                              p.y,
-                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                   static_cast<uint64_t>(ev.modifierFlags),
+                                                                   xwin_->input_mapping()));
 }
 - (void)otherMouseDown:(NSEvent*)ev {
     if (!xwin_) {
         return;
     }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    xwin_->handleMouseButton(vne::events::MouseButton::eMiddle,
+    const auto btn = vne::xwin::mapNativeMouseToEvents(
+        vne::xwin::WindowAPI::eCocoaWindow,
+        vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
+        xwin_->input_mapping());
+    xwin_->handleMouseButton(btn,
                              true,
                              p.x,
                              p.y,
-                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                   static_cast<uint64_t>(ev.modifierFlags),
+                                                                   xwin_->input_mapping()));
 }
 - (void)otherMouseUp:(NSEvent*)ev {
     if (!xwin_) {
         return;
     }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    xwin_->handleMouseButton(vne::events::MouseButton::eMiddle,
+    const auto btn = vne::xwin::mapNativeMouseToEvents(
+        vne::xwin::WindowAPI::eCocoaWindow,
+        vne::xwin::packCocoaNativeMouse(static_cast<uint16_t>(ev.buttonNumber)),
+        xwin_->input_mapping());
+    xwin_->handleMouseButton(btn,
                              false,
                              p.x,
                              p.y,
-                             vne::xwin::mapCocoaModifiers(ev.modifierFlags));
+                             vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                   static_cast<uint64_t>(ev.modifierFlags),
+                                                                   xwin_->input_mapping()));
 }
 
 // ---- Mouse motion ----
@@ -177,7 +225,11 @@
         return;
     }
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    xwin_->handleMouseMove(p.x, p.y, vne::xwin::mapCocoaModifiers(ev.modifierFlags));
+    xwin_->handleMouseMove(p.x,
+                           p.y,
+                           vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                  static_cast<uint64_t>(ev.modifierFlags),
+                                                                  xwin_->input_mapping()));
 }
 - (void)mouseDragged:(NSEvent*)ev {
     [self mouseMoved:ev];

@@ -183,4 +183,16 @@ KeyCode mapX11Keysym(KeySym sym) {
     return KeyCode::eUnknown;
 }
 
+std::uint64_t mapEventsKeyCodeToX11Keysym(KeyCode target) {
+    if (target == KeyCode::eUnknown) {
+        return 0;
+    }
+    for (std::uint64_t sym = 32; sym < 0x10000U; ++sym) {
+        if (mapX11Keysym(static_cast<KeySym>(sym)) == target) {
+            return sym;
+        }
+    }
+    return 0;
+}
+
 }  // namespace vne::xwin

@@ -15,6 +15,8 @@
 #include "wayland_window.h"
 #include "event_bridge.h"
 
+#include <vertexnova/xwin/input_mapping.h>
+
 #include <algorithm>
 #include <chrono>
 #include <cstring>
@@ -177,20 +179,6 @@ void touch_orientation(void*, struct wl_touch*, int32_t, wl_fixed_t) {}
 
 const wl_touch_listener kTouchListener = {
     touch_down, touch_up, touch_motion, touch_frame, touch_cancel, touch_shape, touch_orientation};
-
-// Map Linux kernel button codes to vne MouseButton
-vne::events::MouseButton linuxButtonToMouse(uint32_t btn) {
-    switch (btn) {
-        case BTN_LEFT:
-            return vne::events::MouseButton::eLeft;
-        case BTN_RIGHT:
-            return vne::events::MouseButton::eRight;
-        case BTN_MIDDLE:
-            return vne::events::MouseButton::eMiddle;
-        default:
-            return vne::events::MouseButton::eLeft;
-    }
-}
 
 }  // namespace
 
@@ -502,11 +490,13 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
     if (sym == 0) {
         return;
     }
-    const vne::events::KeyCode kc = mapWaylandKeysym(sym);
-    const uint8_t mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    const bool pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
-
     const WindowDescriptor& desc = win->descriptor();
+    const vne::events::KeyCode kc =
+        mapNativeKeyToEvents(WindowAPI::eWaylandWindow, packXkbNativeKey(sym), desc.input_mapping);
+    const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
+    const uint8_t mods =
+        mapNativeModifiersToEvents(WindowAPI::eWaylandWindow, static_cast<uint64_t>(base_mods), desc.input_mapping);
+    const bool pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
     if (pressed) {
         eventBridgeKeyDown(win, desc, event_bridge_callbacks_, kc, mods, false);
     } else {
@@ -527,8 +517,11 @@ void WaylandWindowManager_C::on_pointer_motion(double x, double y) {
     if (!win) {
         return;
     }
-    const uint8_t mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    eventBridgeMouseMove(win, win->descriptor(), event_bridge_callbacks_, x, y, mods);
+    const WindowDescriptor& desc = win->descriptor();
+    const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
+    const uint8_t mods =
+        mapNativeModifiersToEvents(WindowAPI::eWaylandWindow, static_cast<uint64_t>(base_mods), desc.input_mapping);
+    eventBridgeMouseMove(win, desc, event_bridge_callbacks_, x, y, mods);
 }
 
 void WaylandWindowManager_C::on_pointer_button(uint32_t button, uint32_t state, double x, double y) {
@@ -539,10 +532,14 @@ void WaylandWindowManager_C::on_pointer_button(uint32_t button, uint32_t state, 
     // Use cached position if caller passed sentinel -1
     const double px = (x < 0.0) ? ptr_x_ : x;
     const double py = (y < 0.0) ? ptr_y_ : y;
-    const vne::events::MouseButton mb = linuxButtonToMouse(button);
+    const WindowDescriptor& desc = win->descriptor();
+    const vne::events::MouseButton mb =
+        mapNativeMouseToEvents(WindowAPI::eWaylandWindow, packWaylandNativeMouse(button), desc.input_mapping);
     const bool pressed = (state == WL_POINTER_BUTTON_STATE_PRESSED);
-    const uint8_t mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    eventBridgeMouseButton(win, win->descriptor(), event_bridge_callbacks_, mb, pressed, px, py, mods);
+    const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
+    const uint8_t mods =
+        mapNativeModifiersToEvents(WindowAPI::eWaylandWindow, static_cast<uint64_t>(base_mods), desc.input_mapping);
+    eventBridgeMouseButton(win, desc, event_bridge_callbacks_, mb, pressed, px, py, mods);
 }
 
 void WaylandWindowManager_C::on_pointer_axis(double x_off, double y_off) {

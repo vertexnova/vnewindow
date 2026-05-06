@@ -10,7 +10,9 @@
  * ----------------------------------------------------------------------
  */
 
-#include "xwin_map_key.h"
+#include "win32_map_key.h"
+
+#include "vertexnova/xwin/input_mapping.h"
 
 #include <windowsx.h>
 
@@ -221,6 +223,35 @@ MouseButton mapWin32MouseButtonFromMessage(UINT msg, WPARAM wParam) {
         }
         default:
             return MouseButton::eLeft;
+    }
+}
+
+uint64_t mapEventsKeyCodeToWin32Packed(KeyCode target) {
+    if (target == KeyCode::eUnknown) {
+        return 0;
+    }
+    for (unsigned vk = 1; vk < 256; ++vk) {
+        if (mapWin32Key(static_cast<WPARAM>(vk), 0) == target) {
+            return packWin32NativeKey(static_cast<std::uintptr_t>(vk), 0);
+        }
+    }
+    return 0;
+}
+
+uint64_t mapEventsMouseButtonToWin32Packed(MouseButton b) {
+    switch (b) {
+        case MouseButton::eLeft:
+            return packWin32Mouse(WM_LBUTTONDOWN, 0);
+        case MouseButton::eRight:
+            return packWin32Mouse(WM_RBUTTONDOWN, 0);
+        case MouseButton::eMiddle:
+            return packWin32Mouse(WM_MBUTTONDOWN, 0);
+        case MouseButton::eButton3:
+            return packWin32Mouse(WM_XBUTTONDOWN, static_cast<std::uintptr_t>(MAKEWPARAM(0, XBUTTON1)));
+        case MouseButton::eButton4:
+            return packWin32Mouse(WM_XBUTTONDOWN, static_cast<std::uintptr_t>(MAKEWPARAM(0, XBUTTON2)));
+        default:
+            return packWin32Mouse(WM_LBUTTONDOWN, 0);
     }
 }
 

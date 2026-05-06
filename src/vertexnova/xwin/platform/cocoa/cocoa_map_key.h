@@ -32,4 +32,10 @@ vne::events::KeyCode mapCocoaKeyCode(uint16_t key_code);
  */
 uint8_t mapCocoaModifiers(unsigned long modifier_flags);
 
+/** @brief Best-effort reverse of mapCocoaKeyCode (first matching scan code). */
+uint64_t mapEventsKeyCodeToCocoaPacked(vne::events::KeyCode key);
+
+/** @brief Synthesize NSEventModifierFlags bits from a vne::events::ModifierKey byte. */
+unsigned long mapEventsModifiersToCocoaFlags(uint8_t events_modifiers);
+
 }  // namespace vne::xwin

@@ -131,4 +131,16 @@ uint8_t mapWaylandModifiers(uint32_t depressed, uint32_t latched, uint32_t locke
     return mods;
 }
 
+std::uint64_t mapEventsKeyCodeToWaylandKeysym(KeyCode target) {
+    if (target == KeyCode::eUnknown) {
+        return 0;
+    }
+    for (std::uint64_t sym = 32; sym < 0x10000U; ++sym) {
+        if (mapWaylandKeysym(static_cast<uint32_t>(sym)) == target) {
+            return sym;
+        }
+    }
+    return 0;
+}
+
 }  // namespace vne::xwin

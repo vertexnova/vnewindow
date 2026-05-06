@@ -147,6 +147,39 @@ KeyCode mapCocoaKeyCode(uint16_t kc) {
 }
 // clang-format on
 
+uint64_t mapEventsKeyCodeToCocoaPacked(KeyCode target) {
+    if (target == KeyCode::eUnknown) {
+        return 0;
+    }
+    for (unsigned n = 0; n < 256; ++n) {
+        if (mapCocoaKeyCode(static_cast<uint16_t>(n)) == target) {
+            return static_cast<uint64_t>(n);
+        }
+    }
+    return 0;
+}
+
+unsigned long mapEventsModifiersToCocoaFlags(uint8_t events_modifiers) {
+    unsigned long f = 0;
+    if ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModShift)) != 0) {
+        f |= (1UL << 17);
+    }
+    if ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModCtrl)) != 0) {
+        f |= (1UL << 18);
+    }
+    if ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModAlt)) != 0) {
+        f |= (1UL << 19);
+    }
+    if (((events_modifiers & static_cast<uint8_t>(ModifierKey::eModMeta)) != 0) ||
+        ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModCmd)) != 0)) {
+        f |= (1UL << 20);
+    }
+    if ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModSuper)) != 0) {
+        f |= (1UL << 20);
+    }
+    return f;
+}
+
 uint8_t mapCocoaModifiers(unsigned long flags) {
     uint8_t mods = 0;
     // NSEventModifierFlagShift = 1 << 17

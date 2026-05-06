@@ -26,4 +26,7 @@ vne::events::KeyCode mapWaylandKeysym(uint32_t sym);
 /** Map XKB modifier index masks to the vne::events::ModifierKey packed byte. */
 uint8_t mapWaylandModifiers(uint32_t depressed, uint32_t latched, uint32_t locked);
 
+/** @brief Best-effort reverse (first keysym that maps to key). */
+std::uint64_t mapEventsKeyCodeToWaylandKeysym(vne::events::KeyCode key);
+
 }  // namespace vne::xwin
