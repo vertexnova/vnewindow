@@ -325,9 +325,7 @@ EM_BOOL WasmWindow::BlurCallback(int /*event_type*/, const EmscriptenFocusEvent*
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow::FullscreenChangeCallback(int /*event_type*/,
-                                               const EmscriptenFullscreenChangeEvent* ev,
-                                               void* ud) {
+EM_BOOL WasmWindow::FullscreenChangeCallback(int /*event_type*/, const EmscriptenFullscreenChangeEvent* ev, void* ud) {
     auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;
@@ -491,7 +489,7 @@ void WasmWindow::SetCursor(WindowCursor cursor) {
     EM_ASM(
         {
             var s = UTF8ToString($0);
-            if (typeof document !== 'undefined' && document.body) {
+            if (typeof document != = 'undefined' && document.body) {
                 document.body.style.cursor = s;
             }
             var c = document.querySelector('#canvas');
