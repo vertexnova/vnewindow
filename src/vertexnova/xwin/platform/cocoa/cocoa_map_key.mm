@@ -170,8 +170,8 @@ unsigned long mapEventsModifiersToCocoaFlags(uint8_t events_modifiers) {
     if ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModAlt)) != 0) {
         f |= (1UL << 19);
     }
-    if (((events_modifiers & static_cast<uint8_t>(ModifierKey::eModMeta)) != 0) ||
-        ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModCmd)) != 0)) {
+    if (((events_modifiers & static_cast<uint8_t>(ModifierKey::eModMeta)) != 0)
+        || ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModCmd)) != 0)) {
         f |= (1UL << 20);
     }
     if ((events_modifiers & static_cast<uint8_t>(ModifierKey::eModSuper)) != 0) {

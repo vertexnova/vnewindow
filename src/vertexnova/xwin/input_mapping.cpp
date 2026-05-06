@@ -347,7 +347,9 @@ uint64_t mapEventsMouseToNativePacked(WindowAPI api, MouseButton button, const W
     return mapEventsMouseToNativePackedDefault(api, button);
 }
 
-std::uint8_t mapNativeModifiersToEvents(WindowAPI api, std::uint64_t native_modifiers_packed, const WindowInputMapping* mapping) {
+std::uint8_t mapNativeModifiersToEvents(WindowAPI api,
+                                        std::uint64_t native_modifiers_packed,
+                                        const WindowInputMapping* mapping) {
     if (mapping && mapping->native_modifiers_to_events) {
         return mapping->native_modifiers_to_events(api, native_modifiers_packed);
     }

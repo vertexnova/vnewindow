@@ -125,8 +125,8 @@ VNE_XWIN_API uint64_t mapEventsMouseToNativePacked(WindowAPI api,
                                                    const WindowInputMapping* mapping = nullptr);
 
 VNE_XWIN_API std::uint8_t mapNativeModifiersToEvents(WindowAPI api,
-                                                      std::uint64_t native_modifiers_packed,
-                                                      const WindowInputMapping* mapping = nullptr);
+                                                     std::uint64_t native_modifiers_packed,
+                                                     const WindowInputMapping* mapping = nullptr);
 
 VNE_XWIN_API std::uint64_t mapEventsModifiersToNativePacked(WindowAPI api,
                                                             std::uint8_t events_modifiers,

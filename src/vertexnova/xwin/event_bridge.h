@@ -70,9 +70,7 @@ void eventBridgeWindowResize(IWindow* window,
                              uint32_t width,
                              uint32_t height);
 
-void eventBridgeWindowClose(IWindow* window,
-                            const WindowDescriptor& descriptor,
-                            const EventBridgeCallbacks& callbacks);
+void eventBridgeWindowClose(IWindow* window, const WindowDescriptor& descriptor, const EventBridgeCallbacks& callbacks);
 
 void eventBridgeWindowFocus(IWindow* window,
                             const WindowDescriptor& descriptor,

@@ -180,10 +180,9 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         case WM_SYSKEYDOWN: {
             const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onKeyDown);
             if (want_vne) {
-                const vne::events::KeyCode kc =
-                    mapNativeKeyToEvents(WindowAPI::eWin32Window,
-                                           packWin32NativeKey(wParam, lParam),
-                                           desc_.input_mapping);
+                const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWin32Window,
+                                                                     packWin32NativeKey(wParam, lParam),
+                                                                     desc_.input_mapping);
                 if (kc != vne::events::KeyCode::eUnknown) {
                     const std::uint8_t mods =
                         mapNativeModifiersToEvents(WindowAPI::eWin32Window,
@@ -202,10 +201,9 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         case WM_SYSKEYUP: {
             const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.onKeyUp);
             if (want_vne) {
-                const vne::events::KeyCode kc =
-                    mapNativeKeyToEvents(WindowAPI::eWin32Window,
-                                           packWin32NativeKey(wParam, lParam),
-                                           desc_.input_mapping);
+                const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWin32Window,
+                                                                     packWin32NativeKey(wParam, lParam),
+                                                                     desc_.input_mapping);
                 if (kc != vne::events::KeyCode::eUnknown) {
                     const std::uint8_t mods =
                         mapNativeModifiersToEvents(WindowAPI::eWin32Window,
@@ -236,9 +234,7 @@ LRESULT Win32Window_C::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                                                static_cast<std::uint64_t>(mapWin32ModifierFlags()),
                                                desc_.input_mapping);
                 const vne::events::MouseButton btn =
-                    mapNativeMouseToEvents(WindowAPI::eWin32Window,
-                                           packWin32Mouse(msg, wParam),
-                                           desc_.input_mapping);
+                    mapNativeMouseToEvents(WindowAPI::eWin32Window, packWin32Mouse(msg, wParam), desc_.input_mapping);
                 const bool down =
                     (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
                 eventBridgeMouseButton(this,
