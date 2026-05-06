@@ -124,7 +124,7 @@ void UIKitWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 
 void UIKitWindowManager::processEvents() {}
 
-void UIKitWindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
+void UIKitWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
     callback_ = callback;
 }
 

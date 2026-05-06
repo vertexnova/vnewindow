@@ -133,7 +133,7 @@ void Win32WindowManager::processEvents() {
     }
 }
 
-void Win32WindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
+void Win32WindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
     callback_ = callback;
 }
 

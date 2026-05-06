@@ -147,7 +147,7 @@ void X11WindowManager::processEvents() {
     }
 }
 
-void X11WindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
+void X11WindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
     callback_ = callback;
 }
 

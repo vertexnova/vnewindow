@@ -25,6 +25,18 @@
 #include <vector>
 
 namespace vne::xwin {
+namespace {
+constexpr int kTextInputBufferSize = 32;
+constexpr unsigned char kAsciiSpace = 0x20;
+constexpr unsigned int kScrollUpButton = 4U;
+constexpr unsigned int kScrollDownButton = 5U;
+constexpr unsigned int kScrollLeftButton = 6U;
+constexpr unsigned int kScrollRightButton = 7U;
+constexpr int kX11Format32 = 32;
+constexpr int kMotifHintsElementCount = 5;
+constexpr float kDefaultDpi = 96.0F;
+constexpr int kBitsPerItem8 = 8;
+}  // namespace
 
 X11Window::X11Window() = default;
 
@@ -137,7 +149,7 @@ void X11Window::pollEvents() {
                 owner_->notifyWindowEvent(this, data);
             }
         } else if (ev.type == KeyPress) {
-            const unsigned int kc = static_cast<unsigned int>(ev.xkey.keycode);
+            const auto kc = static_cast<unsigned int>(ev.xkey.keycode);
             const KeySym sym = XLookupKeysym(&ev.xkey, 0);
             const vne::events::KeyCode mapped = mapNativeKeyToEvents(WindowAPI::eX11Window,
                                                                      packXkbNativeKey(static_cast<std::uint32_t>(sym)),
@@ -152,15 +164,15 @@ void X11Window::pollEvents() {
             }
             // Text input: decode printable characters via XLookupString
             if (desc_.enable_events || cb.on_text_input) {
-                char buf[32] = {};
+                char buf[kTextInputBufferSize] = {};
                 const int n = XLookupString(&ev.xkey, buf, static_cast<int>(sizeof(buf) - 1), nullptr, nullptr);
-                if (n > 0 && static_cast<unsigned char>(buf[0]) >= 0x20) {
+                if (n > 0 && static_cast<unsigned char>(buf[0]) >= kAsciiSpace) {
                     buf[n] = '\0';
                     eventBridgeTextInput(this, desc_, cb, buf);
                 }
             }
         } else if (ev.type == KeyRelease) {
-            const unsigned int kc = static_cast<unsigned int>(ev.xkey.keycode);
+            const auto kc = static_cast<unsigned int>(ev.xkey.keycode);
             if (kc < keycode_down_.size()) {
                 keycode_down_[kc] = false;
             }
@@ -175,10 +187,10 @@ void X11Window::pollEvents() {
                 eventBridgeKeyUp(this, desc_, cb, mapped, mods);
             }
         } else if (ev.type == ButtonPress) {
-            const unsigned int b = static_cast<unsigned int>(ev.xbutton.button);
-            if (b == 4U || b == 5U || b == 6U || b == 7U) {
-                const float y = (b == 4U) ? 1.0F : (b == 5U) ? -1.0F : 0.0F;
-                const float x = (b == 6U) ? 1.0F : (b == 7U) ? -1.0F : 0.0F;
+            const auto b = static_cast<unsigned int>(ev.xbutton.button);
+            if (b == kScrollUpButton || b == kScrollDownButton || b == kScrollLeftButton || b == kScrollRightButton) {
+                const float y = (b == kScrollUpButton) ? 1.0F : (b == kScrollDownButton) ? -1.0F : 0.0F;
+                const float x = (b == kScrollLeftButton) ? 1.0F : (b == kScrollRightButton) ? -1.0F : 0.0F;
                 eventBridgeMouseScroll(this, desc_, cb, x, y);
             } else {
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
@@ -196,8 +208,8 @@ void X11Window::pollEvents() {
                                        mods);
             }
         } else if (ev.type == ButtonRelease) {
-            const unsigned int b = static_cast<unsigned int>(ev.xbutton.button);
-            if (b >= 4U && b <= 7U) {
+            const auto b = static_cast<unsigned int>(ev.xbutton.button);
+            if (b >= kScrollUpButton && b <= kScrollRightButton) {
                 continue;
             }
             const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
@@ -278,10 +290,10 @@ void X11Window::setWindowMode(WindowMode mode) {
                         window_,
                         hints_atom,
                         hints_atom,
-                        32,
+                        kX11Format32,
                         PropModeReplace,
                         reinterpret_cast<unsigned char*>(&hints),
-                        5);
+                        kMotifHintsElementCount);
     }
 }
 
@@ -297,7 +309,7 @@ void X11Window::sendEwmhState(bool add, Atom atom1, Atom atom2) {
     ev.type = ClientMessage;
     ev.xclient.window = window_;
     ev.xclient.message_type = XInternAtom(display_, "_NET_WM_STATE", False);
-    ev.xclient.format = 32;
+    ev.xclient.format = kX11Format32;
     ev.xclient.data.l[0] = add ? 1 : 0;  // 1=add, 0=remove
     ev.xclient.data.l[1] = static_cast<long>(atom1);
     ev.xclient.data.l[2] = static_cast<long>(atom2);
@@ -330,17 +342,17 @@ void X11Window::maximize() {
     if (!display_ || !window_) {
         return;
     }
-    Atom maxH = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-    Atom maxV = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-    sendEwmhState(true, maxH, maxV);
+    Atom max_h = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+    Atom max_v = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+    sendEwmhState(true, max_h, max_v);
 }
 
 void X11Window::restore() {
     if (display_ && window_) {
         // Unset maximized states first, then map
-        Atom maxH = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-        Atom maxV = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-        sendEwmhState(false, maxH, maxV);
+        Atom max_h = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+        Atom max_v = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+        sendEwmhState(false, max_h, max_v);
         XMapWindow(display_, window_);
         XFlush(display_);
     }
@@ -464,7 +476,7 @@ float X11Window::getDpiScale() const noexcept {
         return 1.0F;
     }
     const float dpi = (static_cast<float>(width_px) * 25.4F) / static_cast<float>(width_mm);
-    return dpi / 96.0F;
+    return dpi / kDefaultDpi;
 }
 
 std::string X11Window::getClipboardText() const {
@@ -517,7 +529,7 @@ void X11Window::setWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32
                     window_,
                     net_wm_icon,
                     XA_CARDINAL,
-                    32,
+                    kX11Format32,
                     PropModeReplace,
                     reinterpret_cast<unsigned char*>(icon.data()),
                     static_cast<int>(icon.size()));
@@ -553,7 +565,7 @@ void X11Window::handleSelectionRequest(const XSelectionRequestEvent& req) {
                         req.requestor,
                         req.property,
                         XA_ATOM,
-                        32,
+                        kX11Format32,
                         PropModeReplace,
                         reinterpret_cast<const unsigned char*>(offered),
                         static_cast<int>(sizeof(offered) / sizeof(offered[0])));
@@ -563,7 +575,7 @@ void X11Window::handleSelectionRequest(const XSelectionRequestEvent& req) {
                         req.requestor,
                         req.property,
                         utf8,
-                        8,
+                        kBitsPerItem8,
                         PropModeReplace,
                         reinterpret_cast<const unsigned char*>(clipboard_text_.data()),
                         static_cast<int>(clipboard_text_.size()));
@@ -573,7 +585,7 @@ void X11Window::handleSelectionRequest(const XSelectionRequestEvent& req) {
                         req.requestor,
                         req.property,
                         XA_STRING,
-                        8,
+                        kBitsPerItem8,
                         PropModeReplace,
                         reinterpret_cast<const unsigned char*>(clipboard_text_.data()),
                         static_cast<int>(clipboard_text_.size()));

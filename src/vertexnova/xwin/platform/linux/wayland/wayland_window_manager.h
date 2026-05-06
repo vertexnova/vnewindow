@@ -84,7 +84,7 @@ class WaylandWindowManager final : public IWindowManager {
     void focusWindow(std::shared_ptr<IWindow> window) override;
 
     void processEvents() override;
-    void setEventCallback(const WindowManagerEventCallback_T& callback) override;
+    void setEventCallback(const WindowManagerEventCallbackT& callback) override;
     void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) override;
     [[nodiscard]] bool shouldClose() const noexcept override;
     [[nodiscard]] bool shouldCloseAll() const noexcept override;
@@ -136,7 +136,7 @@ class WaylandWindowManager final : public IWindowManager {
     std::vector<std::shared_ptr<IWindow>> windows_;
     std::shared_ptr<IWindow> primary_;
     std::shared_ptr<IWindow> focused_;
-    WindowManagerEventCallback_T callback_{};
+    WindowManagerEventCallbackT callback_{};
     EventBridgeCallbacks event_bridge_callbacks_{};
     bool initialized_ = false;
     std::string properties_;

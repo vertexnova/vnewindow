@@ -871,7 +871,7 @@ void WaylandWindowManager::processEvents() {
     }
 }
 
-void WaylandWindowManager::setEventCallback(const WindowManagerEventCallback_T& cb) {
+void WaylandWindowManager::setEventCallback(const WindowManagerEventCallbackT& cb) {
     callback_ = cb;
 }
 void WaylandWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks cbs) {

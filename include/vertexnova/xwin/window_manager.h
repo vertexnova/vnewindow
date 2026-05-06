@@ -25,7 +25,7 @@
 
 namespace vne::xwin {
 
-using WindowManagerEventCallback_T = std::function<void(IWindow*, const WindowEventData&)>;
+using WindowManagerEventCallbackT = std::function<void(IWindow*, const WindowEventData&)>;
 
 /**
  * @brief Owns and dispatches a set of IWindow instances and platform-wide events.
@@ -55,7 +55,7 @@ class IWindowManager {
     virtual void focusWindow(std::shared_ptr<IWindow> window) = 0;
 
     virtual void processEvents() = 0;
-    virtual void setEventCallback(const WindowManagerEventCallback_T& callback) = 0;
+    virtual void setEventCallback(const WindowManagerEventCallbackT& callback) = 0;
     /**
      * @brief Optional granular hooks after vne::events updates (see event_bridge_callbacks.h).
      *

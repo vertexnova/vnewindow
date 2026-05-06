@@ -123,7 +123,7 @@ void WasmWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 
 void WasmWindowManager::processEvents() {}
 
-void WasmWindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
+void WasmWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
     callback_ = callback;
 }
 

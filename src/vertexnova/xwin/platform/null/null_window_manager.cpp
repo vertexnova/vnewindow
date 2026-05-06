@@ -109,7 +109,7 @@ void NullWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 
 void NullWindowManager::processEvents() {}
 
-void NullWindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
+void NullWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
     callback_ = callback;
 }
 

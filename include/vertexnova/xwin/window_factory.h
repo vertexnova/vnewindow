@@ -46,7 +46,7 @@ class VNE_XWIN_API WindowFactory {
     static void clearLastError();
 
    private:
-    static std::string last_error_;
+    static std::string last_error;
 };
 
 }  // namespace vne::xwin

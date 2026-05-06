@@ -24,7 +24,7 @@ namespace vne::xwin {
 
 struct WindowEventData;
 
-using WindowEventCallback_T = std::function<void(const WindowEventData&)>;
+using WindowEventCallbackT = std::function<void(const WindowEventData&)>;
 
 /**
  * @brief Platform window abstraction; rendering presents externally — swapBuffers may be a no-op when GL is external.

@@ -48,12 +48,12 @@
 
 namespace vne::xwin {
 
-std::string WindowFactory::last_error_;
+std::string WindowFactory::last_error;
 
 std::shared_ptr<IWindowManager> WindowFactory::createWindowManager(WindowAPI window_api) {
     clearLastError();
     if (!isWindowAPISupported(window_api)) {
-        last_error_ = "Requested window API is not supported in this build.";
+        last_error = "Requested window API is not supported in this build.";
         return nullptr;
     }
     switch (window_api) {
@@ -88,7 +88,7 @@ std::shared_ptr<IWindowManager> WindowFactory::createWindowManager(WindowAPI win
             return std::make_shared<AndroidWindowManager>();
 #endif
         default:
-            last_error_ = "No factory mapping for this WindowAPI value.";
+            last_error = "No factory mapping for this WindowAPI value.";
             return nullptr;
     }
 }
@@ -266,11 +266,11 @@ bool WindowFactory::isAvailable() {
 }
 
 std::string WindowFactory::getLastError() {
-    return last_error_;
+    return last_error;
 }
 
 void WindowFactory::clearLastError() {
-    last_error_.clear();
+    last_error.clear();
 }
 
 }  // namespace vne::xwin

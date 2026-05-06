@@ -121,7 +121,7 @@ void AndroidWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 
 void AndroidWindowManager::processEvents() {}
 
-void AndroidWindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
+void AndroidWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
     callback_ = callback;
 }
 

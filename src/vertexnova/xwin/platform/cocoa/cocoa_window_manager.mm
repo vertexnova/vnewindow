@@ -137,7 +137,7 @@ void CocoaWindowManager::processEvents() {
     }
 }
 
-void CocoaWindowManager::setEventCallback(const WindowManagerEventCallback_T& callback) {
+void CocoaWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
     callback_ = callback;
 }
 

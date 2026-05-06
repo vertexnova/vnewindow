@@ -18,6 +18,9 @@
 #include <string>
 
 namespace vne::xwin {
+namespace {
+constexpr size_t kMaxX11Keycodes = 256;
+}  // namespace
 
 class X11WindowManager;
 
@@ -75,7 +78,7 @@ class X11Window final : public IWindow {
     Cursor blank_cursor_ = None;
     mutable std::string clipboard_text_;  ///< text we own as selection owner
     /** Physical keycodes currently held (for KeyPress repeat detection). */
-    std::array<bool, 256> keycode_down_{};
+    std::array<bool, kMaxX11Keycodes> keycode_down_{};
 };
 
 }  // namespace vne::xwin

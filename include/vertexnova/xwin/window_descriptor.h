@@ -15,15 +15,22 @@
 #include "vertexnova/xwin/xwin_types.h"
 
 #include <string>
+#include <utility>
 
 namespace vne::xwin {
+namespace {
+constexpr uint32_t kDefaultWindowWidth = 800U;
+constexpr uint32_t kDefaultWindowHeight = 600U;
+constexpr int kDefaultWindowPosX = 100;
+constexpr int kDefaultWindowPosY = 100;
+}  // namespace
 
 struct WindowInputMapping;
 
 struct WindowDescriptor {
     std::string title = "VneXWin";
-    WindowSize size = {800, 600};
-    WindowPosition position = {100, 100};
+    WindowSize size = {kDefaultWindowWidth, kDefaultWindowHeight};
+    WindowPosition position = {kDefaultWindowPosX, kDefaultWindowPosY};
     WindowMode mode = WindowMode::eWindowed;
     WindowState state = WindowState::eNormal;
     WindowVisibility visibility = WindowVisibility::eVisible;
@@ -48,16 +55,16 @@ struct WindowDescriptor {
 
     WindowDescriptor() = default;
 
-    WindowDescriptor(const std::string& in_title, uint32_t width, uint32_t height)
-        : title(in_title)
+    WindowDescriptor(std::string in_title, uint32_t width, uint32_t height)
+        : title(std::move(in_title))
         , size({width, height}) {}
 
-    WindowDescriptor(const std::string& in_title,
+    WindowDescriptor(std::string in_title,
                      const WindowSize& in_size,
                      WindowMode in_mode = WindowMode::eWindowed,
                      bool in_resizable = true,
                      bool in_decorated = true)
-        : title(in_title)
+        : title(std::move(in_title))
         , size(in_size)
         , mode(in_mode)
         , resizable(in_resizable)
