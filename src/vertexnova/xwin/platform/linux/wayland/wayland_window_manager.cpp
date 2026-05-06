@@ -45,8 +45,8 @@ void registry_global(void* data, struct wl_registry* reg, uint32_t name, const c
 void registry_global_remove(void*, struct wl_registry*, uint32_t) {}
 
 const wl_registry_listener kRegistryListener = {
-    registry_global,
-    registry_global_remove,
+    .global = registry_global,
+    .global_remove = registry_global_remove,
 };
 
 void output_geometry(
@@ -57,14 +57,21 @@ void output_scale(void* data, struct wl_output*, int32_t factor) {
     auto* self = static_cast<WaylandWindowManager_C*>(data);
     self->on_output_scale(factor);
 }
-const wl_output_listener kOutputListener = {output_geometry, output_mode, output_done, output_scale};
+const wl_output_listener kOutputListener = {
+    .geometry = output_geometry,
+    .mode = output_mode,
+    .done = output_done,
+    .scale = output_scale,
+};
 
 // ---- xdg_wm_base ping ----
 
 void xdg_ping(void*, struct xdg_wm_base* base, uint32_t serial) {
     xdg_wm_base_pong(base, serial);
 }
-const xdg_wm_base_listener kXdgWmBaseListener = {xdg_ping};
+const xdg_wm_base_listener kXdgWmBaseListener = {
+    .ping = xdg_ping,
+};
 
 // ---- wl_seat ----
 
@@ -73,7 +80,10 @@ void seat_capabilities(void* data, struct wl_seat* seat, uint32_t caps) {
 }
 void seat_name(void*, struct wl_seat*, const char*) {}
 
-const wl_seat_listener kSeatListener = {seat_capabilities, seat_name};
+const wl_seat_listener kSeatListener = {
+    .capabilities = seat_capabilities,
+    .name = seat_name,
+};
 
 // ---- wl_keyboard ----
 
@@ -104,7 +114,14 @@ void kb_modifiers(void* data,
 
 void kb_repeat_info(void*, struct wl_keyboard*, int32_t, int32_t) {}
 
-const wl_keyboard_listener kKeyboardListener = {kb_keymap, kb_enter, kb_leave, kb_key, kb_modifiers, kb_repeat_info};
+const wl_keyboard_listener kKeyboardListener = {
+    .keymap = kb_keymap,
+    .enter = kb_enter,
+    .leave = kb_leave,
+    .key = kb_key,
+    .modifiers = kb_modifiers,
+    .repeat_info = kb_repeat_info,
+};
 
 // ---- wl_pointer ----
 
@@ -140,15 +157,17 @@ void ptr_axis_source(void*, struct wl_pointer*, uint32_t) {}
 void ptr_axis_stop(void*, struct wl_pointer*, uint32_t, uint32_t) {}
 void ptr_axis_discrete(void*, struct wl_pointer*, uint32_t, int32_t) {}
 
-const wl_pointer_listener kPointerListener = {ptr_enter,
-                                              ptr_leave,
-                                              ptr_motion,
-                                              ptr_button,
-                                              ptr_axis,
-                                              ptr_frame,
-                                              ptr_axis_source,
-                                              ptr_axis_stop,
-                                              ptr_axis_discrete};
+const wl_pointer_listener kPointerListener = {
+    .enter = ptr_enter,
+    .leave = ptr_leave,
+    .motion = ptr_motion,
+    .button = ptr_button,
+    .axis = ptr_axis,
+    .frame = ptr_frame,
+    .axis_source = ptr_axis_source,
+    .axis_stop = ptr_axis_stop,
+    .axis_discrete = ptr_axis_discrete,
+};
 
 // ---- wl_touch ----
 
@@ -178,7 +197,14 @@ void touch_shape(void*, struct wl_touch*, int32_t, wl_fixed_t, wl_fixed_t) {}
 void touch_orientation(void*, struct wl_touch*, int32_t, wl_fixed_t) {}
 
 const wl_touch_listener kTouchListener = {
-    touch_down, touch_up, touch_motion, touch_frame, touch_cancel, touch_shape, touch_orientation};
+    .down = touch_down,
+    .up = touch_up,
+    .motion = touch_motion,
+    .frame = touch_frame,
+    .cancel = touch_cancel,
+    .shape = touch_shape,
+    .orientation = touch_orientation,
+};
 
 }  // namespace
 

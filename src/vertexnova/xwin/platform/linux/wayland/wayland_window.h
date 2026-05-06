@@ -55,13 +55,15 @@ class WaylandWindow_C final : public IWindow {
     int GetHeight() const override;
     float GetDPIScale() const override;
 
-   private:
+    /** Called from Wayland listener thunks (xdg_toplevel_listener). */
     void apply_toplevel_configure(uint32_t width, uint32_t height);
     void apply_toplevel_close();
-    void destroy_surfaces();
 
-    /** @brief Same pointer registered with the compositor (keyboard/pointer focus mapping). */
+    /** Same pointer registered with the compositor (keyboard/pointer focus mapping). */
     wl_surface* native_surface() const { return surface_; }
+
+   private:
+    void destroy_surfaces();
 
     WaylandWindowManager_C* owner_ = nullptr;
     WindowDescriptor desc_{};

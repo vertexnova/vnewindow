@@ -27,6 +27,7 @@ namespace vne::xwin {
 namespace {
 
 void xdg_surface_configure_thunk(void* data, struct xdg_surface* xdg_surface, uint32_t serial) {
+    (void)data;
     xdg_surface_ack_configure(xdg_surface, serial);
 }
 
@@ -43,12 +44,12 @@ void xdg_toplevel_close_thunk(void* data, struct xdg_toplevel*) {
 }
 
 const xdg_surface_listener kXdgSurfaceListener = {
-    xdg_surface_configure_thunk,
+    .configure = xdg_surface_configure_thunk,
 };
 
 const xdg_toplevel_listener kXdgToplevelListener = {
-    xdg_toplevel_configure_thunk,
-    xdg_toplevel_close_thunk,
+    .configure = xdg_toplevel_configure_thunk,
+    .close = xdg_toplevel_close_thunk,
 };
 
 }  // namespace

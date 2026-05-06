@@ -54,6 +54,10 @@ class WaylandWindowManager_C final : public IWindowManager {
     void on_touch_up(uint32_t id, double x, double y);
     void on_touch_motion(uint32_t id, double x, double y);
 
+    /** Called from wl_keyboard_listener thunks. */
+    void on_keyboard_enter(struct wl_surface* surface);
+    void on_keyboard_leave(struct wl_surface* surface);
+
     wl_display* NativeDisplay() const { return display_; }
     wl_compositor* NativeCompositor() const { return compositor_; }
     xdg_wm_base* NativeXdgWmBase() const { return xdg_wm_base_; }
@@ -104,8 +108,6 @@ class WaylandWindowManager_C final : public IWindowManager {
     WaylandWindow_C* focused_window() const;
 
     WaylandWindow_C* window_for_surface(struct wl_surface* surface) const;
-    void on_keyboard_enter(struct wl_surface* surface);
-    void on_keyboard_leave(struct wl_surface* surface);
     void notify_window_focus(WaylandWindow_C* win, bool focused);
 
     wl_surface* kbd_focus_surface_ = nullptr;
