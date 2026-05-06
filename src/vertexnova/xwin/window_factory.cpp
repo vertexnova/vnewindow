@@ -69,11 +69,11 @@ std::shared_ptr<IWindowManager> WindowFactory::CreateWindowManager(WindowAPI win
 #endif
 #if VNE_XWIN_HAS_X11
         case WindowAPI::eX11Window:
-            return std::make_shared<X11WindowManager_C>();
+            return std::make_shared<X11WindowManager>();
 #endif
 #if VNE_XWIN_HAS_WAYLAND
         case WindowAPI::eWaylandWindow:
-            return std::make_shared<WaylandWindowManager_C>();
+            return std::make_shared<WaylandWindowManager>();
 #endif
 #if VNE_XWIN_HAS_WASM
         case WindowAPI::eWasmWindow:

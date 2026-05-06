@@ -12,7 +12,6 @@
 
 #include "vertexnova/xwin/window_manager.h"
 
-#include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
@@ -30,85 +29,85 @@ struct xdg_wm_base;
 
 namespace vne::xwin {
 
-class WaylandWindow_C;
+class WaylandWindow;
 
-class WaylandWindowManager_C final : public IWindowManager {
+class WaylandWindowManager final : public IWindowManager {
    public:
-    void NotifyWindowEvent(IWindow* window, const WindowEventData& event);
-    const EventBridgeCallbacks& eventBridgeCallbacks() const { return event_bridge_callbacks_; }
+    void notifyWindowEvent(IWindow* window, const WindowEventData& event);
+    [[nodiscard]] const EventBridgeCallbacks& eventBridgeCallbacks() const noexcept { return event_bridge_callbacks_; }
 
     /** @brief Bound from wl_registry global callback (xdg-shell + compositor + seat). */
-    void on_registry_global(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version);
+    void onRegistryGlobal(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version);
 
     // Seat capability callbacks — called from wl_seat_listener
-    void on_seat_capabilities(struct wl_seat* seat, uint32_t capabilities);
+    void onSeatCapabilities(struct wl_seat* seat, uint32_t capabilities);
 
     // Input event callbacks — called from wl_keyboard/pointer/touch listeners
-    void on_key(uint32_t key, uint32_t state, uint32_t time);
-    void on_modifiers(uint32_t depressed, uint32_t latched, uint32_t locked);
-    void on_pointer_button(uint32_t button, uint32_t state, double x, double y);
-    void on_pointer_motion(double x, double y);
-    void on_pointer_axis(double x_offset, double y_offset);
-    void on_output_scale(int32_t factor);
-    void on_touch_down(uint32_t id, double x, double y);
-    void on_touch_up(uint32_t id, double x, double y);
-    void on_touch_motion(uint32_t id, double x, double y);
+    void onKey(uint32_t key, uint32_t state, uint32_t time);
+    void onModifiers(uint32_t depressed, uint32_t latched, uint32_t locked);
+    void onPointerButton(uint32_t button, uint32_t state, double x, double y);
+    void onPointerMotion(double x, double y);
+    void onPointerAxis(double x_offset, double y_offset);
+    void onOutputScale(int32_t factor);
+    void onTouchDown(uint32_t id, double x, double y);
+    void onTouchUp(uint32_t id, double x, double y);
+    void onTouchMotion(uint32_t id, double x, double y);
 
     /** Called from wl_keyboard_listener thunks. */
-    void on_keyboard_enter(struct wl_surface* surface);
-    void on_keyboard_leave(struct wl_surface* surface);
+    void onKeyboardEnter(struct wl_surface* surface);
+    void onKeyboardLeave(struct wl_surface* surface);
 
-    wl_display* NativeDisplay() const { return display_; }
-    wl_compositor* NativeCompositor() const { return compositor_; }
-    xdg_wm_base* NativeXdgWmBase() const { return xdg_wm_base_; }
-    float OutputScale() const { return static_cast<float>(output_scale_); }
+    [[nodiscard]] wl_display* nativeDisplay() const noexcept { return display_; }
+    [[nodiscard]] wl_compositor* nativeCompositor() const noexcept { return compositor_; }
+    [[nodiscard]] xdg_wm_base* nativeXdgWmBase() const noexcept { return xdg_wm_base_; }
+    [[nodiscard]] float outputScale() const noexcept { return static_cast<float>(output_scale_); }
 
-    WaylandWindowManager_C();
-    ~WaylandWindowManager_C() override;
+    WaylandWindowManager();
+    ~WaylandWindowManager() override;
 
     bool Initialize() override;
     void Shutdown() override;
-    bool IsInitialized() const override;
+    [[nodiscard]] bool IsInitialized() const noexcept override;
 
     std::shared_ptr<IWindow> OpenWindow(const WindowDescriptor& descriptor) override;
     std::shared_ptr<IWindow> OpenWindow(const std::string& title, uint32_t width, uint32_t height) override;
     void RemoveWindow(std::shared_ptr<IWindow> window) override;
     void DestroyAllWindows() override;
 
-    size_t GetWindowCount() const override;
-    std::vector<std::shared_ptr<IWindow>> GetWindows() const override;
-    std::shared_ptr<IWindow> GetPrimaryWindow() const override;
-    std::shared_ptr<IWindow> GetFocusedWindow() const override;
+    [[nodiscard]] size_t GetWindowCount() const noexcept override;
+    [[nodiscard]] std::vector<std::shared_ptr<IWindow>> GetWindows() const override;
+    [[nodiscard]] std::shared_ptr<IWindow> GetPrimaryWindow() const noexcept override;
+    [[nodiscard]] std::shared_ptr<IWindow> GetFocusedWindow() const noexcept override;
     void SetPrimaryWindow(std::shared_ptr<IWindow> window) override;
     void FocusWindow(std::shared_ptr<IWindow> window) override;
 
     void ProcessEvents() override;
     void SetEventCallback(const WindowManagerEventCallback_T& callback) override;
     void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) override;
-    bool ShouldClose() const override;
-    bool ShouldCloseAll() const override;
+    [[nodiscard]] bool ShouldClose() const noexcept override;
+    [[nodiscard]] bool ShouldCloseAll() const noexcept override;
 
-    WindowAPI GetWindowAPI() const override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
     std::string GetPlatformInfo() const override;
-    bool IsFeatureSupported(const std::string& feature) const override;
-    std::string GetProperties() const override;
+    [[nodiscard]] bool IsFeatureSupported(const std::string& feature) const override;
+    [[nodiscard]] std::string GetProperties() const override;
     void SetProperties(const std::string& properties) override;
 
-    uint64_t GetCurrentTime() const override;
-    void Sleep(uint32_t milliseconds) const override;
-    double GetPlatformTime() const override;
+    [[nodiscard]] uint64_t GetCurrentTime() const noexcept override;
+    void Sleep(uint32_t milliseconds) const noexcept override;
+    [[nodiscard]] double GetPlatformTime() const noexcept override;
 
    private:
-    void bind_compositor(struct wl_registry* registry, uint32_t name, uint32_t version);
-    void bind_xdg_wm_base(struct wl_registry* registry, uint32_t name, uint32_t version);
-    void bind_seat(struct wl_registry* registry, uint32_t name, uint32_t version);
-    void teardown_globals();
+    void bindCompositor(struct wl_registry* registry, uint32_t name, uint32_t version);
+    void bindXdgWmBase(struct wl_registry* registry, uint32_t name, uint32_t version);
+    void bindSeat(struct wl_registry* registry, uint32_t name, uint32_t version);
+    void teardownGlobals();
 
     /** @brief Return the focused window (or primary fallback) for input routing. */
-    WaylandWindow_C* focused_window() const;
+    [[nodiscard]] WaylandWindow* focusedWindow() const;
 
-    WaylandWindow_C* window_for_surface(struct wl_surface* surface) const;
-    void notify_window_focus(WaylandWindow_C* win, bool focused);
+    [[nodiscard]] WaylandWindow* windowForSurface(struct wl_surface* surface) const;
+    void notifyWindowFocus(WaylandWindow* win, bool focused);
 
     wl_surface* kbd_focus_surface_ = nullptr;
 

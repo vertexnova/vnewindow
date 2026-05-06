@@ -19,24 +19,24 @@
 
 namespace vne::xwin {
 
-class X11WindowManager_C;
+class X11WindowManager;
 
-class X11Window_C final : public IWindow {
+class X11Window final : public IWindow {
    public:
-    X11Window_C();
-    ~X11Window_C() override;
+    X11Window();
+    ~X11Window() override;
 
-    void SetEventOwner(X11WindowManager_C* owner);
-    void SetDisplay(Display* display, int screen, ::Window root, void* xcb_connection);
+    void setEventOwner(X11WindowManager* owner);
+    void setDisplay(Display* display, int screen, ::Window root, void* xcb_connection);
 
     void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
     void SetWindowMode(WindowMode mode) override;
-    WindowMode GetWindowMode() const override;
+    [[nodiscard]] WindowMode GetWindowMode() const noexcept override;
     void SetFullscreen(bool enabled) override;
-    bool IsFullscreen() const override;
+    [[nodiscard]] bool IsFullscreen() const noexcept override;
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
@@ -46,28 +46,28 @@ class X11Window_C final : public IWindow {
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
     void Close() override;
-    bool IsOpen() const override;
-    void* GetNativeWindow() const override;
-    NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI GetWindowAPI() const override;
-    int GetWidth() const override;
-    int GetHeight() const override;
-    float GetDPIScale() const override;
-    std::string GetClipboardText() const override;
+    [[nodiscard]] bool IsOpen() const noexcept override;
+    [[nodiscard]] void* GetNativeWindow() const noexcept override;
+    [[nodiscard]] NativeWindowHandle GetNativeHandle() const noexcept override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
+    [[nodiscard]] int GetWidth() const noexcept override;
+    [[nodiscard]] int GetHeight() const noexcept override;
+    [[nodiscard]] float GetDPIScale() const noexcept override;
+    [[nodiscard]] std::string GetClipboardText() const override;
     void SetClipboardText(const std::string& text) override;
     void SetWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) override;
 
    private:
-    void destroy();
-    void send_ewmh_state(bool add, Atom atom1, Atom atom2 = 0);
-    void handle_selection_request(const XSelectionRequestEvent& req);
+    void destroyNative();
+    void sendEwmhState(bool add, Atom atom1, Atom atom2 = 0);
+    void handleSelectionRequest(const XSelectionRequestEvent& req);
 
     Display* display_ = nullptr;
     int screen_ = 0;
     ::Window root_ = 0;
     ::Window window_ = 0;
     void* xcb_connection_ = nullptr;
-    X11WindowManager_C* owner_ = nullptr;
+    X11WindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
     bool fullscreen_ = false;

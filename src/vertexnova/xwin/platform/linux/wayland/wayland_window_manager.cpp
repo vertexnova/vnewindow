@@ -40,7 +40,7 @@ namespace {
 // ---- Registry ----
 
 void registry_global(void* data, struct wl_registry* reg, uint32_t name, const char* iface, uint32_t ver) {
-    static_cast<WaylandWindowManager_C*>(data)->on_registry_global(reg, name, iface, ver);
+    static_cast<WaylandWindowManager*>(data)->onRegistryGlobal(reg, name, iface, ver);
 }
 void registry_global_remove(void*, struct wl_registry*, uint32_t) {}
 
@@ -56,8 +56,8 @@ void output_geometry(
 void output_mode(void*, struct wl_output*, uint32_t, int32_t, int32_t, int32_t) {}
 void output_done(void*, struct wl_output*) {}
 void output_scale(void* data, struct wl_output*, int32_t factor) {
-    auto* self = static_cast<WaylandWindowManager_C*>(data);
-    self->on_output_scale(factor);
+    auto* self = static_cast<WaylandWindowManager*>(data);
+    self->onOutputScale(factor);
 }
 const wl_output_listener kOutputListener = [] {
     wl_output_listener l{};
@@ -82,7 +82,7 @@ const xdg_wm_base_listener kXdgWmBaseListener = [] {
 // ---- wl_seat ----
 
 void seat_capabilities(void* data, struct wl_seat* seat, uint32_t caps) {
-    static_cast<WaylandWindowManager_C*>(data)->on_seat_capabilities(seat, caps);
+    static_cast<WaylandWindowManager*>(data)->onSeatCapabilities(seat, caps);
 }
 void seat_name(void*, struct wl_seat*, const char*) {}
 
@@ -99,15 +99,15 @@ void kb_keymap(void*, struct wl_keyboard*, uint32_t, int32_t, uint32_t) {}
 
 void kb_enter(
     void* data, struct wl_keyboard*, uint32_t /*serial*/, struct wl_surface* surface, struct wl_array* /*keys*/) {
-    static_cast<WaylandWindowManager_C*>(data)->on_keyboard_enter(surface);
+    static_cast<WaylandWindowManager*>(data)->onKeyboardEnter(surface);
 }
 
 void kb_leave(void* data, struct wl_keyboard*, uint32_t /*serial*/, struct wl_surface* surface) {
-    static_cast<WaylandWindowManager_C*>(data)->on_keyboard_leave(surface);
+    static_cast<WaylandWindowManager*>(data)->onKeyboardLeave(surface);
 }
 
 void kb_key(void* data, struct wl_keyboard*, uint32_t /*serial*/, uint32_t /*time*/, uint32_t key, uint32_t state) {
-    static_cast<WaylandWindowManager_C*>(data)->on_key(key, state, 0);
+    static_cast<WaylandWindowManager*>(data)->onKey(key, state, 0);
 }
 
 void kb_modifiers(void* data,
@@ -117,7 +117,7 @@ void kb_modifiers(void* data,
                   uint32_t latched,
                   uint32_t locked,
                   uint32_t /*group*/) {
-    static_cast<WaylandWindowManager_C*>(data)->on_modifiers(depressed, latched, locked);
+    static_cast<WaylandWindowManager*>(data)->onModifiers(depressed, latched, locked);
 }
 
 void kb_repeat_info(void*, struct wl_keyboard*, int32_t, int32_t) {}
@@ -142,23 +142,23 @@ void ptr_enter(void*, struct wl_pointer*, uint32_t, struct wl_surface*, wl_fixed
 void ptr_leave(void*, struct wl_pointer*, uint32_t, struct wl_surface*) {}
 
 void ptr_motion(void* data, struct wl_pointer*, uint32_t /*time*/, wl_fixed_t sx, wl_fixed_t sy) {
-    static_cast<WaylandWindowManager_C*>(data)->on_pointer_motion(wl_fixed_to_double(sx), wl_fixed_to_double(sy));
+    static_cast<WaylandWindowManager*>(data)->onPointerMotion(wl_fixed_to_double(sx), wl_fixed_to_double(sy));
 }
 
 void ptr_button(
     void* data, struct wl_pointer*, uint32_t /*serial*/, uint32_t /*time*/, uint32_t button, uint32_t state) {
     // We don't have separate coords in the button event; use last known position
-    // stored by on_pointer_motion. Pass 0 here; manager will use cached coords.
-    static_cast<WaylandWindowManager_C*>(data)->on_pointer_button(button, state, -1.0, -1.0);
+    // stored by onPointerMotion. Pass 0 here; manager will use cached coords.
+    static_cast<WaylandWindowManager*>(data)->onPointerButton(button, state, -1.0, -1.0);
 }
 
 void ptr_axis(void* data, struct wl_pointer*, uint32_t /*time*/, uint32_t axis, wl_fixed_t value) {
     // axis 0 = vertical, axis 1 = horizontal
     const double v = wl_fixed_to_double(value) / -10.0;  // normalise to scroll steps
     if (axis == 0) {
-        static_cast<WaylandWindowManager_C*>(data)->on_pointer_axis(0.0, v);
+        static_cast<WaylandWindowManager*>(data)->onPointerAxis(0.0, v);
     } else {
-        static_cast<WaylandWindowManager_C*>(data)->on_pointer_axis(v, 0.0);
+        static_cast<WaylandWindowManager*>(data)->onPointerAxis(v, 0.0);
     }
 }
 
@@ -191,17 +191,17 @@ void touch_down(void* data,
                 int32_t id,
                 wl_fixed_t x,
                 wl_fixed_t y) {
-    static_cast<WaylandWindowManager_C*>(data)->on_touch_down(static_cast<uint32_t>(id),
-                                                              wl_fixed_to_double(x),
-                                                              wl_fixed_to_double(y));
+    static_cast<WaylandWindowManager*>(data)->onTouchDown(static_cast<uint32_t>(id),
+                                                          wl_fixed_to_double(x),
+                                                          wl_fixed_to_double(y));
 }
 void touch_up(void* data, struct wl_touch*, uint32_t /*serial*/, uint32_t /*time*/, int32_t id) {
-    static_cast<WaylandWindowManager_C*>(data)->on_touch_up(static_cast<uint32_t>(id), 0.0, 0.0);
+    static_cast<WaylandWindowManager*>(data)->onTouchUp(static_cast<uint32_t>(id), 0.0, 0.0);
 }
 void touch_motion(void* data, struct wl_touch*, uint32_t /*time*/, int32_t id, wl_fixed_t x, wl_fixed_t y) {
-    static_cast<WaylandWindowManager_C*>(data)->on_touch_motion(static_cast<uint32_t>(id),
-                                                                wl_fixed_to_double(x),
-                                                                wl_fixed_to_double(y));
+    static_cast<WaylandWindowManager*>(data)->onTouchMotion(static_cast<uint32_t>(id),
+                                                            wl_fixed_to_double(x),
+                                                            wl_fixed_to_double(y));
 }
 void touch_frame(void*, struct wl_touch*) {}
 void touch_cancel(void*, struct wl_touch*) {}
@@ -223,39 +223,39 @@ const wl_touch_listener kTouchListener = [] {
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// WaylandWindowManager_C — input dispatch helpers
+// WaylandWindowManager — input dispatch helpers
 // ---------------------------------------------------------------------------
 
-WaylandWindow_C* WaylandWindowManager_C::focused_window() const {
+WaylandWindow* WaylandWindowManager::focusedWindow() const {
     if (kbd_focus_surface_) {
-        WaylandWindow_C* w = window_for_surface(kbd_focus_surface_);
+        WaylandWindow* w = windowForSurface(kbd_focus_surface_);
         if (w) {
             return w;
         }
     }
     if (focused_) {
-        return dynamic_cast<WaylandWindow_C*>(focused_.get());
+        return dynamic_cast<WaylandWindow*>(focused_.get());
     }
     if (primary_) {
-        return dynamic_cast<WaylandWindow_C*>(primary_.get());
+        return dynamic_cast<WaylandWindow*>(primary_.get());
     }
     return nullptr;
 }
 
-WaylandWindow_C* WaylandWindowManager_C::window_for_surface(wl_surface* surface) const {
+WaylandWindow* WaylandWindowManager::windowForSurface(wl_surface* surface) const {
     if (!surface) {
         return nullptr;
     }
     for (const auto& w : windows_) {
-        auto* wl = dynamic_cast<WaylandWindow_C*>(w.get());
-        if (wl && wl->native_surface() == surface) {
+        auto* wl = dynamic_cast<WaylandWindow*>(w.get());
+        if (wl && wl->nativeSurface() == surface) {
             return wl;
         }
     }
     return nullptr;
 }
 
-void WaylandWindowManager_C::on_keyboard_enter(wl_surface* surface) {
+void WaylandWindowManager::onKeyboardEnter(wl_surface* surface) {
     if (!surface) {
         return;
     }
@@ -263,13 +263,13 @@ void WaylandWindowManager_C::on_keyboard_enter(wl_surface* surface) {
         return;
     }
     if (kbd_focus_surface_ && kbd_focus_surface_ != surface) {
-        WaylandWindow_C* prev = window_for_surface(kbd_focus_surface_);
+        WaylandWindow* prev = windowForSurface(kbd_focus_surface_);
         if (prev) {
-            notify_window_focus(prev, false);
+            notifyWindowFocus(prev, false);
         }
     }
     kbd_focus_surface_ = surface;
-    WaylandWindow_C* win = window_for_surface(surface);
+    WaylandWindow* win = windowForSurface(surface);
     if (win) {
         for (auto& w : windows_) {
             if (w.get() == win) {
@@ -277,25 +277,25 @@ void WaylandWindowManager_C::on_keyboard_enter(wl_surface* surface) {
                 break;
             }
         }
-        notify_window_focus(win, true);
+        notifyWindowFocus(win, true);
     }
 }
 
-void WaylandWindowManager_C::on_keyboard_leave(wl_surface* surface) {
+void WaylandWindowManager::onKeyboardLeave(wl_surface* surface) {
     if (!surface) {
         return;
     }
     if (kbd_focus_surface_ != surface) {
         return;
     }
-    WaylandWindow_C* win = window_for_surface(surface);
+    WaylandWindow* win = windowForSurface(surface);
     kbd_focus_surface_ = nullptr;
     if (win) {
-        notify_window_focus(win, false);
+        notifyWindowFocus(win, false);
     }
 }
 
-void WaylandWindowManager_C::notify_window_focus(WaylandWindow_C* win, bool focused) {
+void WaylandWindowManager::notifyWindowFocus(WaylandWindow* win, bool focused) {
     if (!win) {
         return;
     }
@@ -303,11 +303,11 @@ void WaylandWindowManager_C::notify_window_focus(WaylandWindow_C* win, bool focu
     WindowEventData ev{};
     ev.type = WindowEventType::eFocus;
     ev.focused = focused;
-    NotifyWindowEvent(win, ev);
+    notifyWindowEvent(win, ev);
 }
 
-void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t /*time*/) {
-    WaylandWindow_C* win = focused_window();
+void WaylandWindowManager::onKey(uint32_t linux_key, uint32_t state, uint32_t /*time*/) {
+    WaylandWindow* win = focusedWindow();
     if (!win) {
         return;
     }
@@ -544,16 +544,16 @@ void WaylandWindowManager_C::on_key(uint32_t linux_key, uint32_t state, uint32_t
     }
 }
 
-void WaylandWindowManager_C::on_modifiers(uint32_t dep, uint32_t lat, uint32_t lock) {
+void WaylandWindowManager::onModifiers(uint32_t dep, uint32_t lat, uint32_t lock) {
     mod_depressed_ = dep;
     mod_latched_ = lat;
     mod_locked_ = lock;
 }
 
-void WaylandWindowManager_C::on_pointer_motion(double x, double y) {
+void WaylandWindowManager::onPointerMotion(double x, double y) {
     ptr_x_ = x;
     ptr_y_ = y;
-    WaylandWindow_C* win = focused_window();
+    WaylandWindow* win = focusedWindow();
     if (!win) {
         return;
     }
@@ -564,8 +564,8 @@ void WaylandWindowManager_C::on_pointer_motion(double x, double y) {
     eventBridgeMouseMove(win, desc, event_bridge_callbacks_, x, y, mods);
 }
 
-void WaylandWindowManager_C::on_pointer_button(uint32_t button, uint32_t state, double x, double y) {
-    WaylandWindow_C* win = focused_window();
+void WaylandWindowManager::onPointerButton(uint32_t button, uint32_t state, double x, double y) {
+    WaylandWindow* win = focusedWindow();
     if (!win) {
         return;
     }
@@ -582,8 +582,8 @@ void WaylandWindowManager_C::on_pointer_button(uint32_t button, uint32_t state, 
     eventBridgeMouseButton(win, desc, event_bridge_callbacks_, mb, pressed, px, py, mods);
 }
 
-void WaylandWindowManager_C::on_pointer_axis(double x_off, double y_off) {
-    WaylandWindow_C* win = focused_window();
+void WaylandWindowManager::onPointerAxis(double x_off, double y_off) {
+    WaylandWindow* win = focusedWindow();
     if (!win) {
         return;
     }
@@ -594,37 +594,37 @@ void WaylandWindowManager_C::on_pointer_axis(double x_off, double y_off) {
                            static_cast<float>(y_off));
 }
 
-void WaylandWindowManager_C::on_output_scale(int32_t factor) {
+void WaylandWindowManager::onOutputScale(int32_t factor) {
     if (factor > 0) {
         output_scale_ = factor;
     }
 }
 
-void WaylandWindowManager_C::on_touch_down(uint32_t id, double x, double y) {
-    WaylandWindow_C* win = focused_window();
+void WaylandWindowManager::onTouchDown(uint32_t id, double x, double y) {
+    WaylandWindow* win = focusedWindow();
     if (!win) {
         return;
     }
     eventBridgeTouch(win, win->descriptor(), event_bridge_callbacks_, id, x, y, EventBridgeTouchPhase::eDown);
 }
 
-void WaylandWindowManager_C::on_touch_up(uint32_t id, double x, double y) {
-    WaylandWindow_C* win = focused_window();
+void WaylandWindowManager::onTouchUp(uint32_t id, double x, double y) {
+    WaylandWindow* win = focusedWindow();
     if (!win) {
         return;
     }
     eventBridgeTouch(win, win->descriptor(), event_bridge_callbacks_, id, x, y, EventBridgeTouchPhase::eUp);
 }
 
-void WaylandWindowManager_C::on_touch_motion(uint32_t id, double x, double y) {
-    WaylandWindow_C* win = focused_window();
+void WaylandWindowManager::onTouchMotion(uint32_t id, double x, double y) {
+    WaylandWindow* win = focusedWindow();
     if (!win) {
         return;
     }
     eventBridgeTouch(win, win->descriptor(), event_bridge_callbacks_, id, x, y, EventBridgeTouchPhase::eMove);
 }
 
-void WaylandWindowManager_C::on_seat_capabilities(struct wl_seat* seat, uint32_t caps) {
+void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t caps) {
     const bool has_kb = (caps & WL_SEAT_CAPABILITY_KEYBOARD) != 0U;
     const bool has_ptr = (caps & WL_SEAT_CAPABILITY_POINTER) != 0U;
     const bool has_tch = (caps & WL_SEAT_CAPABILITY_TOUCH) != 0U;
@@ -664,16 +664,16 @@ void WaylandWindowManager_C::on_seat_capabilities(struct wl_seat* seat, uint32_t
 // Registry / globals
 // ---------------------------------------------------------------------------
 
-void WaylandWindowManager_C::on_registry_global(struct wl_registry* registry,
-                                                uint32_t name,
-                                                const char* interface,
-                                                uint32_t version) {
+void WaylandWindowManager::onRegistryGlobal(struct wl_registry* registry,
+                                            uint32_t name,
+                                            const char* interface,
+                                            uint32_t version) {
     if (std::strcmp(interface, wl_compositor_interface.name) == 0) {
-        bind_compositor(registry, name, version);
+        bindCompositor(registry, name, version);
     } else if (std::strcmp(interface, xdg_wm_base_interface.name) == 0) {
-        bind_xdg_wm_base(registry, name, version);
+        bindXdgWmBase(registry, name, version);
     } else if (std::strcmp(interface, wl_seat_interface.name) == 0) {
-        bind_seat(registry, name, version);
+        bindSeat(registry, name, version);
     } else if (std::strcmp(interface, wl_output_interface.name) == 0 && !output_) {
         const uint32_t ver = version < 2U ? version : 2U;
         output_ = static_cast<wl_output*>(wl_registry_bind(registry, name, &wl_output_interface, ver));
@@ -683,12 +683,12 @@ void WaylandWindowManager_C::on_registry_global(struct wl_registry* registry,
     }
 }
 
-void WaylandWindowManager_C::bind_compositor(struct wl_registry* registry, uint32_t name, uint32_t version) {
+void WaylandWindowManager::bindCompositor(struct wl_registry* registry, uint32_t name, uint32_t version) {
     (void)version;
     compositor_ = static_cast<wl_compositor*>(wl_registry_bind(registry, name, &wl_compositor_interface, 4));
 }
 
-void WaylandWindowManager_C::bind_xdg_wm_base(struct wl_registry* registry, uint32_t name, uint32_t version) {
+void WaylandWindowManager::bindXdgWmBase(struct wl_registry* registry, uint32_t name, uint32_t version) {
     const uint32_t ver = version < 4U ? version : 4U;
     xdg_wm_base_ = static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, ver));
     if (xdg_wm_base_) {
@@ -696,7 +696,7 @@ void WaylandWindowManager_C::bind_xdg_wm_base(struct wl_registry* registry, uint
     }
 }
 
-void WaylandWindowManager_C::bind_seat(struct wl_registry* registry, uint32_t name, uint32_t version) {
+void WaylandWindowManager::bindSeat(struct wl_registry* registry, uint32_t name, uint32_t version) {
     const uint32_t ver = version < 5U ? version : 5U;
     seat_ = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, ver));
     if (seat_) {
@@ -708,19 +708,19 @@ void WaylandWindowManager_C::bind_seat(struct wl_registry* registry, uint32_t na
 // Standard IWindowManager lifecycle (unchanged logic, only teardown extended)
 // ---------------------------------------------------------------------------
 
-WaylandWindowManager_C::WaylandWindowManager_C() = default;
+WaylandWindowManager::WaylandWindowManager() = default;
 
-WaylandWindowManager_C::~WaylandWindowManager_C() {
+WaylandWindowManager::~WaylandWindowManager() {
     Shutdown();
 }
 
-void WaylandWindowManager_C::NotifyWindowEvent(IWindow* window, const WindowEventData& event) {
+void WaylandWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
     if (callback_ && window) {
         callback_(window, event);
     }
 }
 
-bool WaylandWindowManager_C::Initialize() {
+bool WaylandWindowManager::Initialize() {
     display_ = wl_display_connect(nullptr);
     if (!display_) {
         return false;
@@ -746,7 +746,7 @@ bool WaylandWindowManager_C::Initialize() {
     return true;
 }
 
-void WaylandWindowManager_C::teardown_globals() {
+void WaylandWindowManager::teardownGlobals() {
     kbd_focus_surface_ = nullptr;
     if (keyboard_) {
         wl_keyboard_destroy(keyboard_);
@@ -786,22 +786,22 @@ void WaylandWindowManager_C::teardown_globals() {
     }
 }
 
-void WaylandWindowManager_C::Shutdown() {
+void WaylandWindowManager::Shutdown() {
     DestroyAllWindows();
-    teardown_globals();
+    teardownGlobals();
     initialized_ = false;
 }
 
-bool WaylandWindowManager_C::IsInitialized() const {
+bool WaylandWindowManager::IsInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> WaylandWindowManager_C::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> WaylandWindowManager::OpenWindow(const WindowDescriptor& descriptor) {
     if (!initialized_ || !display_ || !compositor_ || !xdg_wm_base_) {
         return nullptr;
     }
-    auto w = std::make_shared<WaylandWindow_C>();
-    w->SetOwner(this);
+    auto w = std::make_shared<WaylandWindow>();
+    w->setEventOwner(this);
     w->Initialize(descriptor);
     if (!w->IsOpen()) {
         return nullptr;
@@ -814,11 +814,11 @@ std::shared_ptr<IWindow> WaylandWindowManager_C::OpenWindow(const WindowDescript
     return w;
 }
 
-std::shared_ptr<IWindow> WaylandWindowManager_C::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
+std::shared_ptr<IWindow> WaylandWindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
     return OpenWindow(WindowDescriptor(title, width, height));
 }
 
-void WaylandWindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
+void WaylandWindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
@@ -835,7 +835,7 @@ void WaylandWindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void WaylandWindowManager_C::DestroyAllWindows() {
+void WaylandWindowManager::DestroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
             w->Close();
@@ -846,39 +846,39 @@ void WaylandWindowManager_C::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t WaylandWindowManager_C::GetWindowCount() const {
+size_t WaylandWindowManager::GetWindowCount() const noexcept {
     return windows_.size();
 }
-std::vector<std::shared_ptr<IWindow>> WaylandWindowManager_C::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> WaylandWindowManager::GetWindows() const {
     return windows_;
 }
-std::shared_ptr<IWindow> WaylandWindowManager_C::GetPrimaryWindow() const {
+std::shared_ptr<IWindow> WaylandWindowManager::GetPrimaryWindow() const noexcept {
     return primary_;
 }
-std::shared_ptr<IWindow> WaylandWindowManager_C::GetFocusedWindow() const {
+std::shared_ptr<IWindow> WaylandWindowManager::GetFocusedWindow() const noexcept {
     return focused_;
 }
-void WaylandWindowManager_C::SetPrimaryWindow(std::shared_ptr<IWindow> w) {
+void WaylandWindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> w) {
     primary_ = std::move(w);
 }
-void WaylandWindowManager_C::FocusWindow(std::shared_ptr<IWindow> w) {
+void WaylandWindowManager::FocusWindow(std::shared_ptr<IWindow> w) {
     focused_ = std::move(w);
 }
 
-void WaylandWindowManager_C::ProcessEvents() {
+void WaylandWindowManager::ProcessEvents() {
     if (display_) {
         wl_display_dispatch_pending(display_);
     }
 }
 
-void WaylandWindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& cb) {
+void WaylandWindowManager::SetEventCallback(const WindowManagerEventCallback_T& cb) {
     callback_ = cb;
 }
-void WaylandWindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks cbs) {
+void WaylandWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks cbs) {
     event_bridge_callbacks_ = std::move(cbs);
 }
 
-bool WaylandWindowManager_C::ShouldClose() const {
+bool WaylandWindowManager::ShouldClose() const noexcept {
     for (const auto& w : windows_) {
         if (w && !w->IsOpen()) {
             return true;
@@ -887,7 +887,7 @@ bool WaylandWindowManager_C::ShouldClose() const {
     return false;
 }
 
-bool WaylandWindowManager_C::ShouldCloseAll() const {
+bool WaylandWindowManager::ShouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
@@ -899,30 +899,30 @@ bool WaylandWindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI WaylandWindowManager_C::GetWindowAPI() const {
+WindowAPI WaylandWindowManager::GetWindowAPI() const noexcept {
     return WindowAPI::eWaylandWindow;
 }
-std::string WaylandWindowManager_C::GetPlatformInfo() const {
+std::string WaylandWindowManager::GetPlatformInfo() const {
     return "Linux / Wayland (xdg-shell)";
 }
-bool WaylandWindowManager_C::IsFeatureSupported(const std::string& f) const {
+bool WaylandWindowManager::IsFeatureSupported(const std::string& f) const {
     return f == "resize" || f == "close" || f == "wayland" || f == "touch";
 }
-std::string WaylandWindowManager_C::GetProperties() const {
+std::string WaylandWindowManager::GetProperties() const {
     return properties_;
 }
-void WaylandWindowManager_C::SetProperties(const std::string& p) {
+void WaylandWindowManager::SetProperties(const std::string& p) {
     properties_ = p;
 }
 
-uint64_t WaylandWindowManager_C::GetCurrentTime() const {
+uint64_t WaylandWindowManager::GetCurrentTime() const noexcept {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
-void WaylandWindowManager_C::Sleep(uint32_t ms) const {
+void WaylandWindowManager::Sleep(uint32_t ms) const noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
-double WaylandWindowManager_C::GetPlatformTime() const {
+double WaylandWindowManager::GetPlatformTime() const noexcept {
     using namespace std::chrono;
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }

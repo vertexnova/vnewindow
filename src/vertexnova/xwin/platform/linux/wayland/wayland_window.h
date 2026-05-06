@@ -20,24 +20,24 @@ struct xdg_toplevel;
 
 namespace vne::xwin {
 
-class WaylandWindowManager_C;
+class WaylandWindowManager;
 
-class WaylandWindow_C final : public IWindow {
+class WaylandWindow final : public IWindow {
    public:
-    WaylandWindow_C();
-    ~WaylandWindow_C() override;
+    WaylandWindow();
+    ~WaylandWindow() override;
 
-    void SetOwner(WaylandWindowManager_C* owner);
-    const WindowDescriptor& descriptor() const { return desc_; }
+    void setEventOwner(WaylandWindowManager* owner);
+    [[nodiscard]] const WindowDescriptor& descriptor() const noexcept { return desc_; }
 
     void Initialize(const WindowDescriptor& descriptor) override;
     void PollEvents() override;
     void SwapBuffers() override;
     void SetTitle(const std::string& title) override;
     void SetWindowMode(WindowMode mode) override;
-    WindowMode GetWindowMode() const override;
+    [[nodiscard]] WindowMode GetWindowMode() const noexcept override;
     void SetFullscreen(bool enabled) override;
-    bool IsFullscreen() const override;
+    [[nodiscard]] bool IsFullscreen() const noexcept override;
     void Minimize() override;
     void Maximize() override;
     void Restore() override;
@@ -47,25 +47,25 @@ class WaylandWindow_C final : public IWindow {
     void GetPosition(int& x, int& y) const override;
     void Resize(uint32_t width, uint32_t height) override;
     void Close() override;
-    bool IsOpen() const override;
-    void* GetNativeWindow() const override;
-    NativeWindowHandle GetNativeHandle() const override;
-    WindowAPI GetWindowAPI() const override;
-    int GetWidth() const override;
-    int GetHeight() const override;
-    float GetDPIScale() const override;
+    [[nodiscard]] bool IsOpen() const noexcept override;
+    [[nodiscard]] void* GetNativeWindow() const noexcept override;
+    [[nodiscard]] NativeWindowHandle GetNativeHandle() const noexcept override;
+    [[nodiscard]] WindowAPI GetWindowAPI() const noexcept override;
+    [[nodiscard]] int GetWidth() const noexcept override;
+    [[nodiscard]] int GetHeight() const noexcept override;
+    [[nodiscard]] float GetDPIScale() const noexcept override;
 
     /** Called from Wayland listener thunks (xdg_toplevel_listener). */
-    void apply_toplevel_configure(uint32_t width, uint32_t height);
-    void apply_toplevel_close();
+    void applyToplevelConfigure(uint32_t width, uint32_t height);
+    void applyToplevelClose();
 
     /** Same pointer registered with the compositor (keyboard/pointer focus mapping). */
-    wl_surface* native_surface() const { return surface_; }
+    [[nodiscard]] wl_surface* nativeSurface() const noexcept { return surface_; }
 
    private:
-    void destroy_surfaces();
+    void destroySurfaces();
 
-    WaylandWindowManager_C* owner_ = nullptr;
+    WaylandWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
     bool fullscreen_ = false;

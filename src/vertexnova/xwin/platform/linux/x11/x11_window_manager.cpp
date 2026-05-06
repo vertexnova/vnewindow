@@ -23,19 +23,19 @@
 
 namespace vne::xwin {
 
-X11WindowManager_C::X11WindowManager_C() = default;
+X11WindowManager::X11WindowManager() = default;
 
-X11WindowManager_C::~X11WindowManager_C() {
+X11WindowManager::~X11WindowManager() {
     Shutdown();
 }
 
-void X11WindowManager_C::NotifyWindowEvent(IWindow* window, const WindowEventData& event) {
+void X11WindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
     if (callback_ && window) {
         callback_(window, event);
     }
 }
 
-bool X11WindowManager_C::Initialize() {
+bool X11WindowManager::Initialize() {
     display_ = XOpenDisplay(nullptr);
     if (!display_) {
         return false;
@@ -49,7 +49,7 @@ bool X11WindowManager_C::Initialize() {
     return true;
 }
 
-void X11WindowManager_C::Shutdown() {
+void X11WindowManager::Shutdown() {
     DestroyAllWindows();
     if (display_) {
         XCloseDisplay(display_);
@@ -59,17 +59,17 @@ void X11WindowManager_C::Shutdown() {
     initialized_ = false;
 }
 
-bool X11WindowManager_C::IsInitialized() const {
+bool X11WindowManager::IsInitialized() const noexcept {
     return initialized_;
 }
 
-std::shared_ptr<IWindow> X11WindowManager_C::OpenWindow(const WindowDescriptor& descriptor) {
+std::shared_ptr<IWindow> X11WindowManager::OpenWindow(const WindowDescriptor& descriptor) {
     if (!initialized_ || !display_) {
         return nullptr;
     }
-    auto w = std::make_shared<X11Window_C>();
-    w->SetEventOwner(this);
-    w->SetDisplay(display_, screen_, root_, xcb_connection_);
+    auto w = std::make_shared<X11Window>();
+    w->setEventOwner(this);
+    w->setDisplay(display_, screen_, root_, xcb_connection_);
     w->Initialize(descriptor);
     if (!w->IsOpen()) {
         return nullptr;
@@ -82,12 +82,12 @@ std::shared_ptr<IWindow> X11WindowManager_C::OpenWindow(const WindowDescriptor& 
     return w;
 }
 
-std::shared_ptr<IWindow> X11WindowManager_C::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
-    WindowDescriptor d(title, width, height);
-    return OpenWindow(d);
+std::shared_ptr<IWindow> X11WindowManager::OpenWindow(const std::string& title, uint32_t width, uint32_t height) {
+    WindowDescriptor descriptor(title, width, height);
+    return OpenWindow(descriptor);
 }
 
-void X11WindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
+void X11WindowManager::RemoveWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
@@ -104,7 +104,7 @@ void X11WindowManager_C::RemoveWindow(std::shared_ptr<IWindow> window) {
     }
 }
 
-void X11WindowManager_C::DestroyAllWindows() {
+void X11WindowManager::DestroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
             w->Close();
@@ -115,31 +115,31 @@ void X11WindowManager_C::DestroyAllWindows() {
     focused_.reset();
 }
 
-size_t X11WindowManager_C::GetWindowCount() const {
+size_t X11WindowManager::GetWindowCount() const noexcept {
     return windows_.size();
 }
 
-std::vector<std::shared_ptr<IWindow>> X11WindowManager_C::GetWindows() const {
+std::vector<std::shared_ptr<IWindow>> X11WindowManager::GetWindows() const {
     return windows_;
 }
 
-std::shared_ptr<IWindow> X11WindowManager_C::GetPrimaryWindow() const {
+std::shared_ptr<IWindow> X11WindowManager::GetPrimaryWindow() const noexcept {
     return primary_;
 }
 
-std::shared_ptr<IWindow> X11WindowManager_C::GetFocusedWindow() const {
+std::shared_ptr<IWindow> X11WindowManager::GetFocusedWindow() const noexcept {
     return focused_;
 }
 
-void X11WindowManager_C::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
+void X11WindowManager::SetPrimaryWindow(std::shared_ptr<IWindow> window) {
     primary_ = std::move(window);
 }
 
-void X11WindowManager_C::FocusWindow(std::shared_ptr<IWindow> window) {
+void X11WindowManager::FocusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
 }
 
-void X11WindowManager_C::ProcessEvents() {
+void X11WindowManager::ProcessEvents() {
     for (auto& w : windows_) {
         if (w) {
             w->PollEvents();
@@ -147,15 +147,15 @@ void X11WindowManager_C::ProcessEvents() {
     }
 }
 
-void X11WindowManager_C::SetEventCallback(const WindowManagerEventCallback_T& callback) {
+void X11WindowManager::SetEventCallback(const WindowManagerEventCallback_T& callback) {
     callback_ = callback;
 }
 
-void X11WindowManager_C::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
+void X11WindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
     event_bridge_callbacks_ = std::move(callbacks);
 }
 
-bool X11WindowManager_C::ShouldClose() const {
+bool X11WindowManager::ShouldClose() const noexcept {
     for (const auto& w : windows_) {
         if (w && !w->IsOpen()) {
             return true;
@@ -164,7 +164,7 @@ bool X11WindowManager_C::ShouldClose() const {
     return false;
 }
 
-bool X11WindowManager_C::ShouldCloseAll() const {
+bool X11WindowManager::ShouldCloseAll() const noexcept {
     if (windows_.empty()) {
         return false;
     }
@@ -176,36 +176,36 @@ bool X11WindowManager_C::ShouldCloseAll() const {
     return true;
 }
 
-WindowAPI X11WindowManager_C::GetWindowAPI() const {
+WindowAPI X11WindowManager::GetWindowAPI() const noexcept {
     return WindowAPI::eX11Window;
 }
 
-std::string X11WindowManager_C::GetPlatformInfo() const {
+std::string X11WindowManager::GetPlatformInfo() const {
     return "Linux X11 (Xlib)";
 }
 
-bool X11WindowManager_C::IsFeatureSupported(const std::string& feature) const {
+bool X11WindowManager::IsFeatureSupported(const std::string& feature) const {
     return feature == "resize" || feature == "decorated";
 }
 
-std::string X11WindowManager_C::GetProperties() const {
+std::string X11WindowManager::GetProperties() const {
     return properties_;
 }
 
-void X11WindowManager_C::SetProperties(const std::string& properties) {
+void X11WindowManager::SetProperties(const std::string& properties) {
     properties_ = properties;
 }
 
-uint64_t X11WindowManager_C::GetCurrentTime() const {
+uint64_t X11WindowManager::GetCurrentTime() const noexcept {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-void X11WindowManager_C::Sleep(uint32_t milliseconds) const {
+void X11WindowManager::Sleep(uint32_t milliseconds) const noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
-double X11WindowManager_C::GetPlatformTime() const {
+double X11WindowManager::GetPlatformTime() const noexcept {
     using namespace std::chrono;
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }
