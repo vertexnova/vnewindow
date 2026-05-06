@@ -19,7 +19,7 @@
 
 namespace vne::xwin {
 
- /*
+/*
  * Pass ANativeWindow* via WindowDescriptor::platform_data from JNI / GameActivity.
  *
  * Input delivery pattern
