@@ -31,7 +31,6 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 - (void)scene:(UIScene*)scene
     willConnectToSession:(UISceneSession*)session
                  options:(UISceneConnectionOptions*)connectionOptions {
-
     _isShutdown = NO;
     UIWindowScene* windowScene = (UIWindowScene*)scene;
 
@@ -59,8 +58,7 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 
         if (xwinView) {
             xwinView.frame = vc.view.bounds;
-            xwinView.autoresizingMask =
-                UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+            xwinView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
             [vc.view addSubview:xwinView];
         }
 
@@ -69,10 +67,8 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
     }
 
     // CADisplayLink drives the per-frame tick (replaces the desktop while loop)
-    _displayLink = [CADisplayLink displayLinkWithTarget:self
-                                               selector:@selector(_onFrame)];
-    [_displayLink addToRunLoop:NSRunLoop.mainRunLoop
-                       forMode:NSRunLoopCommonModes];
+    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(_onFrame)];
+    [_displayLink addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
 }
 
 - (void)_onFrame {

@@ -16,6 +16,6 @@
 
 @interface ExampleSceneDelegate : UIResponder <UIWindowSceneDelegate>
 
-@property (strong, nonatomic) UIWindow* window;
+@property(strong, nonatomic) UIWindow* window;
 
 @end
