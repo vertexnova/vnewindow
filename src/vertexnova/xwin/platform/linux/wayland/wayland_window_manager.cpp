@@ -42,7 +42,9 @@ namespace {
 void registry_global(void* data, struct wl_registry* reg, uint32_t name, const char* iface, uint32_t ver) {
     static_cast<WaylandWindowManager*>(data)->onRegistryGlobal(reg, name, iface, ver);
 }
-void registry_global_remove(void*, struct wl_registry*, uint32_t) {}
+void registry_global_remove(void* data, struct wl_registry*, uint32_t name) {
+    static_cast<WaylandWindowManager*>(data)->onRegistryGlobalRemove(name);
+}
 
 const wl_registry_listener kRegistryListener = [] {
     wl_registry_listener l{};
@@ -55,9 +57,9 @@ void output_geometry(
     void*, struct wl_output*, int32_t, int32_t, int32_t, int32_t, int32_t, const char*, const char*, int32_t) {}
 void output_mode(void*, struct wl_output*, uint32_t, int32_t, int32_t, int32_t) {}
 void output_done(void*, struct wl_output*) {}
-void output_scale(void* data, struct wl_output*, int32_t factor) {
+void output_scale(void* data, struct wl_output* output, int32_t factor) {
     auto* self = static_cast<WaylandWindowManager*>(data);
-    self->onOutputScale(factor);
+    self->onOutputScale(output, factor);
 }
 const wl_output_listener kOutputListener = [] {
     wl_output_listener l{};
@@ -594,9 +596,16 @@ void WaylandWindowManager::onPointerAxis(double x_off, double y_off) {
                            static_cast<float>(y_off));
 }
 
-void WaylandWindowManager::onOutputScale(int32_t factor) {
-    if (factor > 0) {
-        output_scale_ = factor;
+void WaylandWindowManager::onOutputScale(struct wl_output* output, int32_t factor) {
+    if (!output || factor <= 0) {
+        return;
+    }
+    for (auto& [_, info] : outputs_) {
+        if (info.output == output) {
+            info.scale = factor;
+            recomputeOutputScale();
+            return;
+        }
     }
 }
 
@@ -674,13 +683,27 @@ void WaylandWindowManager::onRegistryGlobal(struct wl_registry* registry,
         bindXdgWmBase(registry, name, version);
     } else if (std::strcmp(interface, wl_seat_interface.name) == 0) {
         bindSeat(registry, name, version);
-    } else if (std::strcmp(interface, wl_output_interface.name) == 0 && !output_) {
+    } else if (std::strcmp(interface, wl_output_interface.name) == 0) {
         const uint32_t ver = version < 2U ? version : 2U;
-        output_ = static_cast<wl_output*>(wl_registry_bind(registry, name, &wl_output_interface, ver));
-        if (output_) {
-            wl_output_add_listener(output_, &kOutputListener, this);
+        wl_output* output = static_cast<wl_output*>(wl_registry_bind(registry, name, &wl_output_interface, ver));
+        if (output) {
+            wl_output_add_listener(output, &kOutputListener, this);
+            outputs_[name] = OutputInfo{output, 1};
+            recomputeOutputScale();
         }
     }
+}
+
+void WaylandWindowManager::onRegistryGlobalRemove(uint32_t name) {
+    auto it = outputs_.find(name);
+    if (it == outputs_.end()) {
+        return;
+    }
+    if (it->second.output) {
+        wl_output_destroy(it->second.output);
+    }
+    outputs_.erase(it);
+    recomputeOutputScale();
 }
 
 void WaylandWindowManager::bindCompositor(struct wl_registry* registry, uint32_t name, uint32_t version) {
@@ -763,10 +786,13 @@ void WaylandWindowManager::teardownGlobals() {
         wl_touch_destroy(wl_touch_);
         wl_touch_ = nullptr;
     }
-    if (output_) {
-        wl_output_destroy(output_);
-        output_ = nullptr;
+    for (auto& [_, info] : outputs_) {
+        if (info.output) {
+            wl_output_destroy(info.output);
+        }
     }
+    outputs_.clear();
+    output_scale_ = 1;
     if (seat_) {
         wl_seat_destroy(seat_);
         seat_ = nullptr;
@@ -787,6 +813,16 @@ void WaylandWindowManager::teardownGlobals() {
         wl_display_disconnect(display_);
         display_ = nullptr;
     }
+}
+
+void WaylandWindowManager::recomputeOutputScale() noexcept {
+    int32_t scale = 1;
+    for (const auto& [_, info] : outputs_) {
+        if (info.scale > scale) {
+            scale = info.scale;
+        }
+    }
+    output_scale_ = scale;
 }
 
 void WaylandWindowManager::shutdown() {

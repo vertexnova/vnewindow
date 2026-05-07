@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct wl_display;
@@ -38,6 +39,7 @@ class WaylandWindowManager final : public IWindowManager {
 
     /** @brief Bound from wl_registry global callback (xdg-shell + compositor + seat). */
     void onRegistryGlobal(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version);
+    void onRegistryGlobalRemove(uint32_t name);
 
     // Seat capability callbacks — called from wl_seat_listener
     void onSeatCapabilities(struct wl_seat* seat, uint32_t capabilities);
@@ -48,7 +50,7 @@ class WaylandWindowManager final : public IWindowManager {
     void onPointerButton(uint32_t button, uint32_t state, double x, double y);
     void onPointerMotion(double x, double y);
     void onPointerAxis(double x_offset, double y_offset);
-    void onOutputScale(int32_t factor);
+    void onOutputScale(struct wl_output* output, int32_t factor);
     void onTouchDown(uint32_t id, double x, double y);
     void onTouchUp(uint32_t id, double x, double y);
     void onTouchMotion(uint32_t id, double x, double y);
@@ -104,6 +106,7 @@ class WaylandWindowManager final : public IWindowManager {
     void bindXdgWmBase(struct wl_registry* registry, uint32_t name, uint32_t version);
     void bindSeat(struct wl_registry* registry, uint32_t name, uint32_t version);
     void teardownGlobals();
+    void recomputeOutputScale() noexcept;
 
     /** @brief Return the focused window (or primary fallback) for input routing. */
     [[nodiscard]] WaylandWindow* focusedWindow() const;
@@ -121,7 +124,11 @@ class WaylandWindowManager final : public IWindowManager {
     wl_keyboard* keyboard_ = nullptr;
     wl_pointer* pointer_ = nullptr;
     wl_touch* wl_touch_ = nullptr;
-    wl_output* output_ = nullptr;
+    struct OutputInfo {
+        wl_output* output = nullptr;
+        int32_t scale = 1;
+    };
+    std::unordered_map<uint32_t, OutputInfo> outputs_;
     int32_t output_scale_ = 1;
 
     // Modifier state accumulated from wl_keyboard::modifiers event
