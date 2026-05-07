@@ -14,6 +14,7 @@
 
 #include <X11/keysym.h>
 #include <limits>
+#include <unordered_map>
 
 namespace vne::xwin {
 namespace {
@@ -192,12 +193,25 @@ std::uint64_t mapEventsKeyCodeToX11Keysym(KeyCode target) {
     if (target == KeyCode::eUnknown) {
         return 0;
     }
-    for (std::uint64_t sym = kPrintableAsciiFirst;
-         sym <= static_cast<std::uint64_t>(std::numeric_limits<std::uint16_t>::max());
-         ++sym) {
-        if (mapX11Keysym(static_cast<KeySym>(sym)) == target) {
-            return sym;
+    static const auto kReverse = [] {
+        std::unordered_map<int, std::uint64_t> table;
+        for (std::uint64_t sym = kPrintableAsciiFirst;
+             sym <= static_cast<std::uint64_t>(std::numeric_limits<std::uint16_t>::max());
+             ++sym) {
+            const KeyCode mapped = mapX11Keysym(static_cast<KeySym>(sym));
+            if (mapped == KeyCode::eUnknown) {
+                continue;
+            }
+            const int key = static_cast<int>(mapped);
+            if (table.find(key) == table.end()) {
+                table.emplace(key, sym);
+            }
         }
+        return table;
+    }();
+    const auto it = kReverse.find(static_cast<int>(target));
+    if (it != kReverse.end()) {
+        return it->second;
     }
     return 0;
 }
