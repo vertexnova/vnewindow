@@ -35,8 +35,16 @@ inline constexpr std::uint64_t kWin32MsgMask = 0xFFFFFFFFULL;
 inline constexpr std::uint32_t kWin32WParamShift = 32U;
 
 /**
- * Optional per-window translation hooks. If a slot is empty, or returns eUnknown / zero where
- * documented, the library falls back to built-in platform tables (Win32 VK, Cocoa CGKeyCode,
+ * TODO(vneevents): Add vne::events::MouseButton::eUnknown upstream and replace this 0xFF sentinel
+ * (and all compares against it) with that enumerator.
+ */
+inline constexpr vne::events::MouseButton kUnmappedMouseButtonSentinel =
+    static_cast<vne::events::MouseButton>(0xFFU);
+
+/**
+ * Optional per-window translation hooks. If a slot is empty, or returns KeyCode::eUnknown /
+ * kUnmappedMouseButtonSentinel / zero where documented, the library falls back to built-in platform
+ * tables (Win32 VK, Cocoa CGKeyCode,
  * X11/Wayland keysym, etc.). Android has no default tables; UIKit can use these hooks for custom
  * native translation (the stock view path only emits touch events).
  *

@@ -17,6 +17,7 @@
 
 #include "event_bridge.h"
 
+#include "vertexnova/xwin/input_mapping.h"
 #include "vertexnova/xwin/window.h"
 
 #include <vertexnova/events/events.h>
@@ -94,6 +95,10 @@ void eventBridgeMouseButton(IWindow* window,
                             double x,
                             double y,
                             uint8_t modifiers) {
+    // TODO(vneevents): Compare to MouseButton::eUnknown once that exists upstream.
+    if (button == kUnmappedMouseButtonSentinel) {
+        return;
+    }
     const int ib = static_cast<int>(button);
     if (descriptor.enable_input) {
         vne::events::Input::updateMouseButtonState(ib, pressed);
