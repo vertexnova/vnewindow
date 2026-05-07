@@ -38,8 +38,7 @@ inline constexpr std::uint32_t kWin32WParamShift = 32U;
  * TODO(vneevents): Add vne::events::MouseButton::eUnknown upstream and replace this 0xFF sentinel
  * (and all compares against it) with that enumerator.
  */
-inline constexpr vne::events::MouseButton kUnmappedMouseButtonSentinel =
-    static_cast<vne::events::MouseButton>(0xFFU);
+inline constexpr vne::events::MouseButton kUnmappedMouseButtonSentinel = static_cast<vne::events::MouseButton>(0xFFU);
 
 /**
  * Optional per-window translation hooks. If a slot is empty, or returns KeyCode::eUnknown /
