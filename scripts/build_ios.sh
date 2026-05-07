@@ -13,6 +13,7 @@
 #==============================================================================
 
 set -e
+trap 'echo "ERROR: command failed at line $LINENO"; exit 1' ERR
 
 JOBS=10
 ARGS=()
@@ -246,11 +247,6 @@ run_cmake_configure() {
 
     cd "$build_path"
     cmake -G "Xcode" "${CMAKE_ARGS[@]}" "$PROJECT_ROOT"
-
-    if [ $? -ne 0 ]; then
-        echo "ERROR: CMake configuration failed"
-        exit 1
-    fi
     cd - > /dev/null
 }
 
@@ -293,11 +289,6 @@ run_xcode_build() {
     fi
 
     xcodebuild -project "$xcodeproj_file" -scheme ALL_BUILD -configuration "$xcode_config" -sdk "$xcode_target" -jobs "$JOBS"
-
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Xcode build failed"
-        exit 1
-    fi
     cd - > /dev/null
 }
 
