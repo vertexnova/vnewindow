@@ -500,13 +500,17 @@ void Win32Window::resize(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
     if (hwnd_) {
-        SetWindowPos(hwnd_,
-                     nullptr,
-                     0,
-                     0,
-                     static_cast<int>(width),
-                     static_cast<int>(height),
-                     SWP_NOMOVE | SWP_NOZORDER);
+        RECT client_rect{0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
+        const DWORD style = static_cast<DWORD>(GetWindowLongPtrW(hwnd_, GWL_STYLE));
+        const DWORD ex_style = static_cast<DWORD>(GetWindowLongPtrW(hwnd_, GWL_EXSTYLE));
+        const BOOL has_menu = GetMenu(hwnd_) != nullptr ? TRUE : FALSE;
+        if (AdjustWindowRectEx(&client_rect, style, has_menu, ex_style) == FALSE) {
+            client_rect.right = static_cast<LONG>(width);
+            client_rect.bottom = static_cast<LONG>(height);
+        }
+        const int outer_width = static_cast<int>(client_rect.right - client_rect.left);
+        const int outer_height = static_cast<int>(client_rect.bottom - client_rect.top);
+        SetWindowPos(hwnd_, nullptr, 0, 0, outer_width, outer_height, SWP_NOMOVE | SWP_NOZORDER);
     }
 }
 
