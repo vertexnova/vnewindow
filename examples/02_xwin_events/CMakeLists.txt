@@ -4,6 +4,14 @@
 
 add_executable(example_02_xwin_events main.cpp)
 
+if(IOS)
+    set_target_properties(example_02_xwin_events PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.vertexnova.vnewindow.example02"
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.vertexnova.vnewindow.example02"
+    )
+endif()
+
 if(MSVC AND TARGET vnexwin)
     get_target_property(_vx_ex_type vnexwin TYPE)
     if(_vx_ex_type STREQUAL "SHARED_LIBRARY")
