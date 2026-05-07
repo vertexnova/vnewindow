@@ -22,13 +22,19 @@ int main() {
     VNE_LOG_INFO << "Version: " << vne::xwin::libraryVersion();
 
     auto mgr = WindowFactory::createWindowManager(vne::xwin::WindowAPI::eNullWindow);
-    if (mgr && mgr->initialize()) {
-        auto w = mgr->openWindow("hello_xwin", 320, 240);
-        if (w) {
-            VNE_LOG_INFO << "Null window size: " << w->getWidth() << "x" << w->getHeight();
-        }
-        mgr->shutdown();
+    if (!mgr) {
+        return 1;
     }
-
+    if (!mgr->initialize()) {
+        mgr->shutdown();
+        return 1;
+    }
+    auto w = mgr->openWindow("hello_xwin", 320, 240);
+    if (!w) {
+        mgr->shutdown();
+        return 1;
+    }
+    VNE_LOG_INFO << "Null window size: " << w->getWidth() << "x" << w->getHeight();
+    mgr->shutdown();
     return 0;
 }

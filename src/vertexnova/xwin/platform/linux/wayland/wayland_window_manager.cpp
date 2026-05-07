@@ -561,8 +561,8 @@ void WaylandWindowManager::onRegistryGlobalRemove(uint32_t name) {
 }
 
 void WaylandWindowManager::bindCompositor(struct wl_registry* registry, uint32_t name, uint32_t version) {
-    (void)version;
-    compositor_ = static_cast<wl_compositor*>(wl_registry_bind(registry, name, &wl_compositor_interface, 4));
+    const uint32_t ver = std::min(version, 4U);
+    compositor_ = static_cast<wl_compositor*>(wl_registry_bind(registry, name, &wl_compositor_interface, ver));
 }
 
 void WaylandWindowManager::bindXdgWmBase(struct wl_registry* registry, uint32_t name, uint32_t version) {
