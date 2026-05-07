@@ -38,8 +38,8 @@ namespace vne::xwin::examples {
 
 struct ExampleConfig {
     std::string title = "VneWindow Example";
-    uint32_t width = 800;
-    uint32_t height = 600;
+    uint32_t width = 800U;
+    uint32_t height = 600U;
     bool enable_events = true;
     bool enable_input = true;
 };

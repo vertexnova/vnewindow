@@ -16,7 +16,7 @@
 #include "vertexnova/xwin/window_factory.h"
 #include "vertexnova/xwin/xwin_types.h"
 
-#include <vertexnova/logging/logging.h>
+#include "vertexnova/logging/logging.h"
 
 namespace vne::xwin::examples {
 
@@ -62,11 +62,11 @@ ExampleRunner::~ExampleRunner() {
 }
 
 bool ExampleRunner::initialize() {
-    if (initialized_) {
+    if (is_initialized_) {
         return true;
     }
 
-    ExampleConfig cfg = example_->configure();
+    const ExampleConfig cfg = example_->configure();
 
     // Build descriptor from ExampleConfig
     WindowDescriptor desc(cfg.title, cfg.width, cfg.height);
@@ -98,8 +98,8 @@ bool ExampleRunner::initialize() {
     ev.registerListener(vne::events::EventType::eWindowClose, listener_);
     ev.registerListener(vne::events::EventType::eKeyPressed, listener_);
 
-    initialized_ = true;
-    running_ = true;
+    is_initialized_ = true;
+    is_running_ = true;
     last_time_ = manager_->getPlatformTime();
 
     // Null backend: run one clean smoke cycle then stop
@@ -107,7 +107,7 @@ bool ExampleRunner::initialize() {
         VNE_LOG_INFO << "[ExampleRunner] Null backend — smoke cycle, then exit.";
         manager_->removeWindow(window_);
         window_.reset();
-        running_ = false;
+        is_running_ = false;
         // Still call onInit so the example logs its banner even in CI
         // (window is gone, so pass a dummy — skip onInit for null)
         return true;
@@ -118,7 +118,7 @@ bool ExampleRunner::initialize() {
 }
 
 bool ExampleRunner::tick() {
-    if (!initialized_ || !running_) {
+    if (!is_initialized_ || !is_running_) {
         return false;
     }
 
@@ -130,13 +130,13 @@ bool ExampleRunner::tick() {
     vne::events::Input::nextFrame();
 
     // Check close conditions
-    if (!running_ || (manager_ && manager_->shouldClose()) || (!window_ || !window_->isOpen())
+    if (!is_running_ || (manager_ && manager_->shouldClose()) || (!window_ || !window_->isOpen())
         || (manager_ && manager_->getWindowCount() == 0)) {
         return false;
     }
 
     // Compute delta time in seconds
-    double now = manager_->getPlatformTime();
+    const double now = manager_->getPlatformTime();
     float dt = static_cast<float>(now - last_time_);
     last_time_ = now;
 
@@ -145,7 +145,7 @@ bool ExampleRunner::tick() {
         dt = 0.25f;
     }
 
-    bool keep_running = example_->onFrame(dt);
+    const bool keep_running = example_->onFrame(dt);
     if (!keep_running) {
         onCloseRequest();
         return false;
@@ -155,11 +155,11 @@ bool ExampleRunner::tick() {
 }
 
 void ExampleRunner::shutdown() {
-    if (!initialized_) {
+    if (!is_initialized_) {
         return;
     }
-    initialized_ = false;
-    running_ = false;
+    is_initialized_ = false;
+    is_running_ = false;
 
     example_->onShutdown();
 
@@ -178,17 +178,17 @@ void ExampleRunner::shutdown() {
 }
 
 int ExampleRunner::run() {
-    if (!initialized_) {
+    if (!is_initialized_) {
         return 1;
     }
     // Null backend already cleaned up in initialize(); nothing to loop.
-    if (!running_) {
+    if (!is_running_) {
         shutdown();
         return 0;
     }
 
     while (tick()) {
-        manager_->sleep(16);  // ~60 fps cap; platform backends may vsync tighter
+        manager_->sleep(16U);  // ~60 fps cap; platform backends may vsync tighter
     }
 
     shutdown();
@@ -196,7 +196,7 @@ int ExampleRunner::run() {
 }
 
 void ExampleRunner::onCloseRequest() {
-    running_ = false;
+    is_running_ = false;
     if (window_) {
         window_->close();
     }

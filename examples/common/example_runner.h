@@ -40,14 +40,14 @@ class ExampleRunner {
      * Create window manager, open window, register listeners, call onInit().
      * Returns false on failure.
      */
-    bool initialize();
+    [[nodiscard]] bool initialize();
 
     /**
      * Execute one frame: processEvents → onFrame(dt) → return running state.
      * Returns false when the runner should stop (window closed / ESC / onFrame
      * returned false / null-backend smoke cycle finished).
      */
-    bool tick();
+    [[nodiscard]] bool tick();
 
     /**
      * Call onShutdown(), destroy the window and shut down the manager.
@@ -59,11 +59,11 @@ class ExampleRunner {
      * Desktop convenience: blocks, calling tick() until done, then shutdown().
      * Returns 0 on clean exit, 1 on init failure.
      */
-    int run();
+    [[nodiscard]] int run();
 
     // Accessors for platform entry points (e.g. iOS AppDelegate)
-    IWindow* window() const { return window_.get(); }
-    IWindowManager* windowManager() const { return manager_.get(); }
+    [[nodiscard]] IWindow* window() const noexcept { return window_.get(); }
+    [[nodiscard]] IWindowManager* windowManager() const noexcept { return manager_.get(); }
 
    private:
     void onCloseRequest();
@@ -78,8 +78,8 @@ class ExampleRunner {
     class RunnerListener;
     std::shared_ptr<RunnerListener> listener_;
 
-    bool initialized_ = false;
-    bool running_ = false;
+    bool is_initialized_ = false;
+    bool is_running_ = false;
     double last_time_ = 0.0;
 };
 

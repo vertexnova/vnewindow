@@ -15,7 +15,7 @@
 std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 
 int main() {
-    vne::xwin::examples::ExampleRunner runner(createExample());
+    vne::xwin::examples::ExampleRunner runner{createExample()};
     if (!runner.initialize()) {
         return 1;
     }
