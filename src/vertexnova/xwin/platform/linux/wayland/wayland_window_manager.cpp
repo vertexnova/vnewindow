@@ -41,124 +41,124 @@ namespace {
 
 // ---- Registry ----
 
-void registry_global(void* data, struct wl_registry* reg, uint32_t name, const char* iface, uint32_t ver) {
+void registryGlobal(void* data, struct wl_registry* reg, uint32_t name, const char* iface, uint32_t ver) {
     static_cast<WaylandWindowManager*>(data)->onRegistryGlobal(reg, name, iface, ver);
 }
-void registry_global_remove(void* data, struct wl_registry*, uint32_t name) {
+void registryGlobalRemove(void* data, struct wl_registry*, uint32_t name) {
     static_cast<WaylandWindowManager*>(data)->onRegistryGlobalRemove(name);
 }
 
-const wl_registry_listener kRegistryListener = [] {
+const wl_registry_listener g_kRegistryListener = [] {
     wl_registry_listener l{};
-    l.global = registry_global;
-    l.global_remove = registry_global_remove;
+    l.global = registryGlobal;
+    l.global_remove = registryGlobalRemove;
     return l;
 }();
 
-void output_geometry(
+void outputGeometry(
     void*, struct wl_output*, int32_t, int32_t, int32_t, int32_t, int32_t, const char*, const char*, int32_t) {}
-void output_mode(void*, struct wl_output*, uint32_t, int32_t, int32_t, int32_t) {}
-void output_done(void*, struct wl_output*) {}
-void output_scale(void* data, struct wl_output* output, int32_t factor) {
+void outputMode(void*, struct wl_output*, uint32_t, int32_t, int32_t, int32_t) {}
+void outputDone(void*, struct wl_output*) {}
+void outputScale(void* data, struct wl_output* output, int32_t factor) {
     auto* self = static_cast<WaylandWindowManager*>(data);
     self->onOutputScale(output, factor);
 }
-const wl_output_listener kOutputListener = [] {
+const wl_output_listener g_kOutputListener = [] {
     wl_output_listener l{};
-    l.geometry = output_geometry;
-    l.mode = output_mode;
-    l.done = output_done;
-    l.scale = output_scale;
+    l.geometry = outputGeometry;
+    l.mode = outputMode;
+    l.done = outputDone;
+    l.scale = outputScale;
     return l;
 }();
 
 // ---- xdg_wm_base ping ----
 
-void xdg_ping(void*, struct xdg_wm_base* base, uint32_t serial) {
+void xdgPing(void*, struct xdg_wm_base* base, uint32_t serial) {
     xdg_wm_base_pong(base, serial);
 }
-const xdg_wm_base_listener kXdgWmBaseListener = [] {
+const xdg_wm_base_listener g_kXdgWmBaseListener = [] {
     xdg_wm_base_listener l{};
-    l.ping = xdg_ping;
+    l.ping = xdgPing;
     return l;
 }();
 
 // ---- wl_seat ----
 
-void seat_capabilities(void* data, struct wl_seat* seat, uint32_t caps) {
+void seatCapabilities(void* data, struct wl_seat* seat, uint32_t caps) {
     static_cast<WaylandWindowManager*>(data)->onSeatCapabilities(seat, caps);
 }
-void seat_name(void*, struct wl_seat*, const char*) {}
+void seatName(void*, struct wl_seat*, const char*) {}
 
-const wl_seat_listener kSeatListener = [] {
+const wl_seat_listener g_kSeatListener = [] {
     wl_seat_listener l{};
-    l.capabilities = seat_capabilities;
-    l.name = seat_name;
+    l.capabilities = seatCapabilities;
+    l.name = seatName;
     return l;
 }();
 
 // ---- wl_keyboard ----
 
-void kb_keymap(void* data, struct wl_keyboard*, uint32_t format, int32_t fd, uint32_t size) {
+void kbKeymap(void* data, struct wl_keyboard*, uint32_t format, int32_t fd, uint32_t size) {
     static_cast<WaylandWindowManager*>(data)->onKeyboardKeymap(format, fd, size);
 }
 
-void kb_enter(
+void kbEnter(
     void* data, struct wl_keyboard*, uint32_t /*serial*/, struct wl_surface* surface, struct wl_array* /*keys*/) {
     static_cast<WaylandWindowManager*>(data)->onKeyboardEnter(surface);
 }
 
-void kb_leave(void* data, struct wl_keyboard*, uint32_t /*serial*/, struct wl_surface* surface) {
+void kbLeave(void* data, struct wl_keyboard*, uint32_t /*serial*/, struct wl_surface* surface) {
     static_cast<WaylandWindowManager*>(data)->onKeyboardLeave(surface);
 }
 
-void kb_key(void* data, struct wl_keyboard*, uint32_t /*serial*/, uint32_t /*time*/, uint32_t key, uint32_t state) {
+void kbKey(void* data, struct wl_keyboard*, uint32_t /*serial*/, uint32_t /*time*/, uint32_t key, uint32_t state) {
     static_cast<WaylandWindowManager*>(data)->onKey(key, state, 0);
 }
 
-void kb_modifiers(void* data,
-                  struct wl_keyboard*,
-                  uint32_t /*serial*/,
-                  uint32_t depressed,
-                  uint32_t latched,
-                  uint32_t locked,
-                  uint32_t group) {
+void kbModifiers(void* data,
+                 struct wl_keyboard*,
+                 uint32_t /*serial*/,
+                 uint32_t depressed,
+                 uint32_t latched,
+                 uint32_t locked,
+                 uint32_t group) {
     static_cast<WaylandWindowManager*>(data)->onModifiers(depressed, latched, locked, group);
 }
 
-void kb_repeat_info(void*, struct wl_keyboard*, int32_t, int32_t) {}
+void kbRepeatInfo(void*, struct wl_keyboard*, int32_t, int32_t) {}
 
-const wl_keyboard_listener kKeyboardListener = [] {
+const wl_keyboard_listener g_kKeyboardListener = [] {
     wl_keyboard_listener l{};
-    l.keymap = kb_keymap;
-    l.enter = kb_enter;
-    l.leave = kb_leave;
-    l.key = kb_key;
-    l.modifiers = kb_modifiers;
-    l.repeat_info = kb_repeat_info;
+    l.keymap = kbKeymap;
+    l.enter = kbEnter;
+    l.leave = kbLeave;
+    l.key = kbKey;
+    l.modifiers = kbModifiers;
+    l.repeat_info = kbRepeatInfo;
     return l;
 }();
 
 // ---- wl_pointer ----
 
-void ptr_enter(void*, struct wl_pointer*, uint32_t, struct wl_surface*, wl_fixed_t sx, wl_fixed_t sy) {
+void ptrEnter(void*, struct wl_pointer*, uint32_t, struct wl_surface*, wl_fixed_t sx, wl_fixed_t sy) {
     (void)sx;
     (void)sy;
 }
-void ptr_leave(void*, struct wl_pointer*, uint32_t, struct wl_surface*) {}
+void ptrLeave(void*, struct wl_pointer*, uint32_t, struct wl_surface*) {}
 
-void ptr_motion(void* data, struct wl_pointer*, uint32_t /*time*/, wl_fixed_t sx, wl_fixed_t sy) {
+void ptrMotion(void* data, struct wl_pointer*, uint32_t /*time*/, wl_fixed_t sx, wl_fixed_t sy) {
     static_cast<WaylandWindowManager*>(data)->onPointerMotion(wl_fixed_to_double(sx), wl_fixed_to_double(sy));
 }
 
-void ptr_button(
+void ptrButton(
     void* data, struct wl_pointer*, uint32_t /*serial*/, uint32_t /*time*/, uint32_t button, uint32_t state) {
     // We don't have separate coords in the button event; use last known position
     // stored by onPointerMotion. Pass 0 here; manager will use cached coords.
     static_cast<WaylandWindowManager*>(data)->onPointerButton(button, state, -1.0, -1.0);
 }
 
-void ptr_axis(void* data, struct wl_pointer*, uint32_t /*time*/, uint32_t axis, wl_fixed_t value) {
+void ptrAxis(void* data, struct wl_pointer*, uint32_t /*time*/, uint32_t axis, wl_fixed_t value) {
     // axis 0 = vertical, axis 1 = horizontal
     const double v = wl_fixed_to_double(value) / -10.0;  // normalise to scroll steps
     if (axis == 0) {
@@ -168,61 +168,61 @@ void ptr_axis(void* data, struct wl_pointer*, uint32_t /*time*/, uint32_t axis, 
     }
 }
 
-void ptr_frame(void*, struct wl_pointer*) {}
-void ptr_axis_source(void*, struct wl_pointer*, uint32_t) {}
-void ptr_axis_stop(void*, struct wl_pointer*, uint32_t, uint32_t) {}
-void ptr_axis_discrete(void*, struct wl_pointer*, uint32_t, int32_t) {}
+void ptrFrame(void*, struct wl_pointer*) {}
+void ptrAxisSource(void*, struct wl_pointer*, uint32_t) {}
+void ptrAxisStop(void*, struct wl_pointer*, uint32_t, uint32_t) {}
+void ptrAxisDiscrete(void*, struct wl_pointer*, uint32_t, int32_t) {}
 
-const wl_pointer_listener kPointerListener = [] {
+const wl_pointer_listener g_kPointerListener = [] {
     wl_pointer_listener l{};
-    l.enter = ptr_enter;
-    l.leave = ptr_leave;
-    l.motion = ptr_motion;
-    l.button = ptr_button;
-    l.axis = ptr_axis;
-    l.frame = ptr_frame;
-    l.axis_source = ptr_axis_source;
-    l.axis_stop = ptr_axis_stop;
-    l.axis_discrete = ptr_axis_discrete;
+    l.enter = ptrEnter;
+    l.leave = ptrLeave;
+    l.motion = ptrMotion;
+    l.button = ptrButton;
+    l.axis = ptrAxis;
+    l.frame = ptrFrame;
+    l.axis_source = ptrAxisSource;
+    l.axis_stop = ptrAxisStop;
+    l.axis_discrete = ptrAxisDiscrete;
     return l;
 }();
 
 // ---- wl_touch ----
 
-void touch_down(void* data,
-                struct wl_touch*,
-                uint32_t /*serial*/,
-                uint32_t /*time*/,
-                struct wl_surface*,
-                int32_t id,
-                wl_fixed_t x,
-                wl_fixed_t y) {
+void touchDown(void* data,
+               struct wl_touch*,
+               uint32_t /*serial*/,
+               uint32_t /*time*/,
+               struct wl_surface*,
+               int32_t id,
+               wl_fixed_t x,
+               wl_fixed_t y) {
     static_cast<WaylandWindowManager*>(data)->onTouchDown(static_cast<uint32_t>(id),
-                                                          wl_fixed_to_double(x),
-                                                          wl_fixed_to_double(y));
+                                                            wl_fixed_to_double(x),
+                                                            wl_fixed_to_double(y));
 }
-void touch_up(void* data, struct wl_touch*, uint32_t /*serial*/, uint32_t /*time*/, int32_t id) {
+void touchUp(void* data, struct wl_touch*, uint32_t /*serial*/, uint32_t /*time*/, int32_t id) {
     static_cast<WaylandWindowManager*>(data)->onTouchUp(static_cast<uint32_t>(id), 0.0, 0.0);
 }
-void touch_motion(void* data, struct wl_touch*, uint32_t /*time*/, int32_t id, wl_fixed_t x, wl_fixed_t y) {
+void touchMotion(void* data, struct wl_touch*, uint32_t /*time*/, int32_t id, wl_fixed_t x, wl_fixed_t y) {
     static_cast<WaylandWindowManager*>(data)->onTouchMotion(static_cast<uint32_t>(id),
                                                             wl_fixed_to_double(x),
                                                             wl_fixed_to_double(y));
 }
-void touch_frame(void*, struct wl_touch*) {}
-void touch_cancel(void*, struct wl_touch*) {}
-void touch_shape(void*, struct wl_touch*, int32_t, wl_fixed_t, wl_fixed_t) {}
-void touch_orientation(void*, struct wl_touch*, int32_t, wl_fixed_t) {}
+void touchFrame(void*, struct wl_touch*) {}
+void touchCancel(void*, struct wl_touch*) {}
+void touchShape(void*, struct wl_touch*, int32_t, wl_fixed_t, wl_fixed_t) {}
+void touchOrientation(void*, struct wl_touch*, int32_t, wl_fixed_t) {}
 
-const wl_touch_listener kTouchListener = [] {
+const wl_touch_listener g_kTouchListener = [] {
     wl_touch_listener l{};
-    l.down = touch_down;
-    l.up = touch_up;
-    l.motion = touch_motion;
-    l.frame = touch_frame;
-    l.cancel = touch_cancel;
-    l.shape = touch_shape;
-    l.orientation = touch_orientation;
+    l.down = touchDown;
+    l.up = touchUp;
+    l.motion = touchMotion;
+    l.frame = touchFrame;
+    l.cancel = touchCancel;
+    l.shape = touchShape;
+    l.orientation = touchOrientation;
     return l;
 }();
 
@@ -368,7 +368,7 @@ void WaylandWindowManager::onKey(uint32_t linux_key, uint32_t state, uint32_t /*
     if (!xkb_state_) {
         return;
     }
-    const xkb_keycode_t xkb_keycode = static_cast<xkb_keycode_t>(linux_key + 8U);
+    const auto xkb_keycode = static_cast<xkb_keycode_t>(linux_key + 8U);
     const xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_, xkb_keycode);
     if (sym == XKB_KEY_NoSymbol) {
         return;
@@ -490,7 +490,7 @@ void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t cap
     if (has_kb && !keyboard_) {
         keyboard_ = wl_seat_get_keyboard(seat);
         if (keyboard_) {
-            wl_keyboard_add_listener(keyboard_, &kKeyboardListener, this);
+            wl_keyboard_add_listener(keyboard_, &g_kKeyboardListener, this);
         }
     } else if (!has_kb && keyboard_) {
         wl_keyboard_destroy(keyboard_);
@@ -508,7 +508,7 @@ void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t cap
     if (has_ptr && !pointer_) {
         pointer_ = wl_seat_get_pointer(seat);
         if (pointer_) {
-            wl_pointer_add_listener(pointer_, &kPointerListener, this);
+            wl_pointer_add_listener(pointer_, &g_kPointerListener, this);
         }
     } else if (!has_ptr && pointer_) {
         wl_pointer_destroy(pointer_);
@@ -518,7 +518,7 @@ void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t cap
     if (has_tch && !wl_touch_) {
         wl_touch_ = wl_seat_get_touch(seat);
         if (wl_touch_) {
-            wl_touch_add_listener(wl_touch_, &kTouchListener, this);
+            wl_touch_add_listener(wl_touch_, &g_kTouchListener, this);
         }
     } else if (!has_tch && wl_touch_) {
         wl_touch_destroy(wl_touch_);
@@ -542,9 +542,9 @@ void WaylandWindowManager::onRegistryGlobal(struct wl_registry* registry,
         bindSeat(registry, name, version);
     } else if (std::strcmp(interface, wl_output_interface.name) == 0) {
         const uint32_t ver = version < 2U ? version : 2U;
-        wl_output* output = static_cast<wl_output*>(wl_registry_bind(registry, name, &wl_output_interface, ver));
+        auto* output = static_cast<wl_output*>(wl_registry_bind(registry, name, &wl_output_interface, ver));
         if (output) {
-            wl_output_add_listener(output, &kOutputListener, this);
+            wl_output_add_listener(output, &g_kOutputListener, this);
             outputs_[name] = OutputInfo{output, 1};
             recomputeOutputScale();
         }
@@ -572,7 +572,7 @@ void WaylandWindowManager::bindXdgWmBase(struct wl_registry* registry, uint32_t 
     const uint32_t ver = version < 4U ? version : 4U;
     xdg_wm_base_ = static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, ver));
     if (xdg_wm_base_) {
-        xdg_wm_base_add_listener(xdg_wm_base_, &kXdgWmBaseListener, nullptr);
+        xdg_wm_base_add_listener(xdg_wm_base_, &g_kXdgWmBaseListener, nullptr);
     }
 }
 
@@ -580,7 +580,7 @@ void WaylandWindowManager::bindSeat(struct wl_registry* registry, uint32_t name,
     const uint32_t ver = version < 5U ? version : 5U;
     seat_ = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, ver));
     if (seat_) {
-        wl_seat_add_listener(seat_, &kSeatListener, this);
+        wl_seat_add_listener(seat_, &g_kSeatListener, this);
     }
 }
 
@@ -611,7 +611,7 @@ bool WaylandWindowManager::initialize() {
         display_ = nullptr;
         return false;
     }
-    wl_registry_add_listener(registry_, &kRegistryListener, this);
+    wl_registry_add_listener(registry_, &g_kRegistryListener, this);
     if (wl_display_roundtrip(display_) < 0) {
         shutdown();
         return false;
