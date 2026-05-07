@@ -51,13 +51,13 @@ void xdgToplevelConfigureBoundsThunk(void* data, struct xdg_toplevel*, int32_t w
 
 /* Value-init then assign: avoids -Wmissing-field-initializers when protocols add fields
  * (designated-only lists still warn on Clang for omitted trailing members). */
-const xdg_surface_listener kXdgSurfaceListener = [] {
+const xdg_surface_listener g_xdg_surface_listener = [] {
     xdg_surface_listener l{};
     l.configure = xdgSurfaceConfigureThunk;
     return l;
 }();
 
-const xdg_toplevel_listener kXdgToplevelListener = [] {
+const xdg_toplevel_listener g_xdg_toplevel_listener = [] {
     xdg_toplevel_listener l{};
     l.configure = xdgToplevelConfigureThunk;
     l.close = xdgToplevelCloseThunk;
@@ -133,14 +133,14 @@ void WaylandWindow::initialize(const WindowDescriptor& descriptor) {
         surface_ = nullptr;
         return;
     }
-    xdg_surface_add_listener(xdg_surface_, &kXdgSurfaceListener, this);
+    xdg_surface_add_listener(xdg_surface_, &g_xdg_surface_listener, this);
 
     toplevel_ = xdg_surface_get_toplevel(xdg_surface_);
     if (!toplevel_) {
         destroySurfaces();
         return;
     }
-    xdg_toplevel_add_listener(toplevel_, &kXdgToplevelListener, this);
+    xdg_toplevel_add_listener(toplevel_, &g_xdg_toplevel_listener, this);
     if (!desc_.title.empty()) {
         xdg_toplevel_set_title(toplevel_, desc_.title.c_str());
     }

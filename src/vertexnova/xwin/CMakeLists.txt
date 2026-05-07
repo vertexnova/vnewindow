@@ -240,8 +240,11 @@ target_include_directories(vnexwin
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
-        $<$<BOOL:${_vx_wayland}>:${_wl_gen}>
 )
+if(_vx_wayland)
+    # Generated protocol: treat as system includes so project clang-tidy header filter skips them.
+    target_include_directories(vnexwin SYSTEM PRIVATE ${_wl_gen})
+endif()
 
 target_compile_features(vnexwin PUBLIC cxx_std_20)
 target_link_libraries(vnexwin PUBLIC vne::common vne::logging PRIVATE vne::xwin::BuildSettings)
