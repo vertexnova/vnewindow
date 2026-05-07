@@ -593,7 +593,8 @@ void X11Window::setClipboardText(const std::string& text) {
 
 void X11Window::setWindowIcon(std::span<const uint8_t> rgba_pixels, uint32_t width, uint32_t height) {
     const size_t expected_bytes = static_cast<size_t>(width) * static_cast<size_t>(height) * 4U;
-    if (!display_ || !window_ || rgba_pixels.empty() || width == 0U || height == 0U || rgba_pixels.size() < expected_bytes) {
+    if (!display_ || !window_ || rgba_pixels.empty() || width == 0U || height == 0U
+        || rgba_pixels.size() < expected_bytes) {
         return;
     }
     std::vector<long> icon;
