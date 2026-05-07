@@ -67,9 +67,7 @@ std::string utf8ToLatin1Lossy(const std::string& utf8) {
             continue;
         }
 
-        auto is_cont = [](unsigned char c) {
-            return (c & kUtf8ContinuationMask) == kUtf8ContinuationPrefix;
-        };
+        auto is_cont = [](unsigned char c) { return (c & kUtf8ContinuationMask) == kUtf8ContinuationPrefix; };
 
         uint32_t code_point = 0U;
         size_t advance = 0U;
@@ -78,7 +76,7 @@ std::string utf8ToLatin1Lossy(const std::string& utf8) {
                 const auto c1 = static_cast<unsigned char>(utf8[i + 1U]);
                 if (is_cont(c1)) {
                     code_point = (static_cast<uint32_t>(c0 & kUtf8Lead2PayloadMask) << kUtf8Shift6)
-                               | static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask);
+                                 | static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask);
                     advance = 2U;
                 }
             }
@@ -88,8 +86,8 @@ std::string utf8ToLatin1Lossy(const std::string& utf8) {
                 const auto c2 = static_cast<unsigned char>(utf8[i + 2U]);
                 if (is_cont(c1) && is_cont(c2)) {
                     code_point = (static_cast<uint32_t>(c0 & kUtf8Lead3PayloadMask) << kUtf8Shift12)
-                               | (static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask) << kUtf8Shift6)
-                               | static_cast<uint32_t>(c2 & kUtf8ContinuationPayloadMask);
+                                 | (static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask) << kUtf8Shift6)
+                                 | static_cast<uint32_t>(c2 & kUtf8ContinuationPayloadMask);
                     advance = 3U;
                 }
             }
@@ -100,9 +98,9 @@ std::string utf8ToLatin1Lossy(const std::string& utf8) {
                 const auto c3 = static_cast<unsigned char>(utf8[i + 3U]);
                 if (is_cont(c1) && is_cont(c2) && is_cont(c3)) {
                     code_point = (static_cast<uint32_t>(c0 & kUtf8Lead4PayloadMask) << kUtf8Shift18)
-                               | (static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask) << kUtf8Shift12)
-                               | (static_cast<uint32_t>(c2 & kUtf8ContinuationPayloadMask) << kUtf8Shift6)
-                               | static_cast<uint32_t>(c3 & kUtf8ContinuationPayloadMask);
+                                 | (static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask) << kUtf8Shift12)
+                                 | (static_cast<uint32_t>(c2 & kUtf8ContinuationPayloadMask) << kUtf8Shift6)
+                                 | static_cast<uint32_t>(c3 & kUtf8ContinuationPayloadMask);
                     advance = 4U;
                 }
             }
