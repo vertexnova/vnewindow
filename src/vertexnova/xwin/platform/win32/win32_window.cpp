@@ -584,26 +584,36 @@ std::string Win32Window::getClipboardText() const {
 }
 
 void Win32Window::setClipboardText(const std::string& text) {
-    if (!OpenClipboard(hwnd_)) {
-        return;
-    }
-    EmptyClipboard();
     const int wlen = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
     if (wlen <= 0) {
-        CloseClipboard();
         return;
     }
+
     HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, static_cast<SIZE_T>(wlen) * sizeof(wchar_t));
     if (!hg) {
-        CloseClipboard();
         return;
     }
+
     auto* wstr = static_cast<wchar_t*>(GlobalLock(hg));
-    if (wstr) {
-        MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wstr, wlen);
+    if (!wstr) {
+        GlobalFree(hg);
+        return;
+    }
+
+    if (MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wstr, wlen) <= 0) {
         GlobalUnlock(hg);
-        SetClipboardData(CF_UNICODETEXT, hg);
-    } else {
+        GlobalFree(hg);
+        return;
+    }
+    GlobalUnlock(hg);
+
+    if (!OpenClipboard(hwnd_)) {
+        GlobalFree(hg);
+        return;
+    }
+
+    EmptyClipboard();
+    if (!SetClipboardData(CF_UNICODETEXT, hg)) {
         GlobalFree(hg);
     }
     CloseClipboard();
