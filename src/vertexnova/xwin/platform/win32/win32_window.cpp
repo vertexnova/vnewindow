@@ -233,8 +233,9 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
                     mapNativeModifiersToEvents(WindowAPI::eWin32Window,
                                                static_cast<std::uint64_t>(mapWin32ModifierFlags()),
                                                desc_.input_mapping.get());
-                const vne::events::MouseButton btn =
-                    mapNativeMouseToEvents(WindowAPI::eWin32Window, packWin32Mouse(msg, wParam), desc_.input_mapping.get());
+                const vne::events::MouseButton btn = mapNativeMouseToEvents(WindowAPI::eWin32Window,
+                                                                            packWin32Mouse(msg, wParam),
+                                                                            desc_.input_mapping.get());
                 const bool down =
                     (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
                 eventBridgeMouseButton(this,
