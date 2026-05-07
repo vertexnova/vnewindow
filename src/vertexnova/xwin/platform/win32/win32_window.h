@@ -71,6 +71,7 @@ class Win32Window final : public IWindow {
     bool open_ = false;
     bool fullscreen_ = false;
     WindowMode mode_ = WindowMode::eWindowed;
+    WindowMode windowed_mode_before_fullscreen_ = WindowMode::eWindowed;
 
     // Saved pre-fullscreen state
     DWORD saved_style_ = 0;

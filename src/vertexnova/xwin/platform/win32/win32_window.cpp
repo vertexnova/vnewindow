@@ -353,8 +353,11 @@ void Win32Window::setTitle(const std::string& title) {
 }
 
 void Win32Window::setWindowMode(WindowMode mode) {
-    mode_ = mode;
     if (!hwnd_) {
+        mode_ = mode;
+        if (mode != WindowMode::eFullscreen) {
+            windowed_mode_before_fullscreen_ = mode;
+        }
         return;
     }
     if (mode == WindowMode::eFullscreen) {
@@ -364,6 +367,8 @@ void Win32Window::setWindowMode(WindowMode mode) {
     if (fullscreen_) {
         setFullscreen(false);
     }
+    mode_ = mode;
+    windowed_mode_before_fullscreen_ = mode;
     if (mode == WindowMode::eBorderless) {
         HMONITOR mon = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
         MONITORINFO mi{};
@@ -392,6 +397,9 @@ void Win32Window::setFullscreen(bool enabled) {
         return;
     }
     if (enabled) {
+        if (mode_ != WindowMode::eFullscreen) {
+            windowed_mode_before_fullscreen_ = mode_;
+        }
         // Save current style and rect
         saved_style_ = static_cast<DWORD>(GetWindowLongW(hwnd_, GWL_STYLE));
         GetWindowRect(hwnd_, &saved_rect_);
@@ -408,6 +416,7 @@ void Win32Window::setFullscreen(bool enabled) {
                      mi.rcMonitor.right - mi.rcMonitor.left,
                      mi.rcMonitor.bottom - mi.rcMonitor.top,
                      SWP_FRAMECHANGED | SWP_NOACTIVATE);
+        mode_ = WindowMode::eFullscreen;
     } else {
         SetWindowLongW(hwnd_, GWL_STYLE, saved_style_);
         SetWindowPos(hwnd_,
@@ -418,6 +427,7 @@ void Win32Window::setFullscreen(bool enabled) {
                      saved_rect_.bottom - saved_rect_.top,
                      SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER);
         ShowWindow(hwnd_, SW_RESTORE);
+        mode_ = windowed_mode_before_fullscreen_;
     }
     fullscreen_ = enabled;
 }
