@@ -56,9 +56,11 @@ int main() {
     if (w->getWindowAPI() == vne::xwin::WindowAPI::eNullWindow) {
         VNE_LOG_INFO << "Null backend has no native input; closing window for a clean smoke run.";
         mgr->removeWindow(w);
+        w.reset();
     }
 
     if (mgr->getWindowCount() == 0U) {
+        w.reset();
         mgr->shutdown();
         return 0;
     }
@@ -73,6 +75,7 @@ int main() {
         mgr->sleep(16);
     }
 
+    w.reset();
     mgr->shutdown();
     return 0;
 }
