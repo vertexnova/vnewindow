@@ -53,6 +53,11 @@ std::shared_ptr<IWindow> WasmWindowManager::openWindow(const WindowDescriptor& d
     if (!initialized_) {
         return nullptr;
     }
+    // WasmWindow registers one global set of DOM/window callbacks per process; a second
+    // window would overwrite user_data or the destructor of one would clear all.
+    if (!windows_.empty()) {
+        return nullptr;
+    }
     auto w = std::make_shared<WasmWindow>();
     w->setEventOwner(this);
     w->initialize(descriptor);

@@ -77,11 +77,12 @@ void Win32WindowManager::removeWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
-    window->close();
     auto it = std::find(windows_.begin(), windows_.end(), window);
-    if (it != windows_.end()) {
-        windows_.erase(it);
+    if (it == windows_.end()) {
+        return;
     }
+    (*it)->close();
+    windows_.erase(it);
     if (primary_ == window) {
         primary_ = windows_.empty() ? nullptr : windows_.front();
     }
