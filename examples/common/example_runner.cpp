@@ -108,8 +108,7 @@ bool ExampleRunner::initialize() {
         manager_->removeWindow(window_);
         window_.reset();
         is_running_ = false;
-        // Still call onInit so the example logs its banner even in CI
-        // (window is gone, so pass a dummy — skip onInit for null)
+        // onInit is deliberately skipped for the null backend: no window exists.
         return true;
     }
 
