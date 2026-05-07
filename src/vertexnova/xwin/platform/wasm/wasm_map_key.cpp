@@ -24,6 +24,9 @@ namespace vne::xwin {
 using vne::events::KeyCode;
 using vne::events::ModifierKey;
 using vne::events::MouseButton;
+namespace {
+constexpr std::uint8_t kInvalidMouseButtonValue = 0xFFU;
+}
 
 static const std::unordered_map<std::string, KeyCode>& keyMap() {
     // clang-format off
@@ -135,7 +138,7 @@ MouseButton mapEmscriptenMouseButton(unsigned short button) {
         case 4:
             return MouseButton::eButton4;
         default:
-            return MouseButton::eLeft;
+            return static_cast<MouseButton>(kInvalidMouseButtonValue);
     }
 }
 

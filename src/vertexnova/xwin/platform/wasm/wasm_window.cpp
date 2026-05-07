@@ -22,6 +22,13 @@
 #endif
 
 namespace vne::xwin {
+namespace {
+#ifdef __EMSCRIPTEN__
+[[nodiscard]] bool isValidMouseButton(vne::events::MouseButton button) noexcept {
+    return static_cast<uint8_t>(button) <= static_cast<uint8_t>(vne::events::MouseButton::eLast);
+}
+#endif
+}  // namespace
 
 WasmWindow::WasmWindow() = default;
 
@@ -152,6 +159,9 @@ EM_BOOL WasmWindow::MouseDownCallback(int /*event_type*/, const EmscriptenMouseE
         return EM_FALSE;
     }
     const vne::events::MouseButton btn = mapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
+    if (!isValidMouseButton(btn)) {
+        return EM_FALSE;
+    }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeMouseButton(self,
                            self->desc_,
@@ -170,6 +180,9 @@ EM_BOOL WasmWindow::MouseUpCallback(int /*event_type*/, const EmscriptenMouseEve
         return EM_FALSE;
     }
     const vne::events::MouseButton btn = mapEmscriptenMouseButton(static_cast<unsigned short>(ev->button));
+    if (!isValidMouseButton(btn)) {
+        return EM_FALSE;
+    }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     eventBridgeMouseButton(self,
                            self->desc_,
