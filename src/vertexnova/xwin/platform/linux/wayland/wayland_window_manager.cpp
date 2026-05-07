@@ -198,8 +198,8 @@ void touchDown(void* data,
                wl_fixed_t x,
                wl_fixed_t y) {
     static_cast<WaylandWindowManager*>(data)->onTouchDown(static_cast<uint32_t>(id),
-                                                            wl_fixed_to_double(x),
-                                                            wl_fixed_to_double(y));
+                                                          wl_fixed_to_double(x),
+                                                          wl_fixed_to_double(y));
 }
 void touchUp(void* data, struct wl_touch*, uint32_t /*serial*/, uint32_t /*time*/, int32_t id) {
     static_cast<WaylandWindowManager*>(data)->onTouchUp(static_cast<uint32_t>(id), 0.0, 0.0);
