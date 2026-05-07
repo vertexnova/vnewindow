@@ -21,12 +21,12 @@
 namespace vne::xwin {
 
 namespace {
-constexpr std::uint32_t kAsciiPrintableMin = 32U;    // space
-constexpr std::uint32_t kAsciiPrintableMax = 126U; // '~'
-constexpr std::uint32_t kModifierShiftBit = 0U;    // ShiftMask bit index
-constexpr std::uint32_t kModifierControlBit = 2U;  // ControlMask
-constexpr std::uint32_t kModifierMod1Bit = 3U;     // Mod1Mask (Alt)
-constexpr std::uint32_t kModifierMod4Bit = 6U;     // Mod4Mask (Super)
+constexpr std::uint32_t kAsciiPrintableMin = 32U;   // space
+constexpr std::uint32_t kAsciiPrintableMax = 126U;  // '~'
+constexpr std::uint32_t kModifierShiftBit = 0U;     // ShiftMask bit index
+constexpr std::uint32_t kModifierControlBit = 2U;   // ControlMask
+constexpr std::uint32_t kModifierMod1Bit = 3U;      // Mod1Mask (Alt)
+constexpr std::uint32_t kModifierMod4Bit = 6U;      // Mod4Mask (Super)
 constexpr std::uint64_t kKeysymScanStart = 32U;
 constexpr std::uint64_t kKeysymScanEnd = 0x10000U;
 }  // namespace
