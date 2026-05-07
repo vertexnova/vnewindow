@@ -20,10 +20,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <sys/mman.h>
 #include <thread>
+#include <unistd.h>
 
 #include <wayland-client.h>
-#include <linux/input-event-codes.h>
+#include <xkbcommon/xkbcommon.h>
 
 extern "C" {
 #include "xdg-shell-client-protocol.h"
@@ -97,7 +99,9 @@ const wl_seat_listener kSeatListener = [] {
 
 // ---- wl_keyboard ----
 
-void kb_keymap(void*, struct wl_keyboard*, uint32_t, int32_t, uint32_t) {}
+void kb_keymap(void* data, struct wl_keyboard*, uint32_t format, int32_t fd, uint32_t size) {
+    static_cast<WaylandWindowManager*>(data)->onKeyboardKeymap(format, fd, size);
+}
 
 void kb_enter(
     void* data, struct wl_keyboard*, uint32_t /*serial*/, struct wl_surface* surface, struct wl_array* /*keys*/) {
@@ -118,8 +122,8 @@ void kb_modifiers(void* data,
                   uint32_t depressed,
                   uint32_t latched,
                   uint32_t locked,
-                  uint32_t /*group*/) {
-    static_cast<WaylandWindowManager*>(data)->onModifiers(depressed, latched, locked);
+                  uint32_t group) {
+    static_cast<WaylandWindowManager*>(data)->onModifiers(depressed, latched, locked, group);
 }
 
 void kb_repeat_info(void*, struct wl_keyboard*, int32_t, int32_t) {}
@@ -308,233 +312,70 @@ void WaylandWindowManager::notifyWindowFocus(WaylandWindow* win, bool focused) {
     notifyWindowEvent(win, ev);
 }
 
+void WaylandWindowManager::onKeyboardKeymap(uint32_t format, int32_t fd, uint32_t size) {
+    if (fd < 0) {
+        return;
+    }
+    if (format != WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1 || size == 0U) {
+        close(fd);
+        return;
+    }
+
+    void* mapped = mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd);
+    if (mapped == MAP_FAILED) {
+        return;
+    }
+
+    auto* keymap_str = static_cast<const char*>(mapped);
+    if (!xkb_context_) {
+        xkb_context_ = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+    }
+    if (!xkb_context_) {
+        munmap(mapped, size);
+        return;
+    }
+
+    xkb_keymap* new_keymap =
+        xkb_keymap_new_from_string(xkb_context_, keymap_str, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    munmap(mapped, size);
+    if (!new_keymap) {
+        return;
+    }
+
+    xkb_state* new_state = xkb_state_new(new_keymap);
+    if (!new_state) {
+        xkb_keymap_unref(new_keymap);
+        return;
+    }
+
+    if (xkb_state_) {
+        xkb_state_unref(xkb_state_);
+    }
+    if (xkb_keymap_) {
+        xkb_keymap_unref(xkb_keymap_);
+    }
+    xkb_keymap_ = new_keymap;
+    xkb_state_ = new_state;
+    xkb_state_update_mask(xkb_state_, mod_depressed_, mod_latched_, mod_locked_, 0U, 0U, mod_group_);
+}
+
 void WaylandWindowManager::onKey(uint32_t linux_key, uint32_t state, uint32_t /*time*/) {
     WaylandWindow* win = focusedWindow();
     if (!win) {
         return;
     }
-
-    // Wayland sends Linux evdev scan codes; convert to XKB keysym via offset
-    // (Linux keycodes are XKB scancode - 8; we need to get the keysym another way)
-    // Without a full xkb_state, map the scan code to a known keysym using the
-    // standard QWERTY assumption. For full layout support xkb_state_key_get_one_sym
-    // would be used; we call mapWaylandKeysym with the XKB keysym.
-    // Here we apply the standard evdev→XKB keysym table subset.
-    // For simplicity we convert scan codes to XKB keysyms using the offset rule:
-    //   xkb_keycode = linux_keycode + 8
-    // then look up via a compact inline table.
-
-    // Compact evdev scancode → XKB keysym mapping (US QWERTY layout subset)
-    static const uint32_t kEvdevToXkb[] = {// 0-9
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           // 10: KEY_Q..KEY_P row
-                                           0x71,
-                                           0x77,
-                                           0x65,
-                                           0x72,
-                                           0x74,
-                                           0x79,
-                                           0x75,
-                                           0x69,
-                                           0x6f,
-                                           0x70,  // q w e r t y u i o p
-                                                  // 20: brackets, enter, ctrl, home row
-                                           0x5b,
-                                           0x5d,
-                                           0xff0d,
-                                           0,
-                                           0x61,
-                                           0x73,
-                                           0x64,
-                                           0x66,
-                                           0x67,
-                                           0x68,  // [ ] enter ctrl a s d f g h
-                                                  // 30: j k l ; ' ` lshift \ z x
-                                           0x6a,
-                                           0x6b,
-                                           0x6c,
-                                           0x3b,
-                                           0x27,
-                                           0x60,
-                                           0,
-                                           0x5c,
-                                           0x7a,
-                                           0x78,  // j k l ; ' ` lshift \ z x
-                                                  // 40: c v b n m , . / rshift kp*
-                                           0x63,
-                                           0x76,
-                                           0x62,
-                                           0x6e,
-                                           0x6d,
-                                           0x2c,
-                                           0x2e,
-                                           0x2f,
-                                           0,
-                                           0,  // c v b n m , . / rshift kp*
-                                               // 50: alt space caps f1-f10
-                                           0,
-                                           0x20,
-                                           0xffe5,
-                                           0xffbe,
-                                           0xffbf,
-                                           0xffc0,
-                                           0xffc1,
-                                           0xffc2,
-                                           0xffc3,
-                                           0xffc4,  // alt sp caps f1-f9
-                                                    // 60: f10 numlock scroll 7 8 9 kp- 4 5 6
-                                           0xffc9,
-                                           0xff7f,
-                                           0xff14,
-                                           0xffb7,
-                                           0xffb8,
-                                           0xffb9,
-                                           0xffad,
-                                           0xffb4,
-                                           0xffb5,
-                                           0xffb6,
-                                           // 70: kp+ 1 2 3 0 kpdot f11 f12
-                                           0xffab,
-                                           0xffb1,
-                                           0xffb2,
-                                           0xffb3,
-                                           0xffb0,
-                                           0xffae,
-                                           0xffc0,
-                                           0xffc1,
-                                           0,
-                                           0,
-                                           // 80-89 gaps
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           // 90-99 kpenter kpctrl kp/ sysrq ralt
-                                           0xffb0,
-                                           0,
-                                           0xffaf,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           // 100-109 home up pgup left right end down pgdn ins del
-                                           0xff50,
-                                           0xff52,
-                                           0xff55,
-                                           0xff51,
-                                           0xff53,
-                                           0xff57,
-                                           0xff54,
-                                           0xff56,
-                                           0xff63,
-                                           0xffff,
-                                           // 110-119 esc numlock caps scroll kpequal kppmn 0 kpdot
-                                           0xff1b,
-                                           0xff7f,
-                                           0xffe5,
-                                           0xff14,
-                                           0xffbd,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           // 120-125: super menu
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           0};
-    constexpr uint32_t kTableSize = sizeof(kEvdevToXkb) / sizeof(kEvdevToXkb[0]);
-
-    uint32_t sym = 0;
-    // Digit row: KEY_1(2)..KEY_0(11)
-    if (linux_key >= 2 && linux_key <= 11) {
-        static const uint32_t digits[] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30};
-        sym = digits[linux_key - 2];
-    } else if (linux_key < kTableSize) {
-        sym = kEvdevToXkb[linux_key];
+    if (!xkb_state_) {
+        return;
     }
-
-    // Override some well-known scan codes
-    switch (linux_key) {
-        case 103:
-            sym = 0xff52;
-            break;  // KEY_UP
-        case 108:
-            sym = 0xff54;
-            break;  // KEY_DOWN
-        case 105:
-            sym = 0xff51;
-            break;  // KEY_LEFT
-        case 106:
-            sym = 0xff53;
-            break;  // KEY_RIGHT
-        case 104:
-            sym = 0xff55;
-            break;  // KEY_PAGEUP
-        case 109:
-            sym = 0xff56;
-            break;  // KEY_PAGEDOWN
-        case 102:
-            sym = 0xff50;
-            break;  // KEY_HOME
-        case 107:
-            sym = 0xff57;
-            break;  // KEY_END
-        case 42:
-            sym = 0xffe1;
-            break;  // KEY_LEFTSHIFT
-        case 54:
-            sym = 0xffe2;
-            break;  // KEY_RIGHTSHIFT
-        case 29:
-            sym = 0xffe3;
-            break;  // KEY_LEFTCTRL
-        case 97:
-            sym = 0xffe4;
-            break;  // KEY_RIGHTCTRL
-        case 56:
-            sym = 0xffe9;
-            break;  // KEY_LEFTALT
-        case 100:
-            sym = 0xffea;
-            break;  // KEY_RIGHTALT
-        case 125:
-            sym = 0xffeb;
-            break;  // KEY_LEFTMETA
-        case 126:
-            sym = 0xffec;
-            break;  // KEY_RIGHTMETA
-        default:
-            break;
-    }
-
-    if (sym == 0) {
+    const xkb_keycode_t xkb_keycode = static_cast<xkb_keycode_t>(linux_key + 8U);
+    const xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_, xkb_keycode);
+    if (sym == XKB_KEY_NoSymbol) {
         return;
     }
     const WindowDescriptor& desc = win->descriptor();
     const vne::events::KeyCode kc =
-        mapNativeKeyToEvents(WindowAPI::eWaylandWindow, packXkbNativeKey(sym), desc.input_mapping);
+        mapNativeKeyToEvents(WindowAPI::eWaylandWindow, packXkbNativeKey(static_cast<uint64_t>(sym)), desc.input_mapping);
     const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
     const uint8_t mods =
         mapNativeModifiersToEvents(WindowAPI::eWaylandWindow, static_cast<uint64_t>(base_mods), desc.input_mapping);
@@ -546,10 +387,14 @@ void WaylandWindowManager::onKey(uint32_t linux_key, uint32_t state, uint32_t /*
     }
 }
 
-void WaylandWindowManager::onModifiers(uint32_t dep, uint32_t lat, uint32_t lock) {
+void WaylandWindowManager::onModifiers(uint32_t dep, uint32_t lat, uint32_t lock, uint32_t group) {
     mod_depressed_ = dep;
     mod_latched_ = lat;
     mod_locked_ = lock;
+    mod_group_ = group;
+    if (xkb_state_) {
+        xkb_state_update_mask(xkb_state_, dep, lat, lock, 0U, 0U, group);
+    }
 }
 
 void WaylandWindowManager::onPointerMotion(double x, double y) {
@@ -646,6 +491,14 @@ void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t cap
     } else if (!has_kb && keyboard_) {
         wl_keyboard_destroy(keyboard_);
         keyboard_ = nullptr;
+        if (xkb_state_) {
+            xkb_state_unref(xkb_state_);
+            xkb_state_ = nullptr;
+        }
+        if (xkb_keymap_) {
+            xkb_keymap_unref(xkb_keymap_);
+            xkb_keymap_ = nullptr;
+        }
     }
 
     if (has_ptr && !pointer_) {
@@ -777,6 +630,18 @@ void WaylandWindowManager::teardownGlobals() {
     if (keyboard_) {
         wl_keyboard_destroy(keyboard_);
         keyboard_ = nullptr;
+    }
+    if (xkb_state_) {
+        xkb_state_unref(xkb_state_);
+        xkb_state_ = nullptr;
+    }
+    if (xkb_keymap_) {
+        xkb_keymap_unref(xkb_keymap_);
+        xkb_keymap_ = nullptr;
+    }
+    if (xkb_context_) {
+        xkb_context_unref(xkb_context_);
+        xkb_context_ = nullptr;
     }
     if (pointer_) {
         wl_pointer_destroy(pointer_);

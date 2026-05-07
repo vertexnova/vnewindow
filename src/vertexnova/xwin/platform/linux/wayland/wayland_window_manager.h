@@ -27,6 +27,9 @@ struct wl_pointer;
 struct wl_touch;
 struct wl_output;
 struct xdg_wm_base;
+struct xkb_context;
+struct xkb_keymap;
+struct xkb_state;
 
 namespace vne::xwin {
 
@@ -45,8 +48,9 @@ class WaylandWindowManager final : public IWindowManager {
     void onSeatCapabilities(struct wl_seat* seat, uint32_t capabilities);
 
     // Input event callbacks — called from wl_keyboard/pointer/touch listeners
+    void onKeyboardKeymap(uint32_t format, int32_t fd, uint32_t size);
     void onKey(uint32_t key, uint32_t state, uint32_t time);
-    void onModifiers(uint32_t depressed, uint32_t latched, uint32_t locked);
+    void onModifiers(uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group);
     void onPointerButton(uint32_t button, uint32_t state, double x, double y);
     void onPointerMotion(double x, double y);
     void onPointerAxis(double x_offset, double y_offset);
@@ -135,6 +139,11 @@ class WaylandWindowManager final : public IWindowManager {
     uint32_t mod_depressed_ = 0;
     uint32_t mod_latched_ = 0;
     uint32_t mod_locked_ = 0;
+    uint32_t mod_group_ = 0;
+
+    xkb_context* xkb_context_ = nullptr;
+    xkb_keymap* xkb_keymap_ = nullptr;
+    xkb_state* xkb_state_ = nullptr;
 
     // Last known pointer position (needed for button events that don't re-send coords)
     double ptr_x_ = 0.0;

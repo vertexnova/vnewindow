@@ -484,12 +484,14 @@ void WasmWindow::setCursor(WindowCursor cursor) {
     EM_ASM(
         {
             var s = UTF8ToString($0);
-            if (typeof document != = 'undefined' && document.body) {
-                document.body.style.cursor = s;
-            }
-            var c = document.querySelector('#canvas');
-            if (c) {
-                c.style.cursor = s;
+            if (typeof document !== 'undefined') {
+                if (document.body) {
+                    document.body.style.cursor = s;
+                }
+                var c = document.querySelector('#canvas');
+                if (c) {
+                    c.style.cursor = s;
+                }
             }
         },
         css);
