@@ -741,7 +741,10 @@ bool WaylandWindowManager::initialize() {
         return false;
     }
     // Second roundtrip picks up seat capabilities
-    wl_display_roundtrip(display_);
+    if (wl_display_roundtrip(display_) < 0) {
+        shutdown();
+        return false;
+    }
     initialized_ = true;
     return true;
 }
