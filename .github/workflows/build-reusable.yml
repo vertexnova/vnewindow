@@ -160,6 +160,20 @@ jobs:
               COVERAGE_FLAG="-DENABLE_COVERAGE=ON"
           fi
 
+          # Cache hygiene: if the restored build cache belongs to a different source
+          # checkout path (e.g. repository rename), CMake will fail hard. Detect and
+          # reset that cache directory before configuring.
+          if [[ -f "$BUILD_DIR/CMakeCache.txt" ]]; then
+              CACHED_SRC="$(sed -n 's|^CMAKE_HOME_DIRECTORY:INTERNAL=||p' "$BUILD_DIR/CMakeCache.txt" | head -n1)"
+              if [[ -n "$CACHED_SRC" && "$CACHED_SRC" != "$GITHUB_WORKSPACE" ]]; then
+                  echo "::warning::Stale CMake cache source path detected."
+                  echo "::warning::Cached: $CACHED_SRC"
+                  echo "::warning::Current: $GITHUB_WORKSPACE"
+                  echo "::warning::Removing stale build cache at $BUILD_DIR"
+                  rm -rf "$BUILD_DIR"
+              fi
+          fi
+
           COMPILER_FLAGS=""
           if [[ -n "$C_COMPILER" ]]; then
               COMPILER_FLAGS="-DCMAKE_C_COMPILER=$C_COMPILER"
