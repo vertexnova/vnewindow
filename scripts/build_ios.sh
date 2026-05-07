@@ -260,10 +260,21 @@ run_xcode_build() {
 
     cd "$xcode_path"
 
-    local xcode_config="Debug"
-    if [ "$BUILD_TYPE" = "Release" ]; then
-        xcode_config="Release"
-    fi
+    local xcode_config
+    case "$BUILD_TYPE" in
+        Release)
+            xcode_config="Release"
+            ;;
+        RelWithDebInfo)
+            xcode_config="RelWithDebInfo"
+            ;;
+        MinSizeRel)
+            xcode_config="MinSizeRel"
+            ;;
+        *)
+            xcode_config="Debug"
+            ;;
+    esac
 
     local xcode_target="iphoneos"
     if [ "$TARGET" = "simulator" ]; then
