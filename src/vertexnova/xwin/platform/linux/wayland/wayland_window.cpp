@@ -197,9 +197,8 @@ void WaylandWindow::setPosition(int x, int y) {
     desc_.position.y = y;
 }
 
-void WaylandWindow::getPosition(int& x, int& y) const {
-    x = desc_.position.x;
-    y = desc_.position.y;
+WindowPosition WaylandWindow::getPosition() const {
+    return desc_.position;
 }
 
 void WaylandWindow::resize(uint32_t width, uint32_t height) {

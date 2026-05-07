@@ -39,7 +39,7 @@ class WasmWindow final : public IWindow {
     void setFullscreen(bool enabled) override;
     [[nodiscard]] bool isFullscreen() const noexcept override;
     void setPosition(int x, int y) override;
-    void getPosition(int& x, int& y) const override;
+    [[nodiscard]] WindowPosition getPosition() const override;
     void resize(uint32_t width, uint32_t height) override;
     void minimize() override;
     void maximize() override;

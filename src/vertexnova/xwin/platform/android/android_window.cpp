@@ -54,9 +54,8 @@ void AndroidWindow::setPosition(int x, int y) {
     desc_.position.y = y;
 }
 
-void AndroidWindow::getPosition(int& x, int& y) const {
-    x = desc_.position.x;
-    y = desc_.position.y;
+WindowPosition AndroidWindow::getPosition() const {
+    return desc_.position;
 }
 
 void AndroidWindow::resize(uint32_t width, uint32_t height) {

@@ -383,9 +383,8 @@ void WasmWindow::setPosition(int x, int y) {
     desc_.position.y = y;
 }
 
-void WasmWindow::getPosition(int& x, int& y) const {
-    x = desc_.position.x;
-    y = desc_.position.y;
+WindowPosition WasmWindow::getPosition() const {
+    return desc_.position;
 }
 
 void WasmWindow::resize(uint32_t width, uint32_t height) {

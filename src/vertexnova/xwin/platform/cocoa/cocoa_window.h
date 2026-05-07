@@ -45,7 +45,7 @@ class CocoaWindow final : public IWindow {
     void maximize() override;
     void restore() override;
     void setPosition(int x, int y) override;
-    void getPosition(int& x, int& y) const override;
+    [[nodiscard]] WindowPosition getPosition() const override;
     void resize(uint32_t width, uint32_t height) override;
     void setWindowLimits(const WindowLimits& limits) override;
     void setCursor(WindowCursor cursor) override;

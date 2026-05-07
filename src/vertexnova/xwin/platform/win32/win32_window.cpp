@@ -483,16 +483,16 @@ void Win32Window::setPosition(int x, int y) {
     }
 }
 
-void Win32Window::getPosition(int& x, int& y) const {
-    x = desc_.position.x;
-    y = desc_.position.y;
+WindowPosition Win32Window::getPosition() const {
+    WindowPosition position = desc_.position;
     if (hwnd_) {
         RECT r{};
         if (GetWindowRect(hwnd_, &r)) {
-            x = r.left;
-            y = r.top;
+            position.x = r.left;
+            position.y = r.top;
         }
     }
+    return position;
 }
 
 void Win32Window::resize(uint32_t width, uint32_t height) {

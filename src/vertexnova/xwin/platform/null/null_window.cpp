@@ -65,9 +65,8 @@ void NullWindow::setPosition(int x, int y) {
     descriptor_.position.y = y;
 }
 
-void NullWindow::getPosition(int& x, int& y) const {
-    x = descriptor_.position.x;
-    y = descriptor_.position.y;
+WindowPosition NullWindow::getPosition() const {
+    return descriptor_.position;
 }
 
 void NullWindow::resize(uint32_t width, uint32_t height) {

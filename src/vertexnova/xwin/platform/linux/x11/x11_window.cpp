@@ -504,9 +504,8 @@ void X11Window::setPosition(int x, int y) {
     }
 }
 
-void X11Window::getPosition(int& x, int& y) const {
-    x = desc_.position.x;
-    y = desc_.position.y;
+WindowPosition X11Window::getPosition() const {
+    return desc_.position;
 }
 
 void X11Window::resize(uint32_t width, uint32_t height) {

@@ -171,15 +171,12 @@ void UIKitWindow::setPosition(int x, int y) {
     }
 }
 
-void UIKitWindow::getPosition(int& x, int& y) const {
+WindowPosition UIKitWindow::getPosition() const {
     if (ui_view_) {
         UIView* v = (__bridge UIView*)ui_view_;
-        x = static_cast<int>(v.frame.origin.x);
-        y = static_cast<int>(v.frame.origin.y);
-        return;
+        return WindowPosition{static_cast<int32_t>(v.frame.origin.x), static_cast<int32_t>(v.frame.origin.y)};
     }
-    x = desc_.position.x;
-    y = desc_.position.y;
+    return desc_.position;
 }
 
 void UIKitWindow::resize(uint32_t width, uint32_t height) {

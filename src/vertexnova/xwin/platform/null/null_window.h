@@ -33,7 +33,7 @@ class NullWindow final : public IWindow {
     void setWindowLimits(const WindowLimits& limits) override;
     void setCursor(WindowCursor cursor) override;
     void setPosition(int x, int y) override;
-    void getPosition(int& x, int& y) const override;
+    [[nodiscard]] WindowPosition getPosition() const override;
     void resize(uint32_t width, uint32_t height) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;

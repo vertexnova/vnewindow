@@ -625,15 +625,12 @@ void CocoaWindow::setPosition(int x, int y) {
     }
 }
 
-void CocoaWindow::getPosition(int& x, int& y) const {
+WindowPosition CocoaWindow::getPosition() const {
     if (ns_window_) {
         NSRect r = ((__bridge NSWindow*)ns_window_).frame;
-        x = static_cast<int>(r.origin.x);
-        y = static_cast<int>(r.origin.y);
-        return;
+        return WindowPosition{static_cast<int32_t>(r.origin.x), static_cast<int32_t>(r.origin.y)};
     }
-    x = desc_.position.x;
-    y = desc_.position.y;
+    return desc_.position;
 }
 
 void CocoaWindow::resize(uint32_t width, uint32_t height) {

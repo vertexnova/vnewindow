@@ -54,7 +54,7 @@ class IWindow {
     virtual void setFullscreen(bool enabled) = 0;
     [[nodiscard]] virtual bool isFullscreen() const noexcept = 0;
     virtual void setPosition(int x, int y) = 0;
-    virtual void getPosition(int& x, int& y) const = 0;
+    [[nodiscard]] virtual WindowPosition getPosition() const = 0;
     virtual void setWindowLimits(const WindowLimits& limits);
     virtual void setCursor(WindowCursor cursor);
     virtual void setMonitor(uint32_t monitor_index);
