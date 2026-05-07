@@ -1,0 +1,70 @@
+/* ---------------------------------------------------------------------
+ * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
+ *
+ * Autodoc:   yes
+ * Tests for src/vertexnova/xwin/platform/null/null_window_manager.cpp (via eNullWindow factory).
+ * ----------------------------------------------------------------------
+ */
+
+#include <memory>
+
+#include <gtest/gtest.h>
+
+#include "vertexnova/xwin/event_bridge_callbacks.h"
+#include "vertexnova/xwin/window_factory.h"
+#include "vertexnova/xwin/xwin_types.h"
+
+using vne::xwin::EventBridgeCallbacks;
+using vne::xwin::WindowAPI;
+using vne::xwin::WindowFactory;
+
+namespace {
+
+std::shared_ptr<vne::xwin::IWindowManager> MakeInitializedNullManager() {
+    auto mgr = WindowFactory::createWindowManager(WindowAPI::eNullWindow);
+    EXPECT_NE(mgr, nullptr);
+    if (!mgr) {
+        return nullptr;
+    }
+    EXPECT_TRUE(mgr->initialize());
+    return mgr;
+}
+
+}  // namespace
+
+class NullWindowManagerTest : public ::testing::Test {};
+
+TEST_F(NullWindowManagerTest, MonitorQueriesUseBaseDefaults) {
+    auto mgr = MakeInitializedNullManager();
+    ASSERT_NE(mgr, nullptr);
+    EXPECT_EQ(mgr->getMonitorCount(), 0U);
+    EXPECT_EQ(mgr->getPrimaryMonitorIndex(), 0U);
+    const auto info = mgr->getMonitorInfo(0);
+    EXPECT_TRUE(info.name.empty());
+    EXPECT_FLOAT_EQ(info.dpi_scale, 1.0F);
+    mgr->shutdown();
+}
+
+TEST_F(NullWindowManagerTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
+    auto mgr = MakeInitializedNullManager();
+    ASSERT_NE(mgr, nullptr);
+
+    bool called = false;
+    EventBridgeCallbacks cb{};
+    cb.on_window_focus = [&called](vne::xwin::IWindow*, bool) { called = true; };
+
+    mgr->setEventBridgeCallbacks(std::move(cb));
+    mgr->processEvents();
+
+    auto w = mgr->openWindow("eb", 16, 16);
+    ASSERT_NE(w, nullptr);
+    mgr->processEvents();
+    EXPECT_FALSE(called);
+
+    w->close();
+    mgr->shutdown();
+}

@@ -1,0 +1,162 @@
+#pragma once
+/* ---------------------------------------------------------------------
+ * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   May 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+/** @file input_mapping.h Native input tokens ↔ vne::events types, with optional per-window overrides.
+ *
+ * Built-in tables cover Win32, Cocoa, X11, and Wayland. UIKit exposes the same Cocoa-style defaults for
+ * eIosUikitWindow / eTvosUikitWindow when you map native tokens yourself; VneXWinUIView delivers finger
+ * input as touch only (not UITouch-based mouse). Android remains touch-first with no default KM tables.
+ */
+
+#include "vertexnova/xwin/xwin_export.h"
+#include "vertexnova/xwin/xwin_types.h"
+
+#include <vertexnova/events/types.h>
+
+#include <cstdint>
+#include <functional>
+
+namespace vne::xwin {
+inline constexpr std::uint32_t kWin32ScanShift = 16U;
+inline constexpr std::uint32_t kWin32ExtShift = 24U;
+inline constexpr std::uint64_t kWin32VkMask = 0xFFFFULL;
+inline constexpr std::uint64_t kWin32ScanMask = 0xFFULL;
+inline constexpr std::uint64_t kWin32ExtMask = 0x1ULL;
+inline constexpr std::uint64_t kWin32MsgMask = 0xFFFFFFFFULL;
+inline constexpr std::uint32_t kWin32WParamShift = 32U;
+
+/**
+ * TODO(vneevents): Add vne::events::MouseButton::eUnknown upstream and replace this 0xFF sentinel
+ * (and all compares against it) with that enumerator.
+ */
+inline constexpr vne::events::MouseButton kUnmappedMouseButtonSentinel = static_cast<vne::events::MouseButton>(0xFFU);
+
+/**
+ * Optional per-window translation hooks. If a slot is empty, or returns KeyCode::eUnknown /
+ * kUnmappedMouseButtonSentinel / zero where documented, the library falls back to built-in platform
+ * tables (Win32 VK, Cocoa CGKeyCode,
+ * X11/Wayland keysym, etc.). Android has no default tables; UIKit can use these hooks for custom
+ * native translation (the stock view path only emits touch events).
+ *
+ * Native payload packing is API-specific (see packWin32NativeKey, packCocoaNativeKey, …).
+ */
+struct WindowInputMapping {
+    std::function<vne::events::KeyCode(WindowAPI api, uint64_t native_key_packed)> native_key_to_events;
+    std::function<uint64_t(WindowAPI api, vne::events::KeyCode key)> events_key_to_native_packed;
+
+    std::function<vne::events::MouseButton(WindowAPI api, uint64_t native_mouse_packed)> native_mouse_to_events;
+    std::function<uint64_t(WindowAPI api, vne::events::MouseButton button)> events_mouse_to_native_packed;
+
+    /** Platform-native modifier representation (e.g. NSEvent.modifierFlags on Cocoa, uint8_t flags on Win32). */
+    std::function<uint8_t(WindowAPI api, uint64_t native_modifiers_packed)> native_modifiers_to_events;
+    std::function<uint64_t(WindowAPI api, uint8_t events_modifiers)> events_modifiers_to_native_packed;
+};
+
+// -----------------------------------------------------------------------------
+// Native token packing (inline; documented per backend)
+// -----------------------------------------------------------------------------
+
+/** @brief Win32 WM_KEY* token: low 16 = VK; bits 16–23 = scan; bit 24 = extended (from lParam). */
+[[nodiscard]] inline uint64_t packWin32NativeKey(std::uintptr_t vk, std::uintptr_t l_param) noexcept {
+    const auto scan =
+        (static_cast<std::uint32_t>(l_param) >> kWin32ScanShift) & static_cast<std::uint32_t>(kWin32ScanMask);
+    const auto ext = (static_cast<std::uint32_t>(l_param) & (1U << kWin32ExtShift)) != 0U ? 1U : 0U;
+    uint64_t p = static_cast<uint64_t>(vk) & kWin32VkMask;
+    p |= (static_cast<uint64_t>(scan) << kWin32ScanShift);
+    p |= (static_cast<uint64_t>(ext) << kWin32ExtShift);
+    return p;
+}
+
+inline void unpackWin32NativeKey(uint64_t packed, std::uintptr_t* vk_out, std::uintptr_t* l_param_out) noexcept {
+    *vk_out = static_cast<std::uintptr_t>(packed & kWin32VkMask);
+    const auto scan = static_cast<std::uint32_t>((packed >> kWin32ScanShift) & kWin32ScanMask);
+    const auto ext = static_cast<std::uint32_t>((packed >> kWin32ExtShift) & kWin32ExtMask);
+    std::uintptr_t lp = static_cast<std::uintptr_t>(scan) << kWin32ScanShift;
+    if (ext != 0U) {
+        lp |= static_cast<std::uintptr_t>(1U) << kWin32ExtShift;
+    }
+    *l_param_out = lp;
+}
+
+/** @brief Win32 mouse: low 32 = UINT msg, high 32 = WPARAM for XBUTTON. */
+[[nodiscard]] inline uint64_t packWin32Mouse(unsigned int msg, std::uintptr_t w_param) noexcept {
+    uint64_t p = static_cast<uint64_t>(msg) & kWin32MsgMask;
+    p |= (static_cast<uint64_t>(w_param) << kWin32WParamShift);
+    return p;
+}
+
+inline void unpackWin32Mouse(uint64_t packed, unsigned int* msg_out, std::uintptr_t* w_param_out) noexcept {
+    *msg_out = static_cast<unsigned int>(packed & kWin32MsgMask);
+    *w_param_out = static_cast<std::uintptr_t>(packed >> kWin32WParamShift);
+}
+
+/** @brief Cocoa / UIKit NSEvent.keyCode (CGKeyCode). */
+[[nodiscard]] inline uint64_t packCocoaNativeKey(std::uint16_t key_code) noexcept {
+    return static_cast<uint64_t>(key_code);
+}
+
+/** @brief X11 KeySym or Wayland xkb_keysym_t (fits 32 bits). */
+[[nodiscard]] inline uint64_t packXkbNativeKey(std::uint32_t keysym) noexcept {
+    return static_cast<uint64_t>(keysym);
+}
+
+/** @brief Cocoa/UIKit NSEvent.buttonNumber (0–7 align with vne::events::MouseButton indices). */
+[[nodiscard]] inline uint64_t packCocoaNativeMouse(std::uint16_t button_number) noexcept {
+    return static_cast<uint64_t>(button_number);
+}
+
+/** @brief X11 ButtonPress/ButtonRelease button field (1-based button index). */
+[[nodiscard]] inline uint64_t packX11NativeMouse(std::uint32_t x11_button) noexcept {
+    return static_cast<uint64_t>(x11_button);
+}
+
+/** @brief Linux evdev button code (e.g. BTN_LEFT) as used by Wayland pointer protocol. */
+[[nodiscard]] inline uint64_t packWaylandNativeMouse(std::uint32_t linux_input_button) noexcept {
+    return static_cast<uint64_t>(linux_input_button);
+}
+
+// -----------------------------------------------------------------------------
+// Mapping API (built-in tables + optional WindowInputMapping from WindowDescriptor::input_mapping)
+// -----------------------------------------------------------------------------
+
+/** Uses mapping from WindowDescriptor when `mapping` is non-null; otherwise built-ins only. */
+[[nodiscard]] VNE_XWIN_API vne::events::KeyCode mapNativeKeyToEvents(WindowAPI api,
+                                                                     uint64_t native_key_packed,
+                                                                     const WindowInputMapping* mapping = nullptr);
+
+[[nodiscard]] VNE_XWIN_API uint64_t mapEventsKeyToNativePacked(WindowAPI api,
+                                                               vne::events::KeyCode key,
+                                                               const WindowInputMapping* mapping = nullptr);
+
+[[nodiscard]] VNE_XWIN_API vne::events::MouseButton mapNativeMouseToEvents(WindowAPI api,
+                                                                           uint64_t native_mouse_packed,
+                                                                           const WindowInputMapping* mapping = nullptr);
+
+[[nodiscard]] VNE_XWIN_API uint64_t mapEventsMouseToNativePacked(WindowAPI api,
+                                                                 vne::events::MouseButton button,
+                                                                 const WindowInputMapping* mapping = nullptr);
+
+[[nodiscard]] VNE_XWIN_API std::uint8_t mapNativeModifiersToEvents(WindowAPI api,
+                                                                   std::uint64_t native_modifiers_packed,
+                                                                   const WindowInputMapping* mapping = nullptr);
+
+[[nodiscard]] VNE_XWIN_API std::uint64_t mapEventsModifiersToNativePacked(WindowAPI api,
+                                                                          std::uint8_t events_modifiers,
+                                                                          const WindowInputMapping* mapping = nullptr);
+
+/** Built-in tables only (ignores WindowInputMapping). */
+[[nodiscard]] VNE_XWIN_API vne::events::KeyCode mapNativeKeyToEventsDefault(WindowAPI api,
+                                                                            uint64_t native_key_packed) noexcept;
+
+[[nodiscard]] VNE_XWIN_API uint64_t mapEventsKeyToNativePackedDefault(WindowAPI api, vne::events::KeyCode key) noexcept;
+
+}  // namespace vne::xwin

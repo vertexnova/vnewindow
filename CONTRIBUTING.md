@@ -11,27 +11,28 @@ Thank you for your interest in contributing. This document explains how to build
   ```
 - **Configure and build:**
   ```bash
-  cmake -B build/shared -DCMAKE_BUILD_TYPE=Debug -DVNE_TEMPLATE_TESTS=ON
-  cmake --build build/shared
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DVNE_XWIN_DEV=ON
+  cmake --build build
   ```
-- **Tests and examples:** `-DVNE_TEMPLATE_DEV=ON`, or set `-DVNE_TEMPLATE_TESTS=ON` and `-DVNE_TEMPLATE_EXAMPLES=ON` separately.
+- **Tests and examples:** `-DVNE_XWIN_DEV=ON`, or set `-DVNE_XWIN_TESTS=ON` and `-DVNE_XWIN_EXAMPLES=ON` separately.
 - **Platform scripts:** See [scripts/README.md](scripts/README.md) for `build_linux.sh`, `build_macos.sh`, `build_windows.sh`, `build_windows.py`, and `build_windows.ps1`.
 
 ## Testing
 
 - Run tests:
   ```bash
-  ctest --test-dir build/shared -C Debug --output-on-failure
+  ctest --test-dir build -C Debug --output-on-failure
   ```
 - Or use the script test action, e.g. `./scripts/build_macos.sh -a test`.
 
 ## Code style and formatting
 
-- **Formatting** is enforced in CI. Before pushing, run the project formatter so CI passes:
+- **Formatting** is enforced in CI. Before pushing, run the formatter (same as [pre-commit](.pre-commit-config.yaml); CI uses `clang-format-17`):
   ```bash
-  ./scripts/format.sh
+  python3 scripts/clang_formatter.py all --dry-run   # check only
+  python3 scripts/clang_formatter.py all            # apply
   ```
-  Or use the same command as CI: format `src`, `include`, `examples`, and `tests` with the project `.clang-format` (see [.github/workflows/ci.yml](.github/workflows/ci.yml)).
+  Optional wrapper: `./scripts/format.sh` (check: `./scripts/format.sh -check`). CI checks `src/`, `include/`, and `tests/` when present (see [.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - **Style and naming** are defined in [CODING_GUIDELINES.md](CODING_GUIDELINES.md). Formatting is enforced by [.clang-format](.clang-format) and static analysis by [.clang-tidy](.clang-tidy). Please follow these so reviews can focus on design and logic.
 
 ## Pull requests

@@ -8,7 +8,7 @@
 # Autodoc:   yes
 #==============================================================================
 
-if(NOT TARGET vnetemplate)
+if(NOT TARGET vnexwin)
     return()
 endif()
 
@@ -48,25 +48,35 @@ endif()
 # Test sources
 #==============================================================================
 set(TEST_SOURCES
-    template_test.cpp
+    window_factory_test.cpp
+    null_window_test.cpp
+    null_window_manager_test.cpp
 )
 
 #==============================================================================
 # Build test executable
 #==============================================================================
-add_executable(vnetemplate_tests ${TEST_SOURCES})
+add_executable(vnexwin_tests ${TEST_SOURCES})
 
-target_include_directories(vnetemplate_tests
+# Shared vnexwin + MSVC: STL in headers from exported types (same pattern as vneio tests).
+if(MSVC AND TARGET vnexwin)
+    get_target_property(_vnexwin_tests_lib_type vnexwin TYPE)
+    if(_vnexwin_tests_lib_type STREQUAL "SHARED_LIBRARY")
+        target_compile_options(vnexwin_tests PRIVATE /wd4251 /wd4275)
+    endif()
+endif()
+
+target_include_directories(vnexwin_tests
     PRIVATE
         ${GTEST_INCLUDE_DIRS}
         ${VNE_INCLUDE_DIR}
         ${VNE_SRC_DIR}
 )
 
-target_link_libraries(vnetemplate_tests
+target_link_libraries(vnexwin_tests
     PRIVATE
         ${GTEST_LIBRARIES}
-        vne::template
+        vne::xwin
 )
 
-add_test(NAME vnetemplate_tests COMMAND vnetemplate_tests)
+add_test(NAME vnexwin_tests COMMAND vnexwin_tests)

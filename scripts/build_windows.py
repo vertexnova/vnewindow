@@ -119,7 +119,7 @@ def build_cmake_command(project_root: Path, build_type: str) -> List[str]:
     return [
         "cmake", "-G", "Visual Studio 17 2022", "-A", "x64",
         "-DCMAKE_BUILD_TYPE=" + build_type, "-DCMAKE_C_COMPILER=cl", "-DCMAKE_CXX_COMPILER=cl",
-        "-DVNE_TEMPLATE_TESTS=ON", str(project_root),
+        "-DVNE_XWIN_LIB_TYPE=shared", "-DVNE_XWIN_TESTS=ON", str(project_root),
     ]
 
 

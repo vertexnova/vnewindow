@@ -1,17 +1,17 @@
 # Dependencies
 
-This directory holds external and internal dependencies for VneTemplate.
+This directory holds external and internal dependencies for VneCrossWindow.
 
 ## Layout
 
 - **external/** – Third-party dependencies (e.g. Google Test).
-- **internal/** – VertexNova internal libraries (vnecommon, vnelogging).
+- **internal/** – VertexNova internal libraries (vnecommon, vnelogging, vneevents).
 
 CMake modules (vnecmake) live in **cmake/vnecmake** at the project root; see main [README](../README.md).
 
 ## Getting dependencies
 
-VneTemplate’s `.gitmodules` already defines all four submodules:
+VneCrossWindow’s `.gitmodules` already defines these submodules:
 
 | Submodule | Path | URL |
 |-----------|------|-----|
@@ -19,6 +19,7 @@ VneTemplate’s `.gitmodules` already defines all four submodules:
 | googletest | `deps/external/googletest` | https://github.com/google/googletest.git |
 | vnecommon | `deps/internal/vnecommon` | https://github.com/vertexnova/vnecommon.git |
 | vnelogging | `deps/internal/vnelogging` | https://github.com/vertexnova/vnelogging.git |
+| vneevents | `deps/internal/vneevents` | https://github.com/vertexnova/vneevents.git |
 
 After cloning, initialize and update them from the project root:
 
@@ -55,14 +56,15 @@ Tests use Google Test from `deps/external/googletest`. Either:
 2. **FetchContent fallback**  
    If `deps/external/googletest` is not present, the CMake configuration for tests will use FetchContent to download googletest (v1.17.0) at configure time.
 
-### Internal: vnecommon and vnelogging
+### Internal: vnecommon, vnelogging, and vneevents
 
-The library optionally links to VertexNova internal dependencies when present:
+The `vne::xwin` library links VertexNova internal dependencies when present:
 
 - **deps/internal/vnecommon** – Common utilities.
 - **deps/internal/vnelogging** – Logging (e.g. spdlog-based).
+- **deps/internal/vneevents** – Thread-safe event bus / input types (`vne::events`), linked into `vnexwin` for shared event vocabulary with other VertexNova libraries.
 
-**In this repo (VneTemplate):** `.gitmodules` already lists these paths. Just run from the project root:
+**In this repo:** `.gitmodules` already lists these paths. Just run from the project root:
 
 ```bash
 git submodule update --init --recursive
@@ -73,6 +75,7 @@ git submodule update --init --recursive
 ```bash
 git submodule add https://github.com/vertexnova/vnecommon.git deps/internal/vnecommon
 git submodule add https://github.com/vertexnova/vnelogging.git deps/internal/vnelogging
+git submodule add https://github.com/vertexnova/vneevents.git deps/internal/vneevents
 git submodule update --init --recursive
 ```
 

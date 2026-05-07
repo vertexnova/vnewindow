@@ -6,9 +6,9 @@
 
 ## Checklist
 
-- [ ] Project builds (e.g. `cmake -B build/shared` and `cmake --build build/shared`, or platform script with `-l shared`/`-l static`).
-- [ ] Tests pass (e.g. `ctest --test-dir build/shared` or script `-a test`).
-- [ ] Code is formatted (e.g. run `clang-format` as configured for this repo); CI clang-format will check.
+- [ ] Project builds (e.g. `cmake -B build/shared/Release` / `cmake --build build/shared/Release`, or platform script with `-l shared`/`-l static`).
+- [ ] Tests pass (e.g. `ctest --test-dir build/shared/Release -C Release` or script `-a test`).
+- [ ] Code is formatted (e.g. `python3 scripts/clang_formatter.py all --dry-run`); CI uses `clang-format-17`.
 - [ ] Docs updated if you changed behavior or public API.
 
 ## Additional notes

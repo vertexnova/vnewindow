@@ -65,12 +65,13 @@ jobs:
 
       - name: Build (traced by CodeQL)
         run: |
-          cmake -B build/shared -S . \
+          cmake -B build/shared/Release -S . \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DVNE_XWIN_CI=ON \
+            -DVNE_XWIN_LIB_TYPE=shared \
+            -DENABLE_IPO=OFF \
             -DWARNINGS_AS_ERRORS=OFF
-          cmake --build build/shared --config Release --parallel
+          cmake --build build/shared/Release --config Release --parallel
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

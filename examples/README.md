@@ -8,15 +8,15 @@ From the project root (use `build/shared` or `build/static`):
 
 ```bash
 # Shared library build
-cmake -B build/shared -DVNE_TEMPLATE_EXAMPLES=ON -DVNE_TEMPLATE_LIB_TYPE=shared
+cmake -B build/shared -DVNE_XWIN_EXAMPLES=ON -DVNE_XWIN_LIB_TYPE=shared
 cmake --build build/shared
 
 # Static library build
-cmake -B build/static -DVNE_TEMPLATE_EXAMPLES=ON -DVNE_TEMPLATE_LIB_TYPE=static
+cmake -B build/static -DVNE_XWIN_EXAMPLES=ON -DVNE_XWIN_LIB_TYPE=static
 cmake --build build/static
 ```
 
-Alternatively, `-DVNE_TEMPLATE_DEV=ON` enables both tests and examples.
+Alternatively, `-DVNE_XWIN_DEV=ON` enables both tests and examples.
 
 Executables are placed in `build/shared/bin/examples/` (or `build/static/bin/examples/`).
 
