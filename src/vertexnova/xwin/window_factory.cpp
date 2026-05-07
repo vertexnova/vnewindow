@@ -104,11 +104,15 @@ std::shared_ptr<IWindowManager> WindowFactory::createWindowManager(WindowAPI win
 
 std::shared_ptr<IWindowManager> WindowFactory::createWindowManager() {
     const WindowAPI api = getBestWindowAPIForPlatform();
-    auto mgr = createWindowManager(api);
-    if (mgr) {
+    if (auto mgr = createWindowManager(api)) {
         return mgr;
     }
+#if VNE_XWIN_HAS_NULL
+    s_last_error_ = "Falling back to NullWindowManager after platform backend creation failed.";
     return std::make_shared<NullWindowManager>();
+#else
+    return nullptr;
+#endif
 }
 
 WindowAPI WindowFactory::getBestWindowAPIForPlatform() {
