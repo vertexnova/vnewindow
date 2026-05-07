@@ -59,6 +59,9 @@ MouseButton mapX11NativeButtonToMouse(unsigned int b) {
 }
 
 unsigned int mapMouseButtonToX11Button(MouseButton button) {
+    if (button == kUnmappedMouseButtonSentinel) {
+        return 0U;
+    }
     switch (button) {
         case MouseButton::eLeft:
             return 1U;
@@ -66,7 +69,6 @@ unsigned int mapMouseButtonToX11Button(MouseButton button) {
             return 2U;
         case MouseButton::eRight:
             return 3U;
-        case kUnmappedMouseButtonSentinel:
         default:
             return 0U;
     }
@@ -88,6 +90,9 @@ MouseButton mapLinuxEvdevButtonToMouse(std::uint32_t btn) {
 }
 
 std::uint32_t mapMouseButtonToLinuxEvdev(MouseButton button) {
+    if (button == kUnmappedMouseButtonSentinel) {
+        return 0U;
+    }
     switch (button) {
         case MouseButton::eLeft:
             return BTN_LEFT;
@@ -95,7 +100,6 @@ std::uint32_t mapMouseButtonToLinuxEvdev(MouseButton button) {
             return BTN_RIGHT;
         case MouseButton::eMiddle:
             return BTN_MIDDLE;
-        case kUnmappedMouseButtonSentinel:
         default:
             return 0U;
     }

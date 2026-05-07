@@ -239,9 +239,10 @@ uint64_t mapEventsKeyCodeToWin32Packed(KeyCode target) {
 }
 
 uint64_t mapEventsMouseButtonToWin32Packed(MouseButton b) {
+    if (b == kUnmappedMouseButtonSentinel) {
+        return 0;
+    }
     switch (b) {
-        case kUnmappedMouseButtonSentinel:
-            return 0;
         case MouseButton::eLeft:
             return packWin32Mouse(WM_LBUTTONDOWN, 0);
         case MouseButton::eRight:
