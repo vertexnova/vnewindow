@@ -104,9 +104,7 @@
     const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                static_cast<uint64_t>(ev.modifierFlags),
                                                                xwin_->inputMapping());
-    const auto has_modifier = [&](vne::events::ModifierKey bit) {
-        return (mods & static_cast<uint8_t>(bit)) != 0;
-    };
+    const auto has_modifier = [&](vne::events::ModifierKey bit) { return (mods & static_cast<uint8_t>(bit)) != 0; };
     bool is_press = false;
     switch (kc) {
         case vne::events::KeyCode::eLeftShift:
