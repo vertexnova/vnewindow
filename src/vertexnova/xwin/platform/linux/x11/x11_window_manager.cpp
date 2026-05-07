@@ -185,7 +185,7 @@ std::string X11WindowManager::getPlatformInfo() const {
 }
 
 bool X11WindowManager::isFeatureSupported(const std::string& feature) const {
-    return feature == "resize" || feature == "decorated";
+    return feature == "resize" || feature == "decorated" || feature == "clipboard" || feature == "icon";
 }
 
 std::string X11WindowManager::getProperties() const {
