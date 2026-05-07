@@ -104,8 +104,30 @@
     const uint8_t mods = vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                static_cast<uint64_t>(ev.modifierFlags),
                                                                xwin_->inputMapping());
-    // Heuristic: if the modifier bit is still set it was just pressed, otherwise released
-    const bool is_press = (mods != 0);
+    const auto has_modifier = [&](vne::events::ModifierKey bit) {
+        return (mods & static_cast<uint8_t>(bit)) != 0;
+    };
+    bool is_press = false;
+    switch (kc) {
+        case vne::events::KeyCode::eLeftShift:
+        case vne::events::KeyCode::eRightShift:
+            is_press = has_modifier(vne::events::ModifierKey::eModShift);
+            break;
+        case vne::events::KeyCode::eLeftControl:
+        case vne::events::KeyCode::eRightControl:
+            is_press = has_modifier(vne::events::ModifierKey::eModCtrl);
+            break;
+        case vne::events::KeyCode::eLeftAlt:
+        case vne::events::KeyCode::eRightAlt:
+            is_press = has_modifier(vne::events::ModifierKey::eModAlt);
+            break;
+        case vne::events::KeyCode::eLeftSuper:
+        case vne::events::KeyCode::eRightSuper:
+            is_press = has_modifier(vne::events::ModifierKey::eModMeta);
+            break;
+        default:
+            return;
+    }
     if (is_press) {
         xwin_->handleKeyDown(kc, mods, false);
     } else {
