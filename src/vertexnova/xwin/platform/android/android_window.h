@@ -68,8 +68,9 @@ class AndroidWindow final : public IWindow {
     /**
      * @brief Inject a key event from the host AInputQueue / GameActivity loop.
      * Call once per AInputEvent after reading AINPUT_EVENT_TYPE_KEY.
+     * @param repeat Match Android KeyEvent: `getRepeatCount() > 0` for key-repeat.
      */
-    void injectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers);
+    void injectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers, bool repeat = false);
 
     /** @brief Inject a window resize notification (call when ANativeWindow resizes). */
     void injectResizeEvent(uint32_t width, uint32_t height);

@@ -115,9 +115,9 @@ void AndroidWindow::injectTouchEvent(uint32_t touch_id, double x, double y, Even
     eventBridgeTouch(this, desc_, event_bridge_callbacks_, touch_id, x, y, phase);
 }
 
-void AndroidWindow::injectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers) {
+void AndroidWindow::injectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers, bool repeat) {
     if (down) {
-        eventBridgeKeyDown(this, desc_, event_bridge_callbacks_, key, modifiers, false);
+        eventBridgeKeyDown(this, desc_, event_bridge_callbacks_, key, modifiers, repeat);
     } else {
         eventBridgeKeyUp(this, desc_, event_bridge_callbacks_, key, modifiers);
     }
