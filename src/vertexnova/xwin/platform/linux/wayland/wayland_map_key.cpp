@@ -15,9 +15,21 @@
 
 #include "wayland_map_key.h"
 
+#include <cstdint>
 #include <xkbcommon/xkbcommon.h>
 
 namespace vne::xwin {
+
+namespace {
+constexpr std::uint32_t kAsciiPrintableMin = 32U;    // space
+constexpr std::uint32_t kAsciiPrintableMax = 126U; // '~'
+constexpr std::uint32_t kModifierShiftBit = 0U;    // ShiftMask bit index
+constexpr std::uint32_t kModifierControlBit = 2U;  // ControlMask
+constexpr std::uint32_t kModifierMod1Bit = 3U;     // Mod1Mask (Alt)
+constexpr std::uint32_t kModifierMod4Bit = 6U;     // Mod4Mask (Super)
+constexpr std::uint64_t kKeysymScanStart = 32U;
+constexpr std::uint64_t kKeysymScanEnd = 0x10000U;
+}  // namespace
 
 using vne::events::KeyCode;
 using vne::events::ModifierKey;
@@ -40,8 +52,8 @@ KeyCode mapWaylandKeysym(uint32_t sym) {
     if (sym >= XKB_KEY_F1 && sym <= XKB_KEY_F25) {
         return static_cast<KeyCode>(static_cast<int>(KeyCode::eF1) + static_cast<int>(sym - XKB_KEY_F1));
     }
-    // Printable ASCII passthrough (space=32 .. ~=126)
-    if (sym >= 32 && sym <= 126) {
+    // Printable ASCII passthrough (space .. tilde)
+    if (sym >= kAsciiPrintableMin && sym <= kAsciiPrintableMax) {
         return static_cast<KeyCode>(static_cast<std::int16_t>(sym));
     }
 
@@ -116,16 +128,16 @@ uint8_t mapWaylandModifiers(uint32_t depressed, uint32_t latched, uint32_t locke
     // but these are almost universally correct for a standard PC layout.
     const uint32_t active = depressed | latched | locked;
     uint8_t mods = 0;
-    if ((active & (1U << 0)) != 0U) {  // ShiftMask
+    if ((active & (1U << kModifierShiftBit)) != 0U) {
         mods |= static_cast<uint8_t>(ModifierKey::eModShift);
     }
-    if ((active & (1U << 2)) != 0U) {  // ControlMask
+    if ((active & (1U << kModifierControlBit)) != 0U) {
         mods |= static_cast<uint8_t>(ModifierKey::eModCtrl);
     }
-    if ((active & (1U << 3)) != 0U) {  // Mod1Mask (Alt)
+    if ((active & (1U << kModifierMod1Bit)) != 0U) {
         mods |= static_cast<uint8_t>(ModifierKey::eModAlt);
     }
-    if ((active & (1U << 6)) != 0U) {  // Mod4Mask (Super/Win)
+    if ((active & (1U << kModifierMod4Bit)) != 0U) {
         mods |= static_cast<uint8_t>(ModifierKey::eModSuper);
     }
     return mods;
@@ -135,7 +147,7 @@ std::uint64_t mapEventsKeyCodeToWaylandKeysym(KeyCode target) {
     if (target == KeyCode::eUnknown) {
         return 0;
     }
-    for (std::uint64_t sym = 32; sym < 0x10000U; ++sym) {
+    for (std::uint64_t sym = kKeysymScanStart; sym < kKeysymScanEnd; ++sym) {
         if (mapWaylandKeysym(static_cast<uint32_t>(sym)) == target) {
             return sym;
         }

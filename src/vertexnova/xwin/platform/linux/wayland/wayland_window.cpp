@@ -26,24 +26,24 @@ namespace vne::xwin {
 
 namespace {
 
-void xdg_surface_configure_thunk(void* data, struct xdg_surface* xdg_surface, uint32_t serial) {
+void xdgSurfaceConfigureThunk(void* data, struct xdg_surface* xdg_surface, uint32_t serial) {
     (void)data;
     xdg_surface_ack_configure(xdg_surface, serial);
 }
 
-void xdg_toplevel_configure_thunk(void* data, struct xdg_toplevel*, int32_t width, int32_t height, struct wl_array*) {
+void xdgToplevelConfigureThunk(void* data, struct xdg_toplevel*, int32_t width, int32_t height, struct wl_array*) {
     auto* self = static_cast<WaylandWindow*>(data);
     if (width > 0 && height > 0) {
         self->applyToplevelConfigure(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     }
 }
 
-void xdg_toplevel_close_thunk(void* data, struct xdg_toplevel*) {
+void xdgToplevelCloseThunk(void* data, struct xdg_toplevel*) {
     auto* self = static_cast<WaylandWindow*>(data);
     self->applyToplevelClose();
 }
 
-void xdg_toplevel_configure_bounds_thunk(void* data, struct xdg_toplevel*, int32_t width, int32_t height) {
+void xdgToplevelConfigureBoundsThunk(void* data, struct xdg_toplevel*, int32_t width, int32_t height) {
     (void)data;
     (void)width;
     (void)height;
@@ -53,16 +53,16 @@ void xdg_toplevel_configure_bounds_thunk(void* data, struct xdg_toplevel*, int32
  * (designated-only lists still warn on Clang for omitted trailing members). */
 const xdg_surface_listener kXdgSurfaceListener = [] {
     xdg_surface_listener l{};
-    l.configure = xdg_surface_configure_thunk;
+    l.configure = xdgSurfaceConfigureThunk;
     return l;
 }();
 
 const xdg_toplevel_listener kXdgToplevelListener = [] {
     xdg_toplevel_listener l{};
-    l.configure = xdg_toplevel_configure_thunk;
-    l.close = xdg_toplevel_close_thunk;
+    l.configure = xdgToplevelConfigureThunk;
+    l.close = xdgToplevelCloseThunk;
 #if defined(XDG_TOPLEVEL_CONFIGURE_BOUNDS_SINCE_VERSION)
-    l.configure_bounds = xdg_toplevel_configure_bounds_thunk;
+    l.configure_bounds = xdgToplevelConfigureBoundsThunk;
 #endif
     return l;
 }();

@@ -29,6 +29,8 @@ Checks: >
 WarningsAsErrors: ''
 
 # Project sources and public headers only under vne::xwin (exclude deps/internal trees).
+# Scanner-generated Wayland protocol C under src/vertexnova/xwin/generated/ is omitted from
+# the CI clang-tidy file list (see .github/workflows/ci.yml) — do not tidy those files.
 HeaderFilterRegex: '^.*/(src/vertexnova/xwin/.*|include/vertexnova/xwin/.*)'
 
 CheckOptions:

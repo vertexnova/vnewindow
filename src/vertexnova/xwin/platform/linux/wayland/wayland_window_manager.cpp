@@ -48,7 +48,7 @@ void registryGlobalRemove(void* data, struct wl_registry*, uint32_t name) {
     static_cast<WaylandWindowManager*>(data)->onRegistryGlobalRemove(name);
 }
 
-const wl_registry_listener g_kRegistryListener = [] {
+const wl_registry_listener kRegistryListener = [] {
     wl_registry_listener l{};
     l.global = registryGlobal;
     l.global_remove = registryGlobalRemove;
@@ -63,7 +63,7 @@ void outputScale(void* data, struct wl_output* output, int32_t factor) {
     auto* self = static_cast<WaylandWindowManager*>(data);
     self->onOutputScale(output, factor);
 }
-const wl_output_listener g_kOutputListener = [] {
+const wl_output_listener kOutputListener = [] {
     wl_output_listener l{};
     l.geometry = outputGeometry;
     l.mode = outputMode;
@@ -77,7 +77,7 @@ const wl_output_listener g_kOutputListener = [] {
 void xdgPing(void*, struct xdg_wm_base* base, uint32_t serial) {
     xdg_wm_base_pong(base, serial);
 }
-const xdg_wm_base_listener g_kXdgWmBaseListener = [] {
+const xdg_wm_base_listener kXdgWmBaseListener = [] {
     xdg_wm_base_listener l{};
     l.ping = xdgPing;
     return l;
@@ -90,7 +90,7 @@ void seatCapabilities(void* data, struct wl_seat* seat, uint32_t caps) {
 }
 void seatName(void*, struct wl_seat*, const char*) {}
 
-const wl_seat_listener g_kSeatListener = [] {
+const wl_seat_listener kSeatListener = [] {
     wl_seat_listener l{};
     l.capabilities = seatCapabilities;
     l.name = seatName;
@@ -128,7 +128,7 @@ void kbModifiers(void* data,
 
 void kbRepeatInfo(void*, struct wl_keyboard*, int32_t, int32_t) {}
 
-const wl_keyboard_listener g_kKeyboardListener = [] {
+const wl_keyboard_listener kKeyboardListener = [] {
     wl_keyboard_listener l{};
     l.keymap = kbKeymap;
     l.enter = kbEnter;
@@ -173,7 +173,7 @@ void ptrAxisSource(void*, struct wl_pointer*, uint32_t) {}
 void ptrAxisStop(void*, struct wl_pointer*, uint32_t, uint32_t) {}
 void ptrAxisDiscrete(void*, struct wl_pointer*, uint32_t, int32_t) {}
 
-const wl_pointer_listener g_kPointerListener = [] {
+const wl_pointer_listener kPointerListener = [] {
     wl_pointer_listener l{};
     l.enter = ptrEnter;
     l.leave = ptrLeave;
@@ -214,7 +214,7 @@ void touchCancel(void*, struct wl_touch*) {}
 void touchShape(void*, struct wl_touch*, int32_t, wl_fixed_t, wl_fixed_t) {}
 void touchOrientation(void*, struct wl_touch*, int32_t, wl_fixed_t) {}
 
-const wl_touch_listener g_kTouchListener = [] {
+const wl_touch_listener kTouchListener = [] {
     wl_touch_listener l{};
     l.down = touchDown;
     l.up = touchUp;
@@ -490,7 +490,7 @@ void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t cap
     if (has_kb && !keyboard_) {
         keyboard_ = wl_seat_get_keyboard(seat);
         if (keyboard_) {
-            wl_keyboard_add_listener(keyboard_, &g_kKeyboardListener, this);
+            wl_keyboard_add_listener(keyboard_, &kKeyboardListener, this);
         }
     } else if (!has_kb && keyboard_) {
         wl_keyboard_destroy(keyboard_);
@@ -508,7 +508,7 @@ void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t cap
     if (has_ptr && !pointer_) {
         pointer_ = wl_seat_get_pointer(seat);
         if (pointer_) {
-            wl_pointer_add_listener(pointer_, &g_kPointerListener, this);
+            wl_pointer_add_listener(pointer_, &kPointerListener, this);
         }
     } else if (!has_ptr && pointer_) {
         wl_pointer_destroy(pointer_);
@@ -518,7 +518,7 @@ void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t cap
     if (has_tch && !wl_touch_) {
         wl_touch_ = wl_seat_get_touch(seat);
         if (wl_touch_) {
-            wl_touch_add_listener(wl_touch_, &g_kTouchListener, this);
+            wl_touch_add_listener(wl_touch_, &kTouchListener, this);
         }
     } else if (!has_tch && wl_touch_) {
         wl_touch_destroy(wl_touch_);
@@ -544,7 +544,7 @@ void WaylandWindowManager::onRegistryGlobal(struct wl_registry* registry,
         const uint32_t ver = version < 2U ? version : 2U;
         auto* output = static_cast<wl_output*>(wl_registry_bind(registry, name, &wl_output_interface, ver));
         if (output) {
-            wl_output_add_listener(output, &g_kOutputListener, this);
+            wl_output_add_listener(output, &kOutputListener, this);
             outputs_[name] = OutputInfo{output, 1};
             recomputeOutputScale();
         }
@@ -572,7 +572,7 @@ void WaylandWindowManager::bindXdgWmBase(struct wl_registry* registry, uint32_t 
     const uint32_t ver = version < 4U ? version : 4U;
     xdg_wm_base_ = static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, ver));
     if (xdg_wm_base_) {
-        xdg_wm_base_add_listener(xdg_wm_base_, &g_kXdgWmBaseListener, nullptr);
+        xdg_wm_base_add_listener(xdg_wm_base_, &kXdgWmBaseListener, nullptr);
     }
 }
 
@@ -580,7 +580,7 @@ void WaylandWindowManager::bindSeat(struct wl_registry* registry, uint32_t name,
     const uint32_t ver = version < 5U ? version : 5U;
     seat_ = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, ver));
     if (seat_) {
-        wl_seat_add_listener(seat_, &g_kSeatListener, this);
+        wl_seat_add_listener(seat_, &kSeatListener, this);
     }
 }
 
@@ -611,7 +611,7 @@ bool WaylandWindowManager::initialize() {
         display_ = nullptr;
         return false;
     }
-    wl_registry_add_listener(registry_, &g_kRegistryListener, this);
+    wl_registry_add_listener(registry_, &kRegistryListener, this);
     if (wl_display_roundtrip(display_) < 0) {
         shutdown();
         return false;

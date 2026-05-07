@@ -498,6 +498,7 @@ jobs:
           TIDY_FILES=()
           while IFS= read -r f; do
             case "$f" in
+              */src/vertexnova/xwin/generated/*) ;;  # skip scanner-generated Wayland protocol C
               */src/vertexnova/xwin/*) TIDY_FILES+=("$f") ;;
             esac
           done < <(jq -r '.[].file' build/shared/Release/compile_commands.json | sort -u)
@@ -512,7 +513,7 @@ jobs:
         if: always()
         run: |
           echo "## clang-tidy" >> "$GITHUB_STEP_SUMMARY"
-          echo "Analyzed \`src/vertexnova/xwin/*\` listed in \`compile_commands.json\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Analyzed \`src/vertexnova/xwin/*\` (excluding \`generated/\`) from \`compile_commands.json\`" >> "$GITHUB_STEP_SUMMARY"
 
   # ====================================================================
   # STAGE 5: CI GATE
