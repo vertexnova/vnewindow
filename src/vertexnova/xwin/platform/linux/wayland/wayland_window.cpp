@@ -147,7 +147,8 @@ void WaylandWindow::initialize(const WindowDescriptor& descriptor) {
 
 void WaylandWindow::pollEvents() {
     if (owner_ && owner_->nativeDisplay()) {
-        wl_display_dispatch_pending(owner_->nativeDisplay());
+        // Read from the Wayland socket and dispatch; dispatch_pending alone only drains the local queue.
+        wl_display_dispatch(owner_->nativeDisplay());
     }
 }
 
@@ -165,7 +166,38 @@ void WaylandWindow::setTitle(const std::string& title) {
 }
 
 void WaylandWindow::setWindowMode(WindowMode mode) {
-    desc_.mode = mode;
+    switch (mode) {
+        case WindowMode::eFullscreen:
+            setFullscreen(true);
+            break;
+        case WindowMode::eWindowed:
+            setFullscreen(false);
+            if (toplevel_) {
+                xdg_toplevel_unset_maximized(toplevel_);
+            }
+            if (surface_ && owner_ && owner_->nativeDisplay()) {
+                wl_surface_commit(surface_);
+                wl_display_flush(owner_->nativeDisplay());
+            }
+            desc_.mode = WindowMode::eWindowed;
+            desc_.state = WindowState::eNormal;
+            break;
+        case WindowMode::eMaximized:
+            maximize();
+            break;
+        case WindowMode::eBorderless:
+            setFullscreen(false);
+            if (toplevel_) {
+                xdg_toplevel_unset_maximized(toplevel_);
+            }
+            if (surface_ && owner_ && owner_->nativeDisplay()) {
+                wl_surface_commit(surface_);
+                wl_display_flush(owner_->nativeDisplay());
+            }
+            desc_.mode = WindowMode::eBorderless;
+            desc_.state = WindowState::eNormal;
+            break;
+    }
 }
 
 WindowMode WaylandWindow::getWindowMode() const noexcept {
@@ -186,6 +218,13 @@ void WaylandWindow::setFullscreen(bool enabled) {
         wl_display_flush(owner_->nativeDisplay());
     }
     fullscreen_ = enabled;
+    if (enabled) {
+        desc_.mode = WindowMode::eFullscreen;
+        desc_.state = WindowState::eFullscreen;
+    } else if (desc_.mode == WindowMode::eFullscreen) {
+        desc_.mode = WindowMode::eWindowed;
+        desc_.state = WindowState::eNormal;
+    }
 }
 
 bool WaylandWindow::isFullscreen() const noexcept {
@@ -251,6 +290,7 @@ void WaylandWindow::minimize() {
         wl_surface_commit(surface_);
         wl_display_flush(owner_->nativeDisplay());
     }
+    desc_.state = WindowState::eMinimized;
 }
 
 void WaylandWindow::maximize() {
@@ -262,6 +302,8 @@ void WaylandWindow::maximize() {
         wl_surface_commit(surface_);
         wl_display_flush(owner_->nativeDisplay());
     }
+    desc_.mode = WindowMode::eMaximized;
+    desc_.state = WindowState::eMaximized;
 }
 
 void WaylandWindow::restore() {
@@ -277,6 +319,8 @@ void WaylandWindow::restore() {
         wl_surface_commit(surface_);
         wl_display_flush(owner_->nativeDisplay());
     }
+    desc_.mode = WindowMode::eWindowed;
+    desc_.state = WindowState::eNormal;
 }
 
 void WaylandWindow::setWindowLimits(const WindowLimits& limits) {
