@@ -11,6 +11,7 @@
 
 #include "common/example_runner.h"
 
+#include "vertexnova/common/macros.h"
 #include "vertexnova/events/events.h"
 #include "vertexnova/xwin/window_descriptor.h"
 #include "vertexnova/xwin/window_factory.h"
@@ -55,7 +56,9 @@ class ExampleRunner::RunnerListener : public vne::events::EventListener {
 // ---------------------------------------------------------------------------
 
 ExampleRunner::ExampleRunner(std::unique_ptr<ExampleBase> example)
-    : example_(std::move(example)) {}
+    : example_(std::move(example)) {
+    VNE_ASSERT_MSG(example_ != nullptr, "ExampleRunner requires a non-null ExampleBase");
+}
 
 ExampleRunner::~ExampleRunner() {
     shutdown();
@@ -64,6 +67,11 @@ ExampleRunner::~ExampleRunner() {
 bool ExampleRunner::initialize() {
     if (is_initialized_) {
         return true;
+    }
+
+    if (!example_) {
+        VNE_LOG_ERROR << "[ExampleRunner] initialize() failed: example is null.";
+        return false;
     }
 
     const ExampleConfig cfg = example_->configure();
@@ -160,7 +168,9 @@ void ExampleRunner::shutdown() {
     is_initialized_ = false;
     is_running_ = false;
 
-    example_->onShutdown();
+    if (example_) {
+        example_->onShutdown();
+    }
 
     if (listener_) {
         auto& ev = vne::events::EventManager::instance();
