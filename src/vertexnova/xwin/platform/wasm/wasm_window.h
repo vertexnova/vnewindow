@@ -48,7 +48,6 @@ class WasmWindow final : public IWindow {
     void setCursor(WindowCursor cursor) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
-    [[nodiscard]] void* getNativeWindow() const noexcept override;
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;

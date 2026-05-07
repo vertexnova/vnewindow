@@ -72,8 +72,7 @@ class IWindow {
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void close() = 0;
     [[nodiscard]] virtual bool isOpen() const noexcept = 0;
-    [[nodiscard]] virtual void* getNativeWindow() const noexcept = 0;
-    [[nodiscard]] virtual NativeWindowHandle getNativeHandle() const noexcept;
+    [[nodiscard]] virtual NativeWindowHandle getNativeHandle() const noexcept = 0;
     [[nodiscard]] virtual WindowAPI getWindowAPI() const noexcept = 0;
     [[nodiscard]] virtual int getWidth() const noexcept = 0;
     [[nodiscard]] virtual int getHeight() const noexcept = 0;
@@ -129,9 +128,6 @@ inline bool IWindow::isVSyncEnabled() const noexcept {
 inline void IWindow::minimize() {}
 inline void IWindow::maximize() {}
 inline void IWindow::restore() {}
-inline NativeWindowHandle IWindow::getNativeHandle() const noexcept {
-    return {};
-}
 inline std::string IWindow::getClipboardText() const {
     return {};
 }

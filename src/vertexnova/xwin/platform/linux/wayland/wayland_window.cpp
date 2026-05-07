@@ -219,9 +219,6 @@ bool WaylandWindow::isOpen() const noexcept {
     return open_ && surface_ != nullptr;
 }
 
-void* WaylandWindow::getNativeWindow() const noexcept {
-    return surface_;
-}
 
 NativeWindowHandle WaylandWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};

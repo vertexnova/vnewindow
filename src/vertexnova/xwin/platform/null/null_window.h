@@ -37,7 +37,6 @@ class NullWindow final : public IWindow {
     void resize(uint32_t width, uint32_t height) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
-    [[nodiscard]] void* getNativeWindow() const noexcept override;
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;

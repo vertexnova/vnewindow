@@ -59,7 +59,6 @@ bool try_desktop_smoke(WindowAPI api) {
 
     w->pollEvents();
     w->resize(64, 48);
-    (void)w->getNativeWindow();
     const auto handle = w->getNativeHandle();
     EXPECT_EQ(handle.api, api);
     (void)w->getDpiScale();

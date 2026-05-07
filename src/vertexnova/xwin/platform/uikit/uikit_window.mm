@@ -202,13 +202,6 @@ bool UIKitWindow::isOpen() const noexcept {
     return open_ && ui_view_ != nullptr;
 }
 
-void* UIKitWindow::getNativeWindow() const noexcept {
-    if (!ui_view_) {
-        return nullptr;
-    }
-    UIView* view = (__bridge UIView*)ui_view_;
-    return (__bridge void*)view.layer;
-}
 
 NativeWindowHandle UIKitWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};

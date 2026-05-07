@@ -404,9 +404,6 @@ bool WasmWindow::isOpen() const noexcept {
     return !should_close_ && initialized_;
 }
 
-void* WasmWindow::getNativeWindow() const noexcept {
-    return canvas_tag_;
-}
 
 NativeWindowHandle WasmWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};

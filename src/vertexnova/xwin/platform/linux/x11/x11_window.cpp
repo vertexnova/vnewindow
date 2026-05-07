@@ -526,9 +526,6 @@ bool X11Window::isOpen() const noexcept {
     return open_ && window_ != 0;
 }
 
-void* X11Window::getNativeWindow() const noexcept {
-    return reinterpret_cast<void*>(static_cast<uintptr_t>(window_));
-}
 
 NativeWindowHandle X11Window::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
