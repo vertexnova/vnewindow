@@ -11,7 +11,7 @@
 # shared vne_example_common runtime automatically.
 #==============================================================================
 
-set(_VNE_EXAMPLE_PLAT_DIR "${CMAKE_CURRENT_LIST_DIR}/../common/platform"
+set(_VNE_EXAMPLE_PLAT_DIR "${CMAKE_CURRENT_LIST_DIR}/../examples/common/platform"
     CACHE INTERNAL "Path to platform entry-point sources")
 
 function(vne_add_example TARGET_NAME)

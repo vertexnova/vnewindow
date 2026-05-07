@@ -8,7 +8,7 @@ if(NOT TARGET vnexwin)
 endif()
 
 # Load the vne_add_example() helper
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VneAddExample.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/VneAddExample.cmake)
 
 #------------------------------------------------------------------------------
 # vne_example_common — shared runner runtime compiled once, linked by all examples
