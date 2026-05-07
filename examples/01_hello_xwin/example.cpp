@@ -21,8 +21,37 @@
 
 #include "vertexnova/xwin/window_factory.h"
 #include "vertexnova/xwin/xwin_version.h"
+#include "vertexnova/xwin/xwin_types.h"
 
 #include <vertexnova/logging/logging.h>
+
+namespace {
+const char* toString(vne::xwin::WindowAPI api) {
+    using vne::xwin::WindowAPI;
+    switch (api) {
+        case WindowAPI::eNullWindow:
+            return "eNullWindow";
+        case WindowAPI::eWin32Window:
+            return "eWin32Window";
+        case WindowAPI::eCocoaWindow:
+            return "eCocoaWindow";
+        case WindowAPI::eX11Window:
+            return "eX11Window";
+        case WindowAPI::eWaylandWindow:
+            return "eWaylandWindow";
+        case WindowAPI::eIosUikitWindow:
+            return "eIosUikitWindow";
+        case WindowAPI::eAndroidSurfaceWindow:
+            return "eAndroidSurfaceWindow";
+        case WindowAPI::eWasmWindow:
+            return "eWasmWindow";
+        case WindowAPI::eWebgpuWindow:
+            return "eWebgpuWindow";
+        default:
+            return "Unknown";
+    }
+}
+}  // namespace
 
 class HelloXwinExample final : public vne::xwin::examples::ExampleBase {
    public:
@@ -32,6 +61,7 @@ class HelloXwinExample final : public vne::xwin::examples::ExampleBase {
         using vne::xwin::WindowFactory;
         VNE_LOG_INFO << "vne::xwin build: " << WindowFactory::getBuildInfo();
         VNE_LOG_INFO << "Version        : " << vne::xwin::libraryVersion();
+        VNE_LOG_INFO << "Selected API   : " << toString(window.getWindowAPI());
         VNE_LOG_INFO << "Window size    : " << window.getWidth() << "x" << window.getHeight();
         VNE_LOG_INFO << "DPI scale      : " << window.getDpiScale();
         VNE_LOG_INFO << "Press ESC or close the window to exit.";
