@@ -48,7 +48,7 @@ PLATFORM="iOS"
 COMPILER="clang"
 
 usage() {
-  echo "Usage: $0 [-t <build_type>] [-a <action>] [-l <lib_type>] [-clean] [-j <jobs>] [-xcode] [-xcode-only] [-simulator] [-device] [-deployment-target <version>]"
+  echo "Usage: $0 [-t <build_type>] [-a <action>] [-l <lib_type>] [-clean] [-j <jobs>] [-xcode] [-xcode-only] [-simulator] [-device] [-deployment-target <version>] [--with-tests] [--with-examples]"
   echo "Options:"
   echo "  -t <build_type>    Debug|Release|RelWithDebInfo|MinSizeRel"
   echo "  -a <action>        configure|build|configure_and_build|test|xcode|xcode_build"
@@ -60,6 +60,8 @@ usage() {
   echo "  -simulator         Build for iOS Simulator (default)"
   echo "  -device            Build for iOS Device"
   echo "  -deployment-target iOS deployment target (default: 15.0)"
+  echo "  --with-tests       Enable VNE_XWIN_TESTS=ON (off by default for iOS)"
+  echo "  --with-examples    Enable VNE_XWIN_EXAMPLES=ON (off by default for iOS)"
   echo ""
   echo "Examples:"
   echo "  $0 -t Debug -a configure_and_build -simulator"
@@ -120,6 +122,8 @@ TARGET="simulator"
 XCODE_ONLY=false
 GENERATE_XCODE=false
 IOS_DEPLOYMENT_TARGET="15.0"
+WITH_TESTS=false
+WITH_EXAMPLES=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -159,6 +163,14 @@ while [[ $# -gt 0 ]]; do
         -deployment-target|--deployment-target)
             IOS_DEPLOYMENT_TARGET="$2"
             shift 2
+            ;;
+        --with-tests)
+            WITH_TESTS=true
+            shift
+            ;;
+        --with-examples)
+            WITH_EXAMPLES=true
+            shift
             ;;
         -h|--help)
             usage
@@ -203,8 +215,8 @@ CMAKE_ARGS=(
     "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
     "-DVNE_XWIN_LIB_TYPE=$LIB_TYPE"
     "-DVNE_XWIN_DEV=OFF"
-    "-DVNE_XWIN_TESTS=OFF"
-    "-DVNE_XWIN_EXAMPLES=OFF"
+    "-DVNE_XWIN_TESTS=$( [ "$WITH_TESTS" = true ] && echo ON || echo OFF )"
+    "-DVNE_XWIN_EXAMPLES=$( [ "$WITH_EXAMPLES" = true ] && echo ON || echo OFF )"
     "-DVNE_TARGET_PLATFORM=iOS"
     "-DCMAKE_SYSTEM_NAME=iOS"
     "-DCMAKE_OSX_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET"
@@ -287,6 +299,8 @@ echo "Target: $TARGET"
 echo "iOS Deployment Target: $IOS_DEPLOYMENT_TARGET"
 echo "Action: $ACTION"
 echo "Generate Xcode: $GENERATE_XCODE"
+echo "Tests Enabled: $WITH_TESTS"
+echo "Examples Enabled: $WITH_EXAMPLES"
 echo "Jobs: $JOBS"
 echo ""
 
@@ -309,7 +323,9 @@ case $ACTION in
         run_cmake_configure "$XCODE_DIR"
         ;;
     "test")
-        echo "Note: Tests are disabled for iOS builds (VNE_XWIN_TESTS=OFF)"
+        if [ "$WITH_TESTS" != true ]; then
+            echo "Note: Tests are disabled for iOS builds unless --with-tests is set"
+        fi
         run_cmake_configure "$BUILD_DIR"
         run_xcode_build "$BUILD_DIR"
         ;;
