@@ -906,7 +906,7 @@ void WaylandWindowManager::focusWindow(std::shared_ptr<IWindow> w) {
 
 void WaylandWindowManager::processEvents() {
     if (display_) {
-        wl_display_dispatch_pending(display_);
+        wl_display_dispatch(display_);
     }
 }
 

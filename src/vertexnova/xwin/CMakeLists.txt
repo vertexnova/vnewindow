@@ -215,6 +215,7 @@ endif()
 
 if(_vx_uikit)
     set_source_files_properties(
+        platform/cocoa/cocoa_map_key.mm
         platform/uikit/uikit_window.mm
         platform/uikit/uikit_window_manager.mm
         PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
