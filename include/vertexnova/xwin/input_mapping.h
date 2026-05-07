@@ -26,15 +26,13 @@
 #include <functional>
 
 namespace vne::xwin {
-namespace {
-constexpr std::uint32_t kWin32ScanShift = 16U;
-constexpr std::uint32_t kWin32ExtShift = 24U;
-constexpr std::uint64_t kWin32VkMask = 0xFFFFULL;
-constexpr std::uint64_t kWin32ScanMask = 0xFFULL;
-constexpr std::uint64_t kWin32ExtMask = 0x1ULL;
-constexpr std::uint64_t kWin32MsgMask = 0xFFFFFFFFULL;
-constexpr std::uint32_t kWin32WParamShift = 32U;
-}  // namespace
+inline constexpr std::uint32_t kWin32ScanShift = 16U;
+inline constexpr std::uint32_t kWin32ExtShift = 24U;
+inline constexpr std::uint64_t kWin32VkMask = 0xFFFFULL;
+inline constexpr std::uint64_t kWin32ScanMask = 0xFFULL;
+inline constexpr std::uint64_t kWin32ExtMask = 0x1ULL;
+inline constexpr std::uint64_t kWin32MsgMask = 0xFFFFFFFFULL;
+inline constexpr std::uint32_t kWin32WParamShift = 32U;
 
 /**
  * Optional per-window translation hooks. If a slot is empty, or returns eUnknown / zero where
