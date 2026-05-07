@@ -36,6 +36,93 @@ constexpr int kX11Format32 = 32;
 constexpr int kMotifHintsElementCount = 5;
 constexpr float kDefaultDpi = 96.0F;
 constexpr int kBitsPerItem8 = 8;
+constexpr unsigned char kUtf8AsciiMask = 0x80U;
+constexpr unsigned char kUtf8Lead2Mask = 0xE0U;
+constexpr unsigned char kUtf8Lead3Mask = 0xF0U;
+constexpr unsigned char kUtf8Lead4Mask = 0xF8U;
+constexpr unsigned char kUtf8ContinuationMask = 0xC0U;
+constexpr unsigned char kUtf8ContinuationPrefix = 0x80U;
+constexpr unsigned char kUtf8Lead2Prefix = 0xC0U;
+constexpr unsigned char kUtf8Lead3Prefix = 0xE0U;
+constexpr unsigned char kUtf8Lead4Prefix = 0xF0U;
+constexpr unsigned char kUtf8Lead2PayloadMask = 0x1FU;
+constexpr unsigned char kUtf8Lead3PayloadMask = 0x0FU;
+constexpr unsigned char kUtf8Lead4PayloadMask = 0x07U;
+constexpr unsigned char kUtf8ContinuationPayloadMask = 0x3FU;
+constexpr uint32_t kUtf8Shift6 = 6U;
+constexpr uint32_t kUtf8Shift12 = 12U;
+constexpr uint32_t kUtf8Shift18 = 18U;
+constexpr uint32_t kLatin1MaxCodePoint = 0xFFU;
+constexpr char kLatin1ReplacementByte = '?';
+
+std::string utf8ToLatin1Lossy(const std::string& utf8) {
+    std::string out;
+    out.reserve(utf8.size());
+    size_t i = 0;
+    while (i < utf8.size()) {
+        const auto c0 = static_cast<unsigned char>(utf8[i]);
+        if ((c0 & kUtf8AsciiMask) == 0U) {
+            out.push_back(static_cast<char>(c0));
+            ++i;
+            continue;
+        }
+
+        auto is_cont = [](unsigned char c) {
+            return (c & kUtf8ContinuationMask) == kUtf8ContinuationPrefix;
+        };
+
+        uint32_t code_point = 0U;
+        size_t advance = 0U;
+        if ((c0 & kUtf8Lead2Mask) == kUtf8Lead2Prefix) {
+            if (i + 1U < utf8.size()) {
+                const auto c1 = static_cast<unsigned char>(utf8[i + 1U]);
+                if (is_cont(c1)) {
+                    code_point = (static_cast<uint32_t>(c0 & kUtf8Lead2PayloadMask) << kUtf8Shift6)
+                               | static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask);
+                    advance = 2U;
+                }
+            }
+        } else if ((c0 & kUtf8Lead3Mask) == kUtf8Lead3Prefix) {
+            if (i + 2U < utf8.size()) {
+                const auto c1 = static_cast<unsigned char>(utf8[i + 1U]);
+                const auto c2 = static_cast<unsigned char>(utf8[i + 2U]);
+                if (is_cont(c1) && is_cont(c2)) {
+                    code_point = (static_cast<uint32_t>(c0 & kUtf8Lead3PayloadMask) << kUtf8Shift12)
+                               | (static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask) << kUtf8Shift6)
+                               | static_cast<uint32_t>(c2 & kUtf8ContinuationPayloadMask);
+                    advance = 3U;
+                }
+            }
+        } else if ((c0 & kUtf8Lead4Mask) == kUtf8Lead4Prefix) {
+            if (i + 3U < utf8.size()) {
+                const auto c1 = static_cast<unsigned char>(utf8[i + 1U]);
+                const auto c2 = static_cast<unsigned char>(utf8[i + 2U]);
+                const auto c3 = static_cast<unsigned char>(utf8[i + 3U]);
+                if (is_cont(c1) && is_cont(c2) && is_cont(c3)) {
+                    code_point = (static_cast<uint32_t>(c0 & kUtf8Lead4PayloadMask) << kUtf8Shift18)
+                               | (static_cast<uint32_t>(c1 & kUtf8ContinuationPayloadMask) << kUtf8Shift12)
+                               | (static_cast<uint32_t>(c2 & kUtf8ContinuationPayloadMask) << kUtf8Shift6)
+                               | static_cast<uint32_t>(c3 & kUtf8ContinuationPayloadMask);
+                    advance = 4U;
+                }
+            }
+        }
+
+        if (advance == 0U) {
+            out.push_back(kLatin1ReplacementByte);
+            ++i;
+            continue;
+        }
+
+        if (code_point <= kLatin1MaxCodePoint) {
+            out.push_back(static_cast<char>(static_cast<unsigned char>(code_point)));
+        } else {
+            out.push_back(kLatin1ReplacementByte);
+        }
+        i += advance;
+    }
+    return out;
+}
 }  // namespace
 
 X11Window::X11Window() = default;
@@ -581,14 +668,15 @@ void X11Window::handleSelectionRequest(const XSelectionRequestEvent& req) {
                         static_cast<int>(clipboard_text_.size()));
         notify.property = req.property;
     } else if (req.target == XA_STRING) {
+        const std::string latin1 = utf8ToLatin1Lossy(clipboard_text_);
         XChangeProperty(display_,
                         req.requestor,
                         req.property,
                         XA_STRING,
                         kBitsPerItem8,
                         PropModeReplace,
-                        reinterpret_cast<const unsigned char*>(clipboard_text_.data()),
-                        static_cast<int>(clipboard_text_.size()));
+                        reinterpret_cast<const unsigned char*>(latin1.data()),
+                        static_cast<int>(latin1.size()));
         notify.property = req.property;
     }
 
