@@ -219,6 +219,7 @@ void X11Window::pollEvents() {
             if (static_cast<Atom>(ev.xclient.data.l[0]) == wm_delete_) {
                 eventBridgeWindowClose(this, desc_, cb);
                 open_ = false;
+                destroyNative();
                 if (owner_) {
                     WindowEventData data{};
                     data.type = WindowEventType::eClose;
