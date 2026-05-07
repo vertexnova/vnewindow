@@ -42,11 +42,11 @@ WindowMode AndroidWindow::getWindowMode() const noexcept {
 }
 
 void AndroidWindow::setFullscreen(bool enabled) {
-    (void)enabled;
+    desc_.mode = enabled ? WindowMode::eFullscreen : WindowMode::eWindowed;
 }
 
 bool AndroidWindow::isFullscreen() const noexcept {
-    return false;
+    return desc_.mode == WindowMode::eFullscreen;
 }
 
 void AndroidWindow::setPosition(int x, int y) {
