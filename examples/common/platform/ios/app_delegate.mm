@@ -16,7 +16,9 @@
 // Window creation and frame loop are handled entirely by ExampleSceneDelegate.
 // The scene manifest in Info.plist.in routes the default session to it.
 
-- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions {
+- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launch_options {
+    (void)application;
+    (void)launch_options;
     return YES;
 }
 

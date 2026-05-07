@@ -16,7 +16,7 @@
 #include "common/example_runner.h"
 #include "vertexnova/xwin/native_window_handle.h"
 
-#include <vertexnova/logging/logging.h>
+#include "vertexnova/logging/logging.h"
 #include <memory>
 
 // Factory declared in each example's example.cpp
@@ -30,9 +30,11 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 
 - (void)scene:(UIScene*)scene
     willConnectToSession:(UISceneSession*)session
-                 options:(UISceneConnectionOptions*)connectionOptions {
+                 options:(UISceneConnectionOptions*)connection_options {
+    (void)session;
+    (void)connection_options;
     _isShutdown = NO;
-    UIWindowScene* windowScene = (UIWindowScene*)scene;
+    UIWindowScene* window_scene = (UIWindowScene*)scene;
 
     _runner = std::make_unique<vne::xwin::examples::ExampleRunner>(createExample());
 
@@ -46,23 +48,23 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
     // UIWindow. Window is created with the UIWindowScene to satisfy the
     // modern scene lifecycle (suppresses the "UIScene lifecycle" assert).
     // ------------------------------------------------------------------
-    vne::xwin::IWindow* xwin = _runner->window();
-    if (xwin) {
-        vne::xwin::NativeWindowHandle handle = xwin->getNativeHandle();
-        UIView* xwinView = (__bridge UIView*)handle.ui_view;
+    vne::xwin::IWindow* xwin_window = _runner->window();
+    if (xwin_window) {
+        vne::xwin::NativeWindowHandle handle = xwin_window->getNativeHandle();
+        UIView* xwin_view = (__bridge UIView*)handle.ui_view;
 
-        self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
+        self.window = [[UIWindow alloc] initWithWindowScene:window_scene];
 
-        UIViewController* vc = [[UIViewController alloc] init];
-        vc.view.backgroundColor = UIColor.blackColor;
+        UIViewController* view_controller = [[UIViewController alloc] init];
+        view_controller.view.backgroundColor = UIColor.blackColor;
 
-        if (xwinView) {
-            xwinView.frame = vc.view.bounds;
-            xwinView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-            [vc.view addSubview:xwinView];
+        if (xwin_view) {
+            xwin_view.frame = view_controller.view.bounds;
+            xwin_view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+            [view_controller.view addSubview:xwin_view];
         }
 
-        self.window.rootViewController = vc;
+        self.window.rootViewController = view_controller;
         [self.window makeKeyAndVisible];
     }
 
@@ -83,14 +85,17 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 }
 
 - (void)sceneDidDisconnect:(UIScene*)scene {
+    (void)scene;
     [self _doShutdown];
 }
 
 - (void)sceneWillResignActive:(UIScene*)scene {
+    (void)scene;
     _displayLink.paused = YES;
 }
 
 - (void)sceneDidBecomeActive:(UIScene*)scene {
+    (void)scene;
     _displayLink.paused = NO;
 }
 
