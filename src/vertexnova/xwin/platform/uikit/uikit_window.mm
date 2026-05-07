@@ -11,6 +11,7 @@
 
 #include "uikit_window.h"
 
+#include "uikit_main_sync.h"
 #include "uikit_window_manager.h"
 #include "event_bridge.h"
 
@@ -87,7 +88,9 @@ namespace vne::xwin {
 UIKitWindow::UIKitWindow() = default;
 
 UIKitWindow::~UIKitWindow() {
-    destroyNative();
+    uikitRunOnMainSync(^{
+        destroyNative();
+    });
 }
 
 void UIKitWindow::setEventOwner(UIKitWindowManager* owner) {
@@ -107,16 +110,18 @@ void UIKitWindow::destroyNative() {
 }
 
 void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
-    destroyNative();
-    desc_ = descriptor;
-    CGRect frame = CGRectMake(static_cast<CGFloat>(desc_.position.x),
-                              static_cast<CGFloat>(desc_.position.y),
-                              static_cast<CGFloat>(desc_.size.width),
-                              static_cast<CGFloat>(desc_.size.height));
-    VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:frame xwin:this];
-    v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    ui_view_ = (__bridge_retained void*)v;
-    open_ = true;
+    uikitRunOnMainSync(^{
+        destroyNative();
+        desc_ = descriptor;
+        CGRect frame = CGRectMake(static_cast<CGFloat>(desc_.position.x),
+                                  static_cast<CGFloat>(desc_.position.y),
+                                  static_cast<CGFloat>(desc_.size.width),
+                                  static_cast<CGFloat>(desc_.size.height));
+        VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:frame xwin:this];
+        v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        ui_view_ = (__bridge_retained void*)v;
+        open_ = true;
+    });
 }
 
 void UIKitWindow::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
@@ -168,39 +173,50 @@ void UIKitWindow::setCursor(WindowCursor cursor) {
 }
 
 void UIKitWindow::setPosition(int x, int y) {
-    desc_.position.x = x;
-    desc_.position.y = y;
-    if (ui_view_) {
-        UIView* v = (__bridge UIView*)ui_view_;
-        CGRect f = v.frame;
-        f.origin.x = static_cast<CGFloat>(x);
-        f.origin.y = static_cast<CGFloat>(y);
-        v.frame = f;
-    }
+    uikitRunOnMainSync(^{
+        desc_.position.x = x;
+        desc_.position.y = y;
+        if (ui_view_) {
+            UIView* v = (__bridge UIView*)ui_view_;
+            CGRect f = v.frame;
+            f.origin.x = static_cast<CGFloat>(x);
+            f.origin.y = static_cast<CGFloat>(y);
+            v.frame = f;
+        }
+    });
 }
 
 WindowPosition UIKitWindow::getPosition() const {
-    if (ui_view_) {
-        UIView* v = (__bridge UIView*)ui_view_;
-        return WindowPosition{static_cast<int32_t>(v.frame.origin.x), static_cast<int32_t>(v.frame.origin.y)};
+    if (!ui_view_) {
+        return desc_.position;
     }
-    return desc_.position;
+    __block WindowPosition pos{};
+    UIKitWindow* self = const_cast<UIKitWindow*>(this);
+    uikitRunOnMainSync(^{
+        UIView* v = (__bridge UIView*)self->ui_view_;
+        pos = WindowPosition{static_cast<int32_t>(v.frame.origin.x), static_cast<int32_t>(v.frame.origin.y)};
+    });
+    return pos;
 }
 
 void UIKitWindow::resize(uint32_t width, uint32_t height) {
-    desc_.size.width = width;
-    desc_.size.height = height;
-    if (ui_view_) {
-        UIView* v = (__bridge UIView*)ui_view_;
-        CGRect f = v.frame;
-        f.size.width = static_cast<CGFloat>(width);
-        f.size.height = static_cast<CGFloat>(height);
-        v.frame = f;
-    }
+    uikitRunOnMainSync(^{
+        desc_.size.width = width;
+        desc_.size.height = height;
+        if (ui_view_) {
+            UIView* v = (__bridge UIView*)ui_view_;
+            CGRect f = v.frame;
+            f.size.width = static_cast<CGFloat>(width);
+            f.size.height = static_cast<CGFloat>(height);
+            v.frame = f;
+        }
+    });
 }
 
 void UIKitWindow::close() {
-    destroyNative();
+    uikitRunOnMainSync(^{
+        destroyNative();
+    });
 }
 
 bool UIKitWindow::isOpen() const noexcept {
