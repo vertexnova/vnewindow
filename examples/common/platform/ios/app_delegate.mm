@@ -47,7 +47,25 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
         vne::xwin::NativeWindowHandle handle = xwin->getNativeHandle();
         UIView* xwinView = (__bridge UIView*)handle.ui_view;
 
-        self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+        // iOS 13+: attach UIWindow to UIWindowScene to satisfy scene lifecycle requirements.
+        // Fall back to frame-based init on older OS or if no scene is available.
+        UIWindowScene* scene = nil;
+        for (UIScene* s in application.connectedScenes) {
+            if ([s isKindOfClass:[UIWindowScene class]]
+                && s.activationState == UISceneActivationStateForegroundActive) {
+                scene = (UIWindowScene*)s;
+                break;
+            }
+        }
+        if (!scene) {
+            scene = (UIWindowScene*)application.connectedScenes.anyObject;
+        }
+
+        if (scene) {
+            self.window = [[UIWindow alloc] initWithWindowScene:scene];
+        } else {
+            self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+        }
 
         UIViewController* vc = [[UIViewController alloc] init];
         vc.view.backgroundColor = UIColor.blackColor;
