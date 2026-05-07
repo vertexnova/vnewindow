@@ -37,11 +37,11 @@
 namespace vne::xwin::examples {
 
 struct ExampleConfig {
-    std::string title         = "VneWindow Example";
-    uint32_t    width         = 800;
-    uint32_t    height        = 600;
-    bool        enable_events = true;
-    bool        enable_input  = true;
+    std::string title = "VneWindow Example";
+    uint32_t width = 800;
+    uint32_t height = 600;
+    bool enable_events = true;
+    bool enable_input = true;
 };
 
 class ExampleBase {
@@ -55,8 +55,7 @@ class ExampleBase {
      * Called after the window and window manager are created.
      * Set up event callbacks, load resources, etc.
      */
-    virtual void onInit(vne::xwin::IWindow& /*window*/,
-                        vne::xwin::IWindowManager& /*mgr*/) {}
+    virtual void onInit(vne::xwin::IWindow& /*window*/, vne::xwin::IWindowManager& /*mgr*/) {}
 
     /**
      * Called every frame with the elapsed time in seconds.

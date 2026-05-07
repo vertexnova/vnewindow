@@ -26,7 +26,8 @@ namespace vne::xwin::examples {
 
 class ExampleRunner::RunnerListener : public vne::events::EventListener {
    public:
-    explicit RunnerListener(ExampleRunner* runner) : runner_(runner) {}
+    explicit RunnerListener(ExampleRunner* runner)
+        : runner_(runner) {}
 
     void onEvent(const vne::events::Event& event) override {
         if (!runner_) {
@@ -70,13 +71,12 @@ bool ExampleRunner::initialize() {
     // Build descriptor from ExampleConfig
     WindowDescriptor desc(cfg.title, cfg.width, cfg.height);
     desc.enable_events = cfg.enable_events;
-    desc.enable_input  = cfg.enable_input;
+    desc.enable_input = cfg.enable_input;
 
     // Auto-select best backend for the current platform
     manager_ = WindowFactory::createWindowManager();
     if (!manager_) {
-        VNE_LOG_ERROR << "[ExampleRunner] createWindowManager failed: "
-                      << WindowFactory::getLastError();
+        VNE_LOG_ERROR << "[ExampleRunner] createWindowManager failed: " << WindowFactory::getLastError();
         return false;
     }
 
@@ -94,13 +94,13 @@ bool ExampleRunner::initialize() {
 
     // Register close + escape listeners
     listener_ = std::make_shared<RunnerListener>(this);
-    auto& ev   = vne::events::EventManager::instance();
+    auto& ev = vne::events::EventManager::instance();
     ev.registerListener(vne::events::EventType::eWindowClose, listener_);
-    ev.registerListener(vne::events::EventType::eKeyPressed,  listener_);
+    ev.registerListener(vne::events::EventType::eKeyPressed, listener_);
 
     initialized_ = true;
-    running_     = true;
-    last_time_   = manager_->getPlatformTime();
+    running_ = true;
+    last_time_ = manager_->getPlatformTime();
 
     // Null backend: run one clean smoke cycle then stop
     if (window_->getWindowAPI() == WindowAPI::eNullWindow) {
@@ -130,16 +130,14 @@ bool ExampleRunner::tick() {
     vne::events::Input::nextFrame();
 
     // Check close conditions
-    if (!running_
-        || (manager_ && manager_->shouldClose())
-        || (!window_ || !window_->isOpen())
+    if (!running_ || (manager_ && manager_->shouldClose()) || (!window_ || !window_->isOpen())
         || (manager_ && manager_->getWindowCount() == 0)) {
         return false;
     }
 
     // Compute delta time in seconds
     double now = manager_->getPlatformTime();
-    float  dt  = static_cast<float>(now - last_time_);
+    float dt = static_cast<float>(now - last_time_);
     last_time_ = now;
 
     // Clamp to avoid spiral-of-death on hitches (e.g. breakpoint, resume)
@@ -161,14 +159,14 @@ void ExampleRunner::shutdown() {
         return;
     }
     initialized_ = false;
-    running_      = false;
+    running_ = false;
 
     example_->onShutdown();
 
     if (listener_) {
         auto& ev = vne::events::EventManager::instance();
         ev.unregisterListener(vne::events::EventType::eWindowClose, listener_.get());
-        ev.unregisterListener(vne::events::EventType::eKeyPressed,  listener_.get());
+        ev.unregisterListener(vne::events::EventType::eKeyPressed, listener_.get());
         listener_.reset();
     }
 
@@ -190,7 +188,7 @@ int ExampleRunner::run() {
     }
 
     while (tick()) {
-        manager_->sleep(16); // ~60 fps cap; platform backends may vsync tighter
+        manager_->sleep(16);  // ~60 fps cap; platform backends may vsync tighter
     }
 
     shutdown();

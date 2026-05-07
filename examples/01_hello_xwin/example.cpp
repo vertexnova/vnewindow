@@ -26,23 +26,19 @@
 
 class HelloXwinExample final : public vne::xwin::examples::ExampleBase {
    public:
-    vne::xwin::examples::ExampleConfig configure() override {
-        return {"Hello VneXWin", 800, 600};
-    }
+    vne::xwin::examples::ExampleConfig configure() override { return {"Hello VneXWin", 800, 600}; }
 
-    void onInit(vne::xwin::IWindow& window,
-                vne::xwin::IWindowManager& /*mgr*/) override {
+    void onInit(vne::xwin::IWindow& window, vne::xwin::IWindowManager& /*mgr*/) override {
         using vne::xwin::WindowFactory;
         VNE_LOG_INFO << "vne::xwin build: " << WindowFactory::getBuildInfo();
         VNE_LOG_INFO << "Version        : " << vne::xwin::libraryVersion();
-        VNE_LOG_INFO << "Window size    : " << window.getWidth()
-                     << "x" << window.getHeight();
+        VNE_LOG_INFO << "Window size    : " << window.getWidth() << "x" << window.getHeight();
         VNE_LOG_INFO << "DPI scale      : " << window.getDpiScale();
         VNE_LOG_INFO << "Press ESC or close the window to exit.";
     }
 
     bool onFrame(float /*dt*/) override {
-        return true; // keep running until ESC / close
+        return true;  // keep running until ESC / close
     }
 };
 

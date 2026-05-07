@@ -33,7 +33,7 @@ class ExampleRunner {
     explicit ExampleRunner(std::unique_ptr<ExampleBase> example);
     ~ExampleRunner();
 
-    ExampleRunner(const ExampleRunner&)            = delete;
+    ExampleRunner(const ExampleRunner&) = delete;
     ExampleRunner& operator=(const ExampleRunner&) = delete;
 
     /**
@@ -62,24 +62,24 @@ class ExampleRunner {
     int run();
 
     // Accessors for platform entry points (e.g. iOS AppDelegate)
-    IWindow*        window()        const { return window_.get(); }
+    IWindow* window() const { return window_.get(); }
     IWindowManager* windowManager() const { return manager_.get(); }
 
    private:
     void onCloseRequest();
 
     std::unique_ptr<ExampleBase> example_;
-    LoggingGuard                 logging_guard_;
+    LoggingGuard logging_guard_;
 
     std::shared_ptr<IWindowManager> manager_;
-    std::shared_ptr<IWindow>        window_;
+    std::shared_ptr<IWindow> window_;
 
     // Event listener (inner class defined in .cpp)
     class RunnerListener;
     std::shared_ptr<RunnerListener> listener_;
 
     bool initialized_ = false;
-    bool running_     = false;
+    bool running_ = false;
     double last_time_ = 0.0;
 };
 

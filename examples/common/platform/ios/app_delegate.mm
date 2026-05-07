@@ -28,9 +28,7 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
     BOOL _isShutdown;
 }
 
-- (BOOL)application:(UIApplication*)application
-    didFinishLaunchingWithOptions:(NSDictionary*)launchOptions {
-
+- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions {
     _isShutdown = NO;
 
     _runner = std::make_unique<vne::xwin::examples::ExampleRunner>(createExample());
@@ -56,8 +54,7 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 
         if (xwinView) {
             xwinView.frame = vc.view.bounds;
-            xwinView.autoresizingMask =
-                UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+            xwinView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
             [vc.view addSubview:xwinView];
         }
 
@@ -68,10 +65,8 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
     // -----------------------------------------------------------------------
     // CADisplayLink drives the per-frame tick (replaces the desktop while loop)
     // -----------------------------------------------------------------------
-    _displayLink = [CADisplayLink displayLinkWithTarget:self
-                                               selector:@selector(_onFrame)];
-    [_displayLink addToRunLoop:NSRunLoop.mainRunLoop
-                       forMode:NSRunLoopCommonModes];
+    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(_onFrame)];
+    [_displayLink addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
 
     return YES;
 }

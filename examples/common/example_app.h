@@ -27,11 +27,13 @@ class ExampleApp {
     explicit ExampleApp(std::string app_name)
         : app_name_(std::move(app_name)) {}
 
-    bool initialize(const vne::xwin::WindowDescriptor& descriptor, std::optional<vne::xwin::WindowAPI> api = std::nullopt) {
+    bool initialize(const vne::xwin::WindowDescriptor& descriptor,
+                    std::optional<vne::xwin::WindowAPI> api = std::nullopt) {
         window_manager_ = api.has_value() ? vne::xwin::WindowFactory::createWindowManager(*api)
                                           : vne::xwin::WindowFactory::createWindowManager();
         if (!window_manager_) {
-            VNE_LOG_ERROR << "[" << app_name_ << "] createWindowManager failed: " << vne::xwin::WindowFactory::getLastError();
+            VNE_LOG_ERROR << "[" << app_name_
+                          << "] createWindowManager failed: " << vne::xwin::WindowFactory::getLastError();
             return false;
         }
 
@@ -78,13 +80,9 @@ class ExampleApp {
         return 0;
     }
 
-    std::shared_ptr<vne::xwin::IWindowManager> windowManager() const {
-        return window_manager_;
-    }
+    std::shared_ptr<vne::xwin::IWindowManager> windowManager() const { return window_manager_; }
 
-    std::shared_ptr<vne::xwin::IWindow> window() const {
-        return window_;
-    }
+    std::shared_ptr<vne::xwin::IWindow> window() const { return window_; }
 
     void shutdown() {
         is_running_ = false;
