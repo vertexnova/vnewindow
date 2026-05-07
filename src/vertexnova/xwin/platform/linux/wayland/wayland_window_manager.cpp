@@ -374,8 +374,9 @@ void WaylandWindowManager::onKey(uint32_t linux_key, uint32_t state, uint32_t /*
         return;
     }
     const WindowDescriptor& desc = win->descriptor();
-    const vne::events::KeyCode kc =
-        mapNativeKeyToEvents(WindowAPI::eWaylandWindow, packXkbNativeKey(static_cast<uint64_t>(sym)), desc.input_mapping);
+    const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWaylandWindow,
+                                                         packXkbNativeKey(static_cast<uint64_t>(sym)),
+                                                         desc.input_mapping);
     const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
     const uint8_t mods =
         mapNativeModifiersToEvents(WindowAPI::eWaylandWindow, static_cast<uint64_t>(base_mods), desc.input_mapping);

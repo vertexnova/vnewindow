@@ -497,7 +497,7 @@ void WasmWindow::setCursor(WindowCursor cursor) {
     EM_ASM(
         {
             var s = UTF8ToString($0);
-            if (typeof document !== 'undefined') {
+            if (typeof document != = 'undefined') {
                 if (document.body) {
                     document.body.style.cursor = s;
                 }
