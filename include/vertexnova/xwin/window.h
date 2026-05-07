@@ -37,6 +37,12 @@ class IWindow {
    public:
     virtual ~IWindow() = default;
 
+    /**
+     * @brief Backend lifecycle entry point used by window managers/factories.
+     *
+     * @warning IWindow::create() already calls initialize(descriptor). Do not call initialize() again
+     *          on the same instance unless a concrete backend explicitly documents reinitialization support.
+     */
     virtual void initialize(const WindowDescriptor& descriptor) = 0;
     virtual void pollEvents() = 0;
     /** @brief No-op unless a platform GL context is owned by this window. */
@@ -75,6 +81,7 @@ class IWindow {
     virtual void setClipboardText(const std::string& text);
     virtual void setWindowIcon(std::span<const uint8_t> rgba_pixels, uint32_t width, uint32_t height);
 
+    /** @brief Constructs a default backend window and initializes it with descriptor. */
     [[nodiscard]] static std::unique_ptr<IWindow> create(const WindowDescriptor& descriptor);
 };
 
