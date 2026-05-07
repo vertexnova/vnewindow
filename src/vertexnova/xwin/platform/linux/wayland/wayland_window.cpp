@@ -43,6 +43,12 @@ void xdg_toplevel_close_thunk(void* data, struct xdg_toplevel*) {
     self->applyToplevelClose();
 }
 
+void xdg_toplevel_configure_bounds_thunk(void* data, struct xdg_toplevel*, int32_t width, int32_t height) {
+    (void)data;
+    (void)width;
+    (void)height;
+}
+
 /* Value-init then assign: avoids -Wmissing-field-initializers when protocols add fields
  * (designated-only lists still warn on Clang for omitted trailing members). */
 const xdg_surface_listener kXdgSurfaceListener = [] {
@@ -55,6 +61,9 @@ const xdg_toplevel_listener kXdgToplevelListener = [] {
     xdg_toplevel_listener l{};
     l.configure = xdg_toplevel_configure_thunk;
     l.close = xdg_toplevel_close_thunk;
+#if defined(XDG_TOPLEVEL_CONFIGURE_BOUNDS_SINCE_VERSION)
+    l.configure_bounds = xdg_toplevel_configure_bounds_thunk;
+#endif
     return l;
 }();
 
