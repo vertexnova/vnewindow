@@ -75,8 +75,7 @@ void TimeStep::reset() noexcept {
 }
 
 double TimeStep::getElapsedTime() const noexcept {
-    const auto now = ClockT::now();
-    return std::chrono::duration<double>(now - start_time_).count();
+    return elapsed_time_;
 }
 
 double TimeStep::getFrameRate() const noexcept {
