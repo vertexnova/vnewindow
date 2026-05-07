@@ -199,9 +199,12 @@ uint8_t mapCocoaModifiers(unsigned long flags) {
     if ((flags & (1UL << 19)) != 0UL) {
         mods |= static_cast<uint8_t>(ModifierKey::eModAlt);
     }
-    // NSEventModifierFlagCommand = 1 << 20
+    // NSEventModifierFlagCommand = 1 << 20 — round-trip with mapEventsModifiersToCocoaFlags
+    // which folds eModMeta, eModCmd, and eModSuper into this single Cocoa flag.
     if ((flags & (1UL << 20)) != 0UL) {
         mods |= static_cast<uint8_t>(ModifierKey::eModCmd);
+        mods |= static_cast<uint8_t>(ModifierKey::eModMeta);
+        mods |= static_cast<uint8_t>(ModifierKey::eModSuper);
     }
     return mods;
 }
