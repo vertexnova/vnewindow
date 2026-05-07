@@ -380,7 +380,25 @@ void X11Window::setWindowMode(WindowMode mode) {
                         PropModeReplace,
                         reinterpret_cast<unsigned char*>(&hints),
                         kMotifHintsElementCount);
+    } else {
+        struct MotifWmHints {
+            uint32_t flags;
+            uint32_t functions;
+            uint32_t decorations;
+            int32_t input_mode;
+            uint32_t status;
+        } hints{2U, 0U, 1U, 0, 0U};
+        Atom hints_atom = XInternAtom(display_, "_MOTIF_WM_HINTS", False);
+        XChangeProperty(display_,
+                        window_,
+                        hints_atom,
+                        hints_atom,
+                        kX11Format32,
+                        PropModeReplace,
+                        reinterpret_cast<unsigned char*>(&hints),
+                        kMotifHintsElementCount);
     }
+    XFlush(display_);
 }
 
 WindowMode X11Window::getWindowMode() const noexcept {
