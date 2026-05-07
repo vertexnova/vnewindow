@@ -30,6 +30,8 @@ function(vne_add_example TARGET_NAME)
             "${_VNE_EXAMPLE_PLAT_DIR}/ios/main.mm"
             "${_VNE_EXAMPLE_PLAT_DIR}/ios/app_delegate.h"
             "${_VNE_EXAMPLE_PLAT_DIR}/ios/app_delegate.mm"
+            "${_VNE_EXAMPLE_PLAT_DIR}/ios/scene_delegate.h"
+            "${_VNE_EXAMPLE_PLAT_DIR}/ios/scene_delegate.mm"
         )
         set_target_properties(${TARGET_NAME} PROPERTIES
             MACOSX_BUNDLE            TRUE

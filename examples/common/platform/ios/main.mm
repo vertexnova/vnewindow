@@ -6,7 +6,7 @@
  *
  * This file is injected automatically by vne_add_example() when building for
  * iOS. UIApplicationMain drives the event loop; each frame is ticked via a
- * CADisplayLink set up in VneExampleAppDelegate.
+ * CADisplayLink set up in ExampleSceneDelegate.
  * ----------------------------------------------------------------------
  */
 
@@ -16,6 +16,7 @@
 
 int main(int argc, char* argv[]) {
     @autoreleasepool {
-        return UIApplicationMain(argc, argv, nil, NSStringFromClass([VneExampleAppDelegate class]));
+        return UIApplicationMain(argc, argv, nil,
+                                 NSStringFromClass([ExampleAppDelegate class]));
     }
 }

@@ -6,16 +6,16 @@
  * Author:    Ajeet Singh Yadav
  * Created:   May 2026
  *
- * iOS UIApplicationDelegate for vnewindow examples.
- * Bridges the ExampleRunner lifecycle to UIKit conventions and drives each
- * frame with a CADisplayLink.
+ * UIWindowSceneDelegate for vnewindow examples (iOS 13+).
+ * Owns the ExampleRunner and CADisplayLink; creates the UIWindow inside
+ * scene:willConnectToSession: as required by the UIScene lifecycle.
  * ----------------------------------------------------------------------
  */
 
 #import <UIKit/UIKit.h>
 
-@interface ExampleAppDelegate : UIResponder <UIApplicationDelegate>
+@interface ExampleSceneDelegate : UIResponder <UIWindowSceneDelegate>
 
-@property(strong, nonatomic) UIWindow* window;
+@property (strong, nonatomic) UIWindow* window;
 
 @end
