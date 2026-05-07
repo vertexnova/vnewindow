@@ -83,12 +83,12 @@ check_ios_environment() {
   xcode_version=$(xcodebuild -version | awk 'NR==1 {print}')
   echo "Found: $xcode_version"
 
-  if ! xcodebuild -showsdks | rg -q "iphoneos"; then
+  if ! xcodebuild -showsdks | grep -q "iphoneos"; then
     echo "ERROR: iOS SDK not found. Please install iOS SDK in Xcode."
     exit 1
   fi
 
-  if ! xcodebuild -showsdks | rg -q "iphonesimulator"; then
+  if ! xcodebuild -showsdks | grep -q "iphonesimulator"; then
     echo "ERROR: iOS Simulator SDK not found. Please install iOS Simulator SDK in Xcode."
     exit 1
   fi
