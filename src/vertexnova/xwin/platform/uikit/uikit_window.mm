@@ -24,6 +24,7 @@
     vne::xwin::UIKitWindow* xwin_;
 }
 - (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow*)xwin;
+- (void)clearXwin;
 @end
 
 @implementation VneXWinUIView
@@ -40,6 +41,10 @@
         self.userInteractionEnabled = YES;
     }
     return self;
+}
+
+- (void)clearXwin {
+    xwin_ = nullptr;
 }
 
 - (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase)phase {
@@ -93,6 +98,9 @@ void UIKitWindow::destroyNative() {
     if (ui_view_) {
         UIView* v = (__bridge_transfer UIView*)ui_view_;
         ui_view_ = nullptr;
+        if ([v isKindOfClass:[VneXWinUIView class]]) {
+            [static_cast<VneXWinUIView*>(v) clearXwin];
+        }
         [v removeFromSuperview];
     }
     open_ = false;
