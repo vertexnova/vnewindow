@@ -56,7 +56,7 @@ class TimeStep {
     [[nodiscard]] double getMaxDeltaTime() const noexcept { return max_delta_time_; }
     [[nodiscard]] uint64_t getFrameCount() const noexcept { return frame_count_; }
 
-    void setMaxDeltaTime(double max_delta) noexcept { max_delta_time_limit_ = max_delta; }
+    void setMaxDeltaTime(double max_delta) noexcept { max_delta_time_limit_ = max_delta >= 0.0 ? max_delta : 0.0; }
     void setSmoothingEnabled(bool enabled) noexcept { smoothing_enabled_ = enabled; }
     [[nodiscard]] bool isSmoothingEnabled() const noexcept { return smoothing_enabled_; }
     void setSleepPacingEnabled(bool enabled) noexcept { sleep_pacing_enabled_ = enabled; }
