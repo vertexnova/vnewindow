@@ -83,7 +83,6 @@ bool NullWindow::isOpen() const noexcept {
     return open_;
 }
 
-
 NativeWindowHandle NullWindow::getNativeHandle() const noexcept {
     return {};
 }

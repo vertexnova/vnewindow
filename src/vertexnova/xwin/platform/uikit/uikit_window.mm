@@ -202,7 +202,6 @@ bool UIKitWindow::isOpen() const noexcept {
     return open_ && ui_view_ != nullptr;
 }
 
-
 NativeWindowHandle UIKitWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eIosUikitWindow;

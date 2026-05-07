@@ -404,7 +404,6 @@ bool WasmWindow::isOpen() const noexcept {
     return !should_close_ && initialized_;
 }
 
-
 NativeWindowHandle WasmWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eWasmWindow;

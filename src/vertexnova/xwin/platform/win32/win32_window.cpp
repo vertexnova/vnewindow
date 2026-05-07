@@ -525,7 +525,6 @@ bool Win32Window::isOpen() const noexcept {
     return open_ && hwnd_ != nullptr;
 }
 
-
 NativeWindowHandle Win32Window::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eWin32Window;

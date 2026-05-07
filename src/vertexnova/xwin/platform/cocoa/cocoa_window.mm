@@ -687,7 +687,6 @@ bool CocoaWindow::isOpen() const noexcept {
     return open_ && ns_window_ != nullptr;
 }
 
-
 NativeWindowHandle CocoaWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eCocoaWindow;

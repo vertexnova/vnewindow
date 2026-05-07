@@ -526,7 +526,6 @@ bool X11Window::isOpen() const noexcept {
     return open_ && window_ != 0;
 }
 
-
 NativeWindowHandle X11Window::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eX11Window;

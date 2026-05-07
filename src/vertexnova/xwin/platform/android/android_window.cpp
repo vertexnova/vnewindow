@@ -89,7 +89,6 @@ bool AndroidWindow::isOpen() const noexcept {
     return open_ && native_ != nullptr;
 }
 
-
 NativeWindowHandle AndroidWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eAndroidSurfaceWindow;
