@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <memory>
+#include <span>
 #include <string>
 
 namespace vne::xwin {
@@ -72,7 +73,7 @@ class IWindow {
     [[nodiscard]] virtual int getHeight() const noexcept = 0;
     [[nodiscard]] virtual std::string getClipboardText() const;
     virtual void setClipboardText(const std::string& text);
-    virtual void setWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height);
+    virtual void setWindowIcon(std::span<const uint8_t> rgba_pixels, uint32_t width, uint32_t height);
 
     [[nodiscard]] static std::unique_ptr<IWindow> create(const WindowDescriptor& descriptor);
 };
@@ -93,10 +94,18 @@ inline float IWindow::getDpiScale() const noexcept {
     return 1.0F;
 }
 inline uint32_t IWindow::getFramebufferWidth() const noexcept {
-    return static_cast<uint32_t>(static_cast<float>(getWidth()) * getDpiScale());
+    const int width = getWidth();
+    if (width <= 0) {
+        return 0U;
+    }
+    return static_cast<uint32_t>(static_cast<float>(width) * getDpiScale());
 }
 inline uint32_t IWindow::getFramebufferHeight() const noexcept {
-    return static_cast<uint32_t>(static_cast<float>(getHeight()) * getDpiScale());
+    const int height = getHeight();
+    if (height <= 0) {
+        return 0U;
+    }
+    return static_cast<uint32_t>(static_cast<float>(height) * getDpiScale());
 }
 inline void IWindow::setTransparent(bool enabled) {
     (void)enabled;
@@ -122,7 +131,7 @@ inline std::string IWindow::getClipboardText() const {
 inline void IWindow::setClipboardText(const std::string& text) {
     (void)text;
 }
-inline void IWindow::setWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) {
+inline void IWindow::setWindowIcon(std::span<const uint8_t> rgba_pixels, uint32_t width, uint32_t height) {
     (void)rgba_pixels;
     (void)width;
     (void)height;

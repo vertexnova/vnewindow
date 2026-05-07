@@ -58,7 +58,7 @@ class X11Window final : public IWindow {
     [[nodiscard]] float getDpiScale() const noexcept override;
     [[nodiscard]] std::string getClipboardText() const override;
     void setClipboardText(const std::string& text) override;
-    void setWindowIcon(const uint8_t* rgba_pixels, uint32_t width, uint32_t height) override;
+    void setWindowIcon(std::span<const uint8_t> rgba_pixels, uint32_t width, uint32_t height) override;
 
    private:
     void destroyNative();
