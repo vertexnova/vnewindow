@@ -76,6 +76,7 @@ class Win32Window final : public IWindow {
     // Saved pre-fullscreen state
     DWORD saved_style_ = 0;
     RECT saved_rect_ = {};
+    wchar_t pending_high_surrogate_ = 0;
 };
 
 }  // namespace vne::xwin

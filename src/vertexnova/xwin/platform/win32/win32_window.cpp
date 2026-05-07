@@ -283,23 +283,22 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             const bool want_text = desc_.enable_events || static_cast<bool>(cb.on_text_input);
             if (want_text) {
                 // wParam is a UTF-16 code unit; handle surrogate pairs
-                static wchar_t high_surrogate = 0;
                 const wchar_t ch = static_cast<wchar_t>(wParam);
                 if (ch >= 0xD800 && ch <= 0xDBFF) {
-                    high_surrogate = ch;
+                    pending_high_surrogate_ = ch;
                     return 0;
                 }
                 wchar_t wide[3] = {};
                 int wide_len = 0;
-                if (high_surrogate && ch >= 0xDC00 && ch <= 0xDFFF) {
-                    wide[0] = high_surrogate;
+                if (pending_high_surrogate_ != 0 && ch >= 0xDC00 && ch <= 0xDFFF) {
+                    wide[0] = pending_high_surrogate_;
                     wide[1] = ch;
                     wide_len = 2;
                 } else {
                     wide[0] = ch;
                     wide_len = 1;
                 }
-                high_surrogate = 0;
+                pending_high_surrogate_ = 0;
                 if (ch >= 0x20 || ch == '\t') {  // skip control chars except tab
                     char utf8[5] = {};
                     const int n = WideCharToMultiByte(CP_UTF8, 0, wide, wide_len, utf8, 4, nullptr, nullptr);
