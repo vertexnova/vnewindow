@@ -1,35 +1,67 @@
-# VneTemplate Examples
+# VneWindow Examples
 
-This directory contains examples demonstrating the VneTemplate API.
+Cross-platform example programs for `vne::xwin`. Each example is a single
+`example.cpp` file that works unchanged on every supported platform.
 
-## Building Examples
+## How it works
 
-From the project root (use `build/shared` or `build/static`):
+`vne_add_example()` (defined in `cmake/VneAddExample.cmake`) injects the
+correct platform entry point automatically:
 
-```bash
-# Shared library build
-cmake -B build/shared -DVNE_XWIN_EXAMPLES=ON -DVNE_XWIN_LIB_TYPE=shared
-cmake --build build/shared
+| Platform | Entry point injected |
+|----------|----------------------|
+| macOS    | `common/platform/desktop/main.cpp` (Cocoa backend) |
+| iOS      | `common/platform/ios/main.mm` + `app_delegate.mm` (UIKit + CADisplayLink) |
+| Linux    | `common/platform/desktop/main.cpp` (X11 or Wayland) |
+| Windows  | `common/platform/desktop/main.cpp` (Win32) |
 
-# Static library build
-cmake -B build/static -DVNE_XWIN_EXAMPLES=ON -DVNE_XWIN_LIB_TYPE=static
-cmake --build build/static
+The shared `ExampleRunner` (`common/example_runner.h`) manages window creation,
+the event loop, and lifecycle. Example source files only implement `ExampleBase`:
+
+```cpp
+class MyExample : public vne::xwin::examples::ExampleBase {
+    ExampleConfig configure() override { return {"My Window", 800, 600}; }
+    void onInit(IWindow& w, IWindowManager& mgr) override { /* setup */ }
+    bool onFrame(float dt) override { return true; /* false = close */ }
+};
+
+std::unique_ptr<ExampleBase> createExample() {
+    return std::make_unique<MyExample>();
+}
 ```
 
-Alternatively, `-DVNE_XWIN_DEV=ON` enables both tests and examples.
+## Building
 
-Executables are placed in `build/shared/bin/examples/` (or `build/static/bin/examples/`).
+```bash
+# macOS (Cocoa window)
+cmake -B build/shared -DVNE_XWIN_EXAMPLES=ON && cmake --build build/shared
+
+# iOS simulator (UIKit window via Xcode)
+scripts/build_ios.sh -t Debug -simulator --with-examples -xcode
+
+# Linux (X11 / Wayland)
+cmake -B build/shared -DVNE_XWIN_EXAMPLES=ON && cmake --build build/shared
+
+# Dev mode (tests + examples)
+cmake -B build/shared -DVNE_XWIN_DEV=ON && cmake --build build/shared
+```
+
+Executables land in `build/<lib_type>/bin/examples/`.
 
 ## Available Examples
 
-### 01_hello_template — Getting Started
+| Example | Description |
+|---------|-------------|
+| `example_01_hello_xwin` | Open a native window; log build/version info. |
+| `example_02_xwin_events` | Wire `EventBridgeCallbacks`; log key/mouse/touch events. |
 
-Minimal usage: call `vne::template_ns::hello()` and `get_version()`.
+## Adding a New Example
 
-**Run:** `./build/<lib_type>/bin/examples/example_01_hello_template` (use `shared` or `static` to match your build)
+1. Create `examples/03_my_example/example.cpp` implementing `ExampleBase`.
+2. Add to `examples/03_my_example/CMakeLists.txt`:
+   ```cmake
+   vne_add_example(example_03_my_example SOURCES example.cpp)
+   ```
+3. Add `add_subdirectory(03_my_example)` to `examples/CMakeLists.txt`.
 
-## Quick Reference
-
-| Example              | Focus          | Key Concepts              |
-|----------------------|----------------|---------------------------|
-| 01_hello_template    | Getting started| hello(), get_version()   |
+No platform-specific code needed in `example.cpp`.
