@@ -469,8 +469,13 @@ jobs:
 
       - name: Install clang and clang-tidy
         # Match build-reusable Linux deps: cached configure expects X11 when libx11-dev was present.
+        # Wayland dev packages: same as build-linux-wayland so compile_commands.json includes Wayland TUs.
         # jq: derive file list from compile_commands (Linux build has no Cocoa/Win32/UIKit SDKs).
-        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake clang clang-tidy libx11-dev jq
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            build-essential cmake clang clang-tidy libx11-dev jq \
+            pkg-config libwayland-dev wayland-protocols libwayland-bin libxkbcommon-dev
 
       - name: Configure CMake (refresh compile_commands)
         run: |
@@ -481,6 +486,7 @@ jobs:
             -DVNE_XWIN_CI=ON \
             -DVNE_XWIN_LIB_TYPE=shared \
             -DENABLE_IPO=OFF \
+            -DVNE_XWIN_ENABLE_WAYLAND=ON \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           cmake --build build/shared/Release --config Release --parallel
 
