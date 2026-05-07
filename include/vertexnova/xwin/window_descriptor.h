@@ -12,8 +12,10 @@
 
 /** @file window_descriptor.h Creation-time settings for a window. */
 
+#include "vertexnova/xwin/input_mapping.h"
 #include "vertexnova/xwin/xwin_types.h"
 
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -24,8 +26,6 @@ constexpr uint32_t kDefaultWindowHeight = 600U;
 constexpr int kDefaultWindowPosX = 100;
 constexpr int kDefaultWindowPosY = 100;
 }  // namespace
-
-struct WindowInputMapping;
 
 struct WindowDescriptor {
     std::string title = "VneXWin";
@@ -49,9 +49,9 @@ struct WindowDescriptor {
     bool enable_events = true;
     bool enable_input = true;
 
-    /** Optional per-window native ↔ vne::events mapping; must outlive the window if non-null.
-     *  Used for desktop KM and optional custom UIKit translation; Android touch-first builds often omit this. */
-    const WindowInputMapping* input_mapping = nullptr;
+    /** Optional per-window native ↔ vne::events mapping; shared ownership keeps storage valid after copies of
+     *  this descriptor (e.g. into backend state). Android touch-first builds often omit this. */
+    std::shared_ptr<WindowInputMapping> input_mapping;
 
     WindowDescriptor() = default;
 

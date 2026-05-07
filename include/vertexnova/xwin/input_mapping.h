@@ -125,10 +125,10 @@ inline void unpackWin32Mouse(uint64_t packed, unsigned int* msg_out, std::uintpt
 }
 
 // -----------------------------------------------------------------------------
-// Mapping API (built-in tables + optional WindowInputMapping from WindowDescriptor)
+// Mapping API (built-in tables + optional WindowInputMapping from WindowDescriptor::input_mapping)
 // -----------------------------------------------------------------------------
 
-/** Uses mapping from WindowDescriptor when non-null; otherwise built-ins only. */
+/** Uses mapping from WindowDescriptor when `mapping` is non-null; otherwise built-ins only. */
 [[nodiscard]] VNE_XWIN_API vne::events::KeyCode mapNativeKeyToEvents(WindowAPI api,
                                                                      uint64_t native_key_packed,
                                                                      const WindowInputMapping* mapping = nullptr);

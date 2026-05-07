@@ -22,8 +22,6 @@
 
 namespace vne::xwin {
 
-struct WindowInputMapping;
-
 class CocoaWindowManager;
 
 class CocoaWindow final : public IWindow {
@@ -69,7 +67,7 @@ class CocoaWindow final : public IWindow {
     void handleWindowFocus(bool focused);
     void setFullscreenState(bool fs);
 
-    [[nodiscard]] const WindowInputMapping* inputMapping() const noexcept { return desc_.input_mapping; }
+    [[nodiscard]] const WindowInputMapping* inputMapping() const noexcept { return desc_.input_mapping.get(); }
 
     [[nodiscard]] std::string getClipboardText() const override;
     void setClipboardText(const std::string& text) override;

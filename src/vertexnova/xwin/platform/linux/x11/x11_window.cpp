@@ -239,13 +239,13 @@ void X11Window::pollEvents() {
             const KeySym sym = XLookupKeysym(&ev.xkey, 0);
             const vne::events::KeyCode mapped = mapNativeKeyToEvents(WindowAPI::eX11Window,
                                                                      packXkbNativeKey(static_cast<std::uint32_t>(sym)),
-                                                                     desc_.input_mapping);
+                                                                     desc_.input_mapping.get());
             if (mapped != vne::events::KeyCode::eUnknown && kc < keycode_down_.size()) {
                 const bool repeat = keycode_down_[kc];
                 keycode_down_[kc] = true;
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                      static_cast<std::uint64_t>(ev.xkey.state),
-                                                                     desc_.input_mapping);
+                                                                     desc_.input_mapping.get());
                 eventBridgeKeyDown(this, desc_, cb, mapped, mods, repeat);
             }
             // Text input: decode printable characters via XLookupString
@@ -265,11 +265,11 @@ void X11Window::pollEvents() {
             const KeySym sym = XLookupKeysym(&ev.xkey, 0);
             const vne::events::KeyCode mapped = mapNativeKeyToEvents(WindowAPI::eX11Window,
                                                                      packXkbNativeKey(static_cast<std::uint32_t>(sym)),
-                                                                     desc_.input_mapping);
+                                                                     desc_.input_mapping.get());
             if (mapped != vne::events::KeyCode::eUnknown) {
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                      static_cast<std::uint64_t>(ev.xkey.state),
-                                                                     desc_.input_mapping);
+                                                                     desc_.input_mapping.get());
                 eventBridgeKeyUp(this, desc_, cb, mapped, mods);
             }
         } else if (ev.type == ButtonPress) {
@@ -281,9 +281,9 @@ void X11Window::pollEvents() {
             } else {
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                      static_cast<std::uint64_t>(ev.xbutton.state),
-                                                                     desc_.input_mapping);
+                                                                     desc_.input_mapping.get());
                 const vne::events::MouseButton mb =
-                    mapNativeMouseToEvents(WindowAPI::eX11Window, packX11NativeMouse(b), desc_.input_mapping);
+                    mapNativeMouseToEvents(WindowAPI::eX11Window, packX11NativeMouse(b), desc_.input_mapping.get());
                 eventBridgeMouseButton(this,
                                        desc_,
                                        cb,
@@ -300,9 +300,9 @@ void X11Window::pollEvents() {
             }
             const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                  static_cast<std::uint64_t>(ev.xbutton.state),
-                                                                 desc_.input_mapping);
+                                                                 desc_.input_mapping.get());
             const vne::events::MouseButton mb =
-                mapNativeMouseToEvents(WindowAPI::eX11Window, packX11NativeMouse(b), desc_.input_mapping);
+                mapNativeMouseToEvents(WindowAPI::eX11Window, packX11NativeMouse(b), desc_.input_mapping.get());
             eventBridgeMouseButton(this,
                                    desc_,
                                    cb,
@@ -314,7 +314,7 @@ void X11Window::pollEvents() {
         } else if (ev.type == MotionNotify) {
             const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                  static_cast<std::uint64_t>(ev.xmotion.state),
-                                                                 desc_.input_mapping);
+                                                                 desc_.input_mapping.get());
             eventBridgeMouseMove(this,
                                  desc_,
                                  cb,
