@@ -25,7 +25,7 @@ endif()
 
 # Root enables C so nested gtest project(LANGUAGES CXX C) does not leave C half-configured
 # (Clang CI: missing CMAKE_C_COMPILE_OBJECT when parent was CXX-only).
-project(vnecrosswindow VERSION ${PROJECT_VERSION_INIT} LANGUAGES C CXX)
+project(vnewindow VERSION ${PROJECT_VERSION_INIT} LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -201,7 +201,7 @@ include_directories(${CMAKE_BINARY_DIR})
 #   default; -D from the command line applies to all. No duplicate option()
 #   definition (CMake uses cache), but behavior is "one value for the whole tree."
 #==============================================================================
-if(CMAKE_PROJECT_NAME STREQUAL "vnecrosswindow")
+if(CMAKE_PROJECT_NAME STREQUAL "vnewindow")
     set(VNE_XWIN_DEV_DEFAULT ON)
 else()
     set(VNE_XWIN_DEV_DEFAULT OFF)

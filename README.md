@@ -7,12 +7,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/vertexnova/vnecrosswindow/actions/workflows/ci.yml">
-    <img src="https://github.com/vertexnova/vnecrosswindow/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"/>
+  <a href="https://github.com/vertexnova/vnewindow/actions/workflows/ci.yml">
+    <img src="https://github.com/vertexnova/vnewindow/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"/>
   </a>
   <img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++ Standard"/>
-  <a href="https://codecov.io/gh/vertexnova/vnecrosswindow">
-    <img src="https://codecov.io/gh/vertexnova/vnecrosswindow/branch/main/graph/badge.svg" alt="Coverage"/>
+  <a href="https://codecov.io/gh/vertexnova/vnewindow">
+    <img src="https://codecov.io/gh/vertexnova/vnewindow/branch/main/graph/badge.svg" alt="Coverage"/>
   </a>
   <img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"/>
 </p>
