@@ -54,19 +54,19 @@ std::shared_ptr<IWindow> UIKitWindowManager::openWindow(const WindowDescriptor& 
     }
     __block std::shared_ptr<IWindow> out;
     uikitRunOnMainSync(^{
-        auto w = std::make_shared<UIKitWindow>();
-        w->setEventOwner(this);
-        w->initialize(descriptor);
-        if (!w->isOpen()) {
-            out = nullptr;
-            return;
-        }
-        windows_.push_back(w);
-        if (!primary_) {
-            primary_ = w;
-        }
-        focused_ = w;
-        out = std::move(w);
+      auto w = std::make_shared<UIKitWindow>();
+      w->setEventOwner(this);
+      w->initialize(descriptor);
+      if (!w->isOpen()) {
+          out = nullptr;
+          return;
+      }
+      windows_.push_back(w);
+      if (!primary_) {
+          primary_ = w;
+      }
+      focused_ = w;
+      out = std::move(w);
     });
     return out;
 }
@@ -82,30 +82,30 @@ void UIKitWindowManager::removeWindow(std::shared_ptr<IWindow> window) {
     }
     std::shared_ptr<IWindow> w = std::move(window);
     uikitRunOnMainSync(^{
-        w->close();
-        auto it = std::find(windows_.begin(), windows_.end(), w);
-        if (it != windows_.end()) {
-            windows_.erase(it);
-        }
-        if (primary_ == w) {
-            primary_ = windows_.empty() ? nullptr : windows_.front();
-        }
-        if (focused_ == w) {
-            focused_ = primary_;
-        }
+      w->close();
+      auto it = std::find(windows_.begin(), windows_.end(), w);
+      if (it != windows_.end()) {
+          windows_.erase(it);
+      }
+      if (primary_ == w) {
+          primary_ = windows_.empty() ? nullptr : windows_.front();
+      }
+      if (focused_ == w) {
+          focused_ = primary_;
+      }
     });
 }
 
 void UIKitWindowManager::destroyAllWindows() {
     uikitRunOnMainSync(^{
-        for (auto& w : windows_) {
-            if (w) {
-                w->close();
-            }
-        }
-        windows_.clear();
-        primary_.reset();
-        focused_.reset();
+      for (auto& w : windows_) {
+          if (w) {
+              w->close();
+          }
+      }
+      windows_.clear();
+      primary_.reset();
+      focused_.reset();
     });
 }
 

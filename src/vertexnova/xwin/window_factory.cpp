@@ -47,13 +47,15 @@
 #include <sstream>
 
 namespace vne::xwin {
-
-thread_local std::string WindowFactory::s_last_error_;
+namespace {
+/* thread_local in .cpp only: MSVC C2492 forbids thread_local static data on DLL-exported classes. */
+thread_local std::string g_window_factory_last_error;
+}  // namespace
 
 std::shared_ptr<IWindowManager> WindowFactory::createWindowManager(WindowAPI window_api) {
     clearLastError();
     if (!isWindowAPISupported(window_api)) {
-        s_last_error_ = "Requested window API is not supported in this build.";
+        g_window_factory_last_error = "Requested window API is not supported in this build.";
         return nullptr;
     }
     switch (window_api) {
@@ -88,7 +90,7 @@ std::shared_ptr<IWindowManager> WindowFactory::createWindowManager(WindowAPI win
             return std::make_shared<AndroidWindowManager>();
 #endif
         default:
-            s_last_error_ = "No factory mapping for this WindowAPI value.";
+            g_window_factory_last_error = "No factory mapping for this WindowAPI value.";
             return nullptr;
     }
 }
@@ -108,7 +110,7 @@ std::shared_ptr<IWindowManager> WindowFactory::createWindowManager() {
         return mgr;
     }
 #if VNE_XWIN_HAS_NULL
-    s_last_error_ = "Falling back to NullWindowManager after platform backend creation failed.";
+    g_window_factory_last_error = "Falling back to NullWindowManager after platform backend creation failed.";
     return std::make_shared<NullWindowManager>();
 #else
     return nullptr;
@@ -270,11 +272,11 @@ bool WindowFactory::isAvailable() {
 }
 
 std::string WindowFactory::getLastError() {
-    return s_last_error_;
+    return g_window_factory_last_error;
 }
 
 void WindowFactory::clearLastError() {
-    s_last_error_.clear();
+    g_window_factory_last_error.clear();
 }
 
 }  // namespace vne::xwin

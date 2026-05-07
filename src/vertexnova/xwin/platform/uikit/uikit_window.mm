@@ -89,7 +89,7 @@ UIKitWindow::UIKitWindow() = default;
 
 UIKitWindow::~UIKitWindow() {
     uikitRunOnMainSync(^{
-        destroyNative();
+      destroyNative();
     });
 }
 
@@ -111,16 +111,16 @@ void UIKitWindow::destroyNative() {
 
 void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
     uikitRunOnMainSync(^{
-        destroyNative();
-        desc_ = descriptor;
-        CGRect frame = CGRectMake(static_cast<CGFloat>(desc_.position.x),
-                                  static_cast<CGFloat>(desc_.position.y),
-                                  static_cast<CGFloat>(desc_.size.width),
-                                  static_cast<CGFloat>(desc_.size.height));
-        VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:frame xwin:this];
-        v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        ui_view_ = (__bridge_retained void*)v;
-        open_ = true;
+      destroyNative();
+      desc_ = descriptor;
+      CGRect frame = CGRectMake(static_cast<CGFloat>(desc_.position.x),
+                                static_cast<CGFloat>(desc_.position.y),
+                                static_cast<CGFloat>(desc_.size.width),
+                                static_cast<CGFloat>(desc_.size.height));
+      VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:frame xwin:this];
+      v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+      ui_view_ = (__bridge_retained void*)v;
+      open_ = true;
     });
 }
 
@@ -174,15 +174,15 @@ void UIKitWindow::setCursor(WindowCursor cursor) {
 
 void UIKitWindow::setPosition(int x, int y) {
     uikitRunOnMainSync(^{
-        desc_.position.x = x;
-        desc_.position.y = y;
-        if (ui_view_) {
-            UIView* v = (__bridge UIView*)ui_view_;
-            CGRect f = v.frame;
-            f.origin.x = static_cast<CGFloat>(x);
-            f.origin.y = static_cast<CGFloat>(y);
-            v.frame = f;
-        }
+      desc_.position.x = x;
+      desc_.position.y = y;
+      if (ui_view_) {
+          UIView* v = (__bridge UIView*)ui_view_;
+          CGRect f = v.frame;
+          f.origin.x = static_cast<CGFloat>(x);
+          f.origin.y = static_cast<CGFloat>(y);
+          v.frame = f;
+      }
     });
 }
 
@@ -193,29 +193,29 @@ WindowPosition UIKitWindow::getPosition() const {
     __block WindowPosition pos{};
     UIKitWindow* self = const_cast<UIKitWindow*>(this);
     uikitRunOnMainSync(^{
-        UIView* v = (__bridge UIView*)self->ui_view_;
-        pos = WindowPosition{static_cast<int32_t>(v.frame.origin.x), static_cast<int32_t>(v.frame.origin.y)};
+      UIView* v = (__bridge UIView*)self->ui_view_;
+      pos = WindowPosition{static_cast<int32_t>(v.frame.origin.x), static_cast<int32_t>(v.frame.origin.y)};
     });
     return pos;
 }
 
 void UIKitWindow::resize(uint32_t width, uint32_t height) {
     uikitRunOnMainSync(^{
-        desc_.size.width = width;
-        desc_.size.height = height;
-        if (ui_view_) {
-            UIView* v = (__bridge UIView*)ui_view_;
-            CGRect f = v.frame;
-            f.size.width = static_cast<CGFloat>(width);
-            f.size.height = static_cast<CGFloat>(height);
-            v.frame = f;
-        }
+      desc_.size.width = width;
+      desc_.size.height = height;
+      if (ui_view_) {
+          UIView* v = (__bridge UIView*)ui_view_;
+          CGRect f = v.frame;
+          f.size.width = static_cast<CGFloat>(width);
+          f.size.height = static_cast<CGFloat>(height);
+          v.frame = f;
+      }
     });
 }
 
 void UIKitWindow::close() {
     uikitRunOnMainSync(^{
-        destroyNative();
+      destroyNative();
     });
 }
 

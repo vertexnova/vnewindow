@@ -372,7 +372,7 @@ void WasmWindow::setWindowMode(WindowMode mode) {
 }
 
 WindowMode WasmWindow::getWindowMode() const noexcept {
-    return WindowMode::eWindowed;
+    return desc_.mode;
 }
 
 void WasmWindow::setFullscreen(bool enabled) {
@@ -382,9 +382,8 @@ void WasmWindow::setFullscreen(bool enabled) {
     } else {
         emscripten_exit_fullscreen();
     }
-#else
-    (void)enabled;
 #endif
+    fullscreen_ = enabled;
 }
 
 bool WasmWindow::isFullscreen() const noexcept {
