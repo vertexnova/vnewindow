@@ -20,7 +20,7 @@ namespace vne::xwin {
 TimeStep::TimeStep() noexcept
     : last_frame_time_(ClockT::now())
     , start_time_(last_frame_time_)
-    , last_render_time_(last_frame_time_) {
+    , last_actual_render_time_(last_frame_time_) {
     std::fill(delta_time_history_, delta_time_history_ + kSmoothingSamples, kDefaultDeltaTimeSeconds);
 }
 
@@ -29,7 +29,7 @@ TimeStep::TimeStep(double target_fps) noexcept
     , start_time_(last_frame_time_)
     , target_fps_(target_fps)
     , target_frame_time_(target_fps > 0.0 ? 1.0 / target_fps : 0.0)
-    , last_render_time_(last_frame_time_) {
+    , last_actual_render_time_(last_frame_time_) {
     std::fill(delta_time_history_, delta_time_history_ + kSmoothingSamples, kDefaultDeltaTimeSeconds);
 }
 
@@ -37,7 +37,7 @@ bool TimeStep::update() noexcept {
     const auto now = ClockT::now();
 
     if (frame_rate_limit_enabled_ && target_fps_ > 0.0) {
-        const double since_last_render = std::chrono::duration<double>(now - last_render_time_).count();
+        const double since_last_render = std::chrono::duration<double>(now - last_actual_render_time_).count();
         const double remain = target_frame_time_ - since_last_render;
         if (remain > 0.0) {
             if (sleep_pacing_enabled_) {
@@ -52,7 +52,6 @@ bool TimeStep::update() noexcept {
     delta_time_ = smoothing_enabled_ ? calculateSmoothedDeltaTime(raw_delta) : raw_delta;
 
     last_frame_time_ = now;
-    last_render_time_ = now;
     elapsed_time_ += delta_time_;
     frame_count_++;
 
@@ -64,7 +63,7 @@ bool TimeStep::update() noexcept {
 void TimeStep::reset() noexcept {
     last_frame_time_ = ClockT::now();
     start_time_ = last_frame_time_;
-    last_render_time_ = last_frame_time_;
+    last_actual_render_time_ = last_frame_time_;
     delta_time_ = kDefaultDeltaTimeSeconds;
     elapsed_time_ = 0.0;
     frame_count_ = 0;
@@ -88,12 +87,17 @@ double TimeStep::getAverageFrameRate(uint32_t frame_count) const noexcept {
     if (frame_count == 0) {
         return 0.0;
     }
-    double total_time = 0.0;
-    uint32_t samples = std::min(frame_count, static_cast<uint32_t>(kSmoothingSamples));
-    for (uint32_t i = 0; i < samples; ++i) {
-        total_time += delta_time_history_[i];
+    const size_t available_samples = history_filled_ ? kSmoothingSamples : history_index_;
+    const size_t samples = std::min<size_t>(frame_count, available_samples);
+    if (samples == 0) {
+        return 0.0;
     }
-    return samples > 0 ? samples / total_time : 0.0;
+    double total_time = 0.0;
+    for (size_t i = 0; i < samples; ++i) {
+        const size_t index = (history_index_ + kSmoothingSamples - 1 - i) % kSmoothingSamples;
+        total_time += delta_time_history_[index];
+    }
+    return total_time > 0.0 ? static_cast<double>(samples) / total_time : 0.0;
 }
 
 void TimeStep::setTargetFrameRate(double target_fps) noexcept {
@@ -106,8 +110,12 @@ bool TimeStep::shouldRender() const noexcept {
         return true;
     }
     const auto now = ClockT::now();
-    const double time_since_last_render = std::chrono::duration<double>(now - last_render_time_).count();
+    const double time_since_last_render = std::chrono::duration<double>(now - last_actual_render_time_).count();
     return time_since_last_render >= target_frame_time_;
+}
+
+void TimeStep::markRendered() noexcept {
+    last_actual_render_time_ = ClockT::now();
 }
 
 double TimeStep::calculateSmoothedDeltaTime(double raw_delta) noexcept {

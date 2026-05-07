@@ -48,6 +48,7 @@ class TimeStep {
     void setTargetFrameRate(double target_fps) noexcept;
     [[nodiscard]] double getTargetFrameRate() const noexcept { return target_fps_; }
     [[nodiscard]] bool shouldRender() const noexcept;
+    void markRendered() noexcept;
     void setFrameRateLimitEnabled(bool enabled) noexcept { frame_rate_limit_enabled_ = enabled; }
     [[nodiscard]] bool isFrameRateLimitEnabled() const noexcept { return frame_rate_limit_enabled_; }
 
@@ -74,7 +75,7 @@ class TimeStep {
     double target_fps_ = kDefaultTargetFps;
     double target_frame_time_ = 1.0 / kDefaultTargetFps;
     bool frame_rate_limit_enabled_ = true;
-    ClockT::time_point last_render_time_;
+    ClockT::time_point last_actual_render_time_;
     double min_delta_time_ = std::numeric_limits<double>::max();
     double max_delta_time_ = 0.0;
     uint64_t frame_count_ = 0;
