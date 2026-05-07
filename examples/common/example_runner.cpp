@@ -90,6 +90,8 @@ bool ExampleRunner::initialize() {
 
     if (!manager_->initialize()) {
         VNE_LOG_ERROR << "[ExampleRunner] manager initialize() failed.";
+        manager_->shutdown();
+        manager_.reset();
         return false;
     }
 
@@ -97,6 +99,7 @@ bool ExampleRunner::initialize() {
     if (!window_) {
         VNE_LOG_ERROR << "[ExampleRunner] openWindow() failed.";
         manager_->shutdown();
+        manager_.reset();
         return false;
     }
 
