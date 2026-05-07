@@ -73,6 +73,9 @@ void WasmWindowManager::removeWindow(std::shared_ptr<IWindow> window) {
     if (!window) {
         return;
     }
+    if (auto wasm = std::dynamic_pointer_cast<WasmWindow>(window)) {
+        wasm->setEventOwner(nullptr);
+    }
     window->close();
     auto it = std::find(windows_.begin(), windows_.end(), window);
     if (it != windows_.end()) {
@@ -89,6 +92,9 @@ void WasmWindowManager::removeWindow(std::shared_ptr<IWindow> window) {
 void WasmWindowManager::destroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
+            if (auto wasm = std::dynamic_pointer_cast<WasmWindow>(w)) {
+                wasm->setEventOwner(nullptr);
+            }
             w->close();
         }
     }
