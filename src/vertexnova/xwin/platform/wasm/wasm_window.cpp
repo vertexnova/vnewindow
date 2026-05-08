@@ -16,9 +16,22 @@
 #include "event_bridge.h"
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten/em_asm.h>
+#include <emscripten/em_js.h>
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
+
+EM_JS(void, vne_xwin_wasm_apply_cursor_css, (const char* css_cstr), {
+    var s = UTF8ToString(css_cstr);
+    if (typeof document !== 'undefined') {
+        if (document.body) {
+            document.body.style.cursor = s;
+        }
+        var c = document.querySelector('#canvas');
+        if (c) {
+            c.style.cursor = s;
+        }
+    }
+});
 #endif
 
 namespace vne::xwin {
@@ -493,20 +506,7 @@ void WasmWindow::setCursor(WindowCursor cursor) {
             css = "auto";
             break;
     }
-    EM_ASM(
-        {
-            var s = UTF8ToString($0);
-            if (typeof document != = 'undefined') {
-                if (document.body) {
-                    document.body.style.cursor = s;
-                }
-                var c = document.querySelector('#canvas');
-                if (c) {
-                    c.style.cursor = s;
-                }
-            }
-        },
-        css);
+    vne_xwin_wasm_apply_cursor_css(css);
 #else
     (void)cursor;
 #endif

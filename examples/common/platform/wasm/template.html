@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VneWindow Example</title>
+    <style>
+        :root {
+            --bg:          #0d0d0d;
+            --surface:     #161616;
+            --border:      #2a2a2a;
+            --border-focus: #22c55e;   /* green — canvas is capturing input */
+            --border-blur:  #ef4444;   /* red   — canvas is not capturing input */
+            --accent:      #3b82f6;
+            --text-dim:    #6b7280;
+            --text-faint:  #374151;
+            --radius:      10px;
+            --shadow:      0 20px 60px rgba(0, 0, 0, 0.7);
+            --transition:  border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            color: var(--text-dim);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Title bar ────────────────────────────────────────────────────── */
+        #titlebar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            user-select: none;
+        }
+
+        #titlebar .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.5;
+        }
+
+        /* ── Canvas wrapper ───────────────────────────────────────────────── */
+        #canvas-wrap {
+            position: relative;
+            border-radius: var(--radius);
+            border: 2px solid var(--border-blur);   /* red while not focused */
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            background: var(--surface);
+            transition: var(--transition);
+        }
+
+        #canvas-wrap.focused {
+            border-color: var(--border-focus);
+            box-shadow: var(--shadow), 0 0 0 4px rgba(34, 197, 94, 0.12);
+        }
+
+        #canvas {
+            display: block;
+            outline: none;
+            cursor: default;
+        }
+
+        /* ── Overlay (loading / error) ────────────────────────────────────── */
+        #overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: var(--surface);
+            z-index: 10;
+            transition: opacity 0.35s ease;
+        }
+
+        #overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #loading-text {
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        /* ── Error state ──────────────────────────────────────────────────── */
+        #error-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--surface);
+            z-index: 20;
+            padding: 32px;
+            text-align: center;
+        }
+
+        #error-overlay.visible { display: flex; }
+
+        #error-icon {
+            font-size: 28px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        #error-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ef4444;
+            letter-spacing: 0.04em;
+        }
+
+        #error-msg {
+            font-size: 11px;
+            color: var(--text-dim);
+            max-width: 420px;
+            line-height: 1.6;
+        }
+
+        /* ── Status bar ───────────────────────────────────────────────────── */
+        #statusbar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            color: var(--text-faint);
+            user-select: none;
+        }
+
+        #focus-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s ease;
+        }
+
+        #focus-indicator.focused { color: #22c55e; }
+        #focus-indicator.blurred { color: #ef4444; }
+
+        #focus-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            transition: background 0.2s ease;
+        }
+
+        #hint {
+            color: var(--text-faint);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="titlebar">
+        <div class="dot"></div>
+        <span>VneWindow &mdash; WebAssembly</span>
+    </div>
+
+    <div id="canvas-wrap">
+        <canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+
+        <div id="overlay">
+            <div class="spinner"></div>
+            <div id="loading-text">Initializing&hellip;</div>
+        </div>
+
+        <div id="error-overlay">
+            <div id="error-icon">&#9888;</div>
+            <div id="error-title">Initialization failed</div>
+            <div id="error-msg"></div>
+        </div>
+    </div>
+
+    <div id="statusbar">
+        <div id="focus-indicator" class="blurred">
+            <div id="focus-dot"></div>
+            <span id="focus-label">Click canvas to capture input</span>
+        </div>
+        <span id="hint">ESC to quit</span>
+    </div>
+
+    <script>
+        const canvas      = document.getElementById('canvas');
+        const canvasWrap  = document.getElementById('canvas-wrap');
+        const overlay     = document.getElementById('overlay');
+        const errorBox    = document.getElementById('error-overlay');
+        const errorMsg    = document.getElementById('error-msg');
+        const focusInd    = document.getElementById('focus-indicator');
+        const focusLabel  = document.getElementById('focus-label');
+
+        /* ── Focus / blur visuals ── */
+        function onFocus() {
+            canvasWrap.classList.add('focused');
+            focusInd.classList.remove('blurred');
+            focusInd.classList.add('focused');
+            focusLabel.textContent = 'Input captured';
+        }
+
+        function onBlur() {
+            canvasWrap.classList.remove('focused');
+            focusInd.classList.remove('focused');
+            focusInd.classList.add('blurred');
+            focusLabel.textContent = 'Click canvas to capture input';
+        }
+
+        canvas.addEventListener('focus', onFocus);
+        canvas.addEventListener('blur',  onBlur);
+        canvas.addEventListener('click', () => canvas.focus());
+
+        /* ── Error display ── */
+        function showError(msg) {
+            overlay.classList.add('hidden');
+            errorMsg.textContent = msg;
+            errorBox.classList.add('visible');
+        }
+
+        window.addEventListener('error', (e) => {
+            showError(e.error ? e.error.message : e.message);
+        });
+
+        /* ── Canvas sizing — Emscripten will resize to ExampleConfig dims ── */
+        (function applyInitialSize() {
+            canvas.width  = 800;
+            canvas.height = 600;
+            canvasWrap.style.width  = canvas.width  + 'px';
+            canvasWrap.style.height = canvas.height + 'px';
+        })();
+
+        /* ── Emscripten Module ── */
+        var Module = {
+            canvas: canvas,
+
+            onRuntimeInitialized: function () {
+                overlay.classList.add('hidden');
+                canvas.focus();
+            },
+
+            setStatus: function (text) {
+                const el = document.getElementById('loading-text');
+                if (el && text) { el.textContent = text; }
+            },
+
+            print:    (t) => console.log('[vnewindow]', t),
+            printErr: (t) => console.error('[vnewindow]', t),
+            onAbort:  (w) => showError('Fatal: ' + w),
+        };
+    </script>
+
+    {{{ SCRIPT }}}
+
+</body>
+</html>
