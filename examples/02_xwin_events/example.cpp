@@ -171,17 +171,15 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
 
         // Keep bridge callbacks as a cross-platform fallback logger.
         vne::xwin::EventBridgeCallbacks hooks{};
-        hooks.on_key_down = [this](vne::xwin::IWindow* /*win*/,
-                                   vne::events::KeyCode key,
-                                   std::uint8_t mods,
-                                   bool repeat) {
-            if (key == vne::events::KeyCode::eEscape) {
-                should_exit_ = true;
-            }
-            VNE_LOG_INFO << "[KEY   ] " << std::left << std::setw(8) << (repeat ? "REPEAT" : "DOWN") << " "
-                         << std::setw(12) << keyName(key) << " mods: " << std::setw(14) << modNames(mods)
-                         << " repeat: " << (repeat ? "yes" : "no");
-        };
+        hooks.on_key_down =
+            [this](vne::xwin::IWindow* /*win*/, vne::events::KeyCode key, std::uint8_t mods, bool repeat) {
+                if (key == vne::events::KeyCode::eEscape) {
+                    should_exit_ = true;
+                }
+                VNE_LOG_INFO << "[KEY   ] " << std::left << std::setw(8) << (repeat ? "REPEAT" : "DOWN") << " "
+                             << std::setw(12) << keyName(key) << " mods: " << std::setw(14) << modNames(mods)
+                             << " repeat: " << (repeat ? "yes" : "no");
+            };
         hooks.on_key_up = [](vne::xwin::IWindow* /*win*/, vne::events::KeyCode key, std::uint8_t /*mods*/) {
             VNE_LOG_INFO << "[KEY   ] " << std::left << std::setw(8) << "UP" << " " << keyName(key);
         };
