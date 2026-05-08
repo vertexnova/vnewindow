@@ -22,7 +22,7 @@
 
 EM_JS(void, vne_xwin_wasm_apply_cursor_css, (const char* css_cstr), {
     var s = UTF8ToString(css_cstr);
-    if (typeof document != = 'undefined') {
+    if (typeof document !== 'undefined') {
         if (document.body) {
             document.body.style.cursor = s;
         }

@@ -190,16 +190,19 @@ run_serve() {
     echo "Press Ctrl+C to stop."
     echo ""
 
+    local py_cmd=""
     if command -v python3 >/dev/null 2>&1; then
-        cd "$SERVE_DIR"
-        python3 -m http.server 8080
-    elif command -v python >/dev/null 2>&1; then
-        cd "$SERVE_DIR"
-        python -m SimpleHTTPServer 8080
-    else
-        echo "ERROR: python3 not found. Install Python 3 to use --serve."
+        py_cmd=python3
+    elif command -v python >/dev/null 2>&1 \
+        && python -c 'import sys; sys.exit(0 if sys.version_info >= (3, 0) else 1)' 2>/dev/null; then
+        py_cmd=python
+    fi
+    if [ -z "$py_cmd" ]; then
+        echo "ERROR: Python 3 not found. Install Python 3 to use --serve."
         exit 1
     fi
+    cd "$SERVE_DIR"
+    "$py_cmd" -m http.server 8080
 }
 
 # ---------------------------------------------------------------------------
