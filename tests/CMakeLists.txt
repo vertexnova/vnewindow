@@ -58,6 +58,15 @@ set(TEST_SOURCES
 #==============================================================================
 add_executable(vnexwin_tests ${TEST_SOURCES})
 
+if(IOS)
+    # iOS simulator install requires a bundle identifier for app targets.
+    set_target_properties(vnexwin_tests PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.vertexnova.vnewindow.tests"
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.vertexnova.vnewindow.tests"
+    )
+endif()
+
 # Shared vnexwin + MSVC: STL in headers from exported types (same pattern as vneio tests).
 if(MSVC AND TARGET vnexwin)
     get_target_property(_vnexwin_tests_lib_type vnexwin TYPE)

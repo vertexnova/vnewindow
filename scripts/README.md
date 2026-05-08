@@ -1,6 +1,6 @@
 # VneTemplate Scripts
 
-Build scripts for macOS, Linux, and Windows.
+Build scripts for macOS, iOS, Linux, and Windows.
 
 ## Build Scripts
 
@@ -25,6 +25,18 @@ Build scripts for macOS, Linux, and Windows.
 ```
 
 **Options:** `-t` build type, `-a` action, `-xcode` (also generate Xcode project), `-xcode-only`, `-j` jobs, `-clean`, `-interactive`, `-h`
+
+### iOS (`build_ios.sh`)
+
+```bash
+./scripts/build_ios.sh -t Debug -a configure_and_build -simulator
+./scripts/build_ios.sh -t Release -l static -device -j 8
+./scripts/build_ios.sh -xcode-only -t Debug
+./scripts/build_ios.sh -deployment-target 16.0 -simulator
+./scripts/build_ios.sh -xcode-only --with-tests --with-examples -simulator
+```
+
+**Options:** `-t` build type, `-a` action, `-l` lib type (`static|shared`), `-simulator|-device`, `-deployment-target`, `--with-tests`, `--with-examples`, `-xcode`, `-xcode-only`, `-j` jobs, `-clean`, `-h`
 
 ### Windows
 

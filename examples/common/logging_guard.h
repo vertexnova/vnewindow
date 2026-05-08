@@ -7,10 +7,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include <vertexnova/logging/logging.h>
+#include "vertexnova/logging/logging.h"
 
 // Create a logger category for examples
-CREATE_VNE_LOGGER_CATEGORY("vnecrosswindow.examples")
+CREATE_VNE_LOGGER_CATEGORY("vnewindow.examples")
 
 namespace vne::xwin::examples {
 
@@ -33,7 +33,7 @@ namespace vne::xwin::examples {
 class LoggingGuard {
    public:
     LoggingGuard() {
-        vne::log::LoggerConfig config;
+        vne::log::LoggerConfig config{};
         config.name = vne::log::kDefaultLoggerName;
         config.sink = vne::log::LogSinkType::eConsole;
         config.console_pattern = "[%l] [%n] %v";
