@@ -48,6 +48,31 @@ function(vne_add_example TARGET_NAME)
             "-framework Foundation"
         )
 
+    elseif(VNE_TARGET_PLATFORM STREQUAL "visionOS")
+        add_executable(${TARGET_NAME} MACOSX_BUNDLE
+            ${_ARG_SOURCES}
+            "${_VNE_EXAMPLE_PLAT_DIR}/visionos/main.mm"
+            "${_VNE_EXAMPLE_PLAT_DIR}/visionos/app_delegate.h"
+            "${_VNE_EXAMPLE_PLAT_DIR}/visionos/app_delegate.mm"
+            "${_VNE_EXAMPLE_PLAT_DIR}/visionos/scene_delegate.h"
+            "${_VNE_EXAMPLE_PLAT_DIR}/visionos/scene_delegate.mm"
+        )
+        set_target_properties(${TARGET_NAME} PROPERTIES
+            MACOSX_BUNDLE              TRUE
+            MACOSX_BUNDLE_INFO_PLIST  "${_VNE_EXAMPLE_PLAT_DIR}/visionos/Info.plist.in"
+            MACOSX_BUNDLE_GUI_IDENTIFIER
+                "com.vertexnova.vnewindow.${TARGET_NAME}"
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER
+                "com.vertexnova.vnewindow.${TARGET_NAME}"
+            # QMake's visionOS default is 7; keep consistent for simulator support.
+            XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "7"
+        )
+        target_link_libraries(${TARGET_NAME} PRIVATE
+            "-framework UIKit"
+            "-framework QuartzCore"
+            "-framework Foundation"
+        )
+
     elseif(VNE_TARGET_PLATFORM STREQUAL "macOS")
         add_executable(${TARGET_NAME} MACOSX_BUNDLE
             ${_ARG_SOURCES}

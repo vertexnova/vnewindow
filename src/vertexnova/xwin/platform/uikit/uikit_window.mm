@@ -247,8 +247,14 @@ int UIKitWindow::getHeight() const noexcept {
 }
 
 float UIKitWindow::getDpiScale() const noexcept {
+#if defined(VNE_PLATFORM_VISIONOS)
+    // visionOS does not expose a screen-backed UIScreen API.
+    // Use a reasonable default scale; view layout code can refine dimensions.
+    return 2.0F;
+#else
     UIScreen* s = [UIScreen mainScreen];
     return s ? static_cast<float>(s.scale) : 1.0F;
+#endif
 }
 
 }  // namespace vne::xwin

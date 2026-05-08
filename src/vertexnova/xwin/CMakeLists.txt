@@ -40,11 +40,16 @@ if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(_vx_is_ios 1)
 endif()
 
+set(_vx_is_visionos 0)
+if(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+    set(_vx_is_visionos 1)
+endif()
+
 if(APPLE AND NOT _vx_is_ios AND NOT CMAKE_SYSTEM_NAME STREQUAL "visionOS" AND VNE_XWIN_ENABLE_COCOA)
     set(_vx_cocoa 1)
 endif()
 
-if(APPLE AND _vx_is_ios AND VNE_XWIN_ENABLE_UIKIT)
+if(APPLE AND (_vx_is_ios OR _vx_is_visionos) AND VNE_XWIN_ENABLE_UIKIT)
     set(_vx_uikit 1)
 endif()
 
