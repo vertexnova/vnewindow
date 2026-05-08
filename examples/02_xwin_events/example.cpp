@@ -30,34 +30,59 @@ namespace {
 std::string keyName(vne::events::KeyCode key) {
     using vne::events::KeyCode;
     switch (key) {
-        case KeyCode::eSpace: return "Space";
-        case KeyCode::eEnter: return "Enter";
-        case KeyCode::eEscape: return "Escape";
-        case KeyCode::eTab: return "Tab";
-        case KeyCode::eBackspace: return "Backspace";
-        case KeyCode::eLeft: return "Left";
-        case KeyCode::eRight: return "Right";
-        case KeyCode::eUp: return "Up";
-        case KeyCode::eDown: return "Down";
+        case KeyCode::eSpace:
+            return "Space";
+        case KeyCode::eEnter:
+            return "Enter";
+        case KeyCode::eEscape:
+            return "Escape";
+        case KeyCode::eTab:
+            return "Tab";
+        case KeyCode::eBackspace:
+            return "Backspace";
+        case KeyCode::eLeft:
+            return "Left";
+        case KeyCode::eRight:
+            return "Right";
+        case KeyCode::eUp:
+            return "Up";
+        case KeyCode::eDown:
+            return "Down";
         case KeyCode::eLeftShift:
-        case KeyCode::eRightShift: return "Shift";
+        case KeyCode::eRightShift:
+            return "Shift";
         case KeyCode::eLeftControl:
-        case KeyCode::eRightControl: return "Ctrl";
+        case KeyCode::eRightControl:
+            return "Ctrl";
         case KeyCode::eLeftAlt:
-        case KeyCode::eRightAlt: return "Alt";
-        case KeyCode::eF1: return "F1";
-        case KeyCode::eF2: return "F2";
-        case KeyCode::eF3: return "F3";
-        case KeyCode::eF4: return "F4";
-        case KeyCode::eF5: return "F5";
-        case KeyCode::eF6: return "F6";
-        case KeyCode::eF7: return "F7";
-        case KeyCode::eF8: return "F8";
-        case KeyCode::eF9: return "F9";
-        case KeyCode::eF10: return "F10";
-        case KeyCode::eF11: return "F11";
-        case KeyCode::eF12: return "F12";
-        default: break;
+        case KeyCode::eRightAlt:
+            return "Alt";
+        case KeyCode::eF1:
+            return "F1";
+        case KeyCode::eF2:
+            return "F2";
+        case KeyCode::eF3:
+            return "F3";
+        case KeyCode::eF4:
+            return "F4";
+        case KeyCode::eF5:
+            return "F5";
+        case KeyCode::eF6:
+            return "F6";
+        case KeyCode::eF7:
+            return "F7";
+        case KeyCode::eF8:
+            return "F8";
+        case KeyCode::eF9:
+            return "F9";
+        case KeyCode::eF10:
+            return "F10";
+        case KeyCode::eF11:
+            return "F11";
+        case KeyCode::eF12:
+            return "F12";
+        default:
+            break;
     }
 
     const int code = static_cast<int>(key);
@@ -109,10 +134,14 @@ std::string modNames(std::uint8_t mods) {
 const char* btnName(vne::events::MouseButton btn) {
     using vne::events::MouseButton;
     switch (btn) {
-        case MouseButton::eLeft: return "Left";
-        case MouseButton::eRight: return "Right";
-        case MouseButton::eMiddle: return "Middle";
-        default: return nullptr;
+        case MouseButton::eLeft:
+            return "Left";
+        case MouseButton::eRight:
+            return "Right";
+        case MouseButton::eMiddle:
+            return "Middle";
+        default:
+            return nullptr;
     }
 }
 
@@ -135,10 +164,20 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
    public:
     vne::xwin::examples::ExampleConfig configure() override { return {"03 Events - Comprehensive Input", 1000, 700}; }
 
-    void onInit(vne::xwin::IWindow& /*window*/, vne::xwin::IWindowManager& mgr) override {
+    void onInit(vne::xwin::IWindow& window, vne::xwin::IWindowManager& mgr) override {
+        window_ = &window;
+        last_width_ = window.getWidth();
+        last_height_ = window.getHeight();
+
         // Keep bridge callbacks as a cross-platform fallback logger.
         vne::xwin::EventBridgeCallbacks hooks{};
-        hooks.on_key_down = [](vne::xwin::IWindow* /*win*/, vne::events::KeyCode key, std::uint8_t mods, bool repeat) {
+        hooks.on_key_down = [this](vne::xwin::IWindow* /*win*/,
+                                   vne::events::KeyCode key,
+                                   std::uint8_t mods,
+                                   bool repeat) {
+            if (key == vne::events::KeyCode::eEscape) {
+                should_exit_ = true;
+            }
             VNE_LOG_INFO << "[KEY   ] " << std::left << std::setw(8) << (repeat ? "REPEAT" : "DOWN") << " "
                          << std::setw(12) << keyName(key) << " mods: " << std::setw(14) << modNames(mods)
                          << " repeat: " << (repeat ? "yes" : "no");
@@ -234,8 +273,8 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
                 const char display = (unicode >= 32 && unicode <= 126) ? static_cast<char>(unicode) : '?';
                 std::ostringstream ss;
                 ss << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << (unicode & 0xFFFF);
-                VNE_LOG_INFO << "[KEY   ] " << std::left << std::setfill(' ') << std::setw(8) << "TYPED" << " '" << display
-                             << "'  (U+" << ss.str() << ")";
+                VNE_LOG_INFO << "[KEY   ] " << std::left << std::setfill(' ') << std::setw(8) << "TYPED" << " '"
+                             << display << "'  (U+" << ss.str() << ")";
                 return;
             }
             case EventType::eMouseButtonPressed:
@@ -250,12 +289,12 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
                 if (!e) {
                     return;
                 }
-                const char* state = (event.type() == EventType::eMouseButtonPressed)
-                                        ? "DOWN"
-                                        : (event.type() == EventType::eMouseButtonReleased) ? "UP" : "DOUBLE";
+                const char* state = (event.type() == EventType::eMouseButtonPressed)    ? "DOWN"
+                                    : (event.type() == EventType::eMouseButtonReleased) ? "UP"
+                                                                                        : "DOUBLE";
                 if (e->hasPosition()) {
-                    VNE_LOG_INFO << "[MOUSE ] BTN      " << std::setw(7) << btnDisplayName(e->button()) << " " << std::setw(6)
-                                 << state << " at (" << formatPoint(e->x(), e->y()) << ")";
+                    VNE_LOG_INFO << "[MOUSE ] BTN      " << std::setw(7) << btnDisplayName(e->button()) << " "
+                                 << std::setw(6) << state << " at (" << formatPoint(e->x(), e->y()) << ")";
                 } else {
                     VNE_LOG_INFO << "[MOUSE ] BTN      " << std::setw(7) << btnDisplayName(e->button()) << " " << state;
                 }
@@ -269,7 +308,8 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
                 if (!vne::events::Input::isMouseButtonPressed(0)) {
                     return;
                 }
-                VNE_LOG_INFO << "[MOUSE ] MOVED    x=" << std::fixed << std::setprecision(1) << e->x() << "  y=" << e->y();
+                VNE_LOG_INFO << "[MOUSE ] MOVED    x=" << std::fixed << std::setprecision(1) << e->x()
+                             << "  y=" << e->y();
                 return;
             }
             case EventType::eMouseScrolled: {
@@ -291,14 +331,15 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
                 const auto* press = dynamic_cast<const TouchPressEvent*>(&event);
                 const auto* move = dynamic_cast<const TouchMoveEvent*>(&event);
                 const auto* release = dynamic_cast<const TouchReleaseEvent*>(&event);
-                const TouchEvent* e = press ? static_cast<const TouchEvent*>(press)
-                                            : (move ? static_cast<const TouchEvent*>(move) : static_cast<const TouchEvent*>(release));
+                const TouchEvent* e =
+                    press ? static_cast<const TouchEvent*>(press)
+                          : (move ? static_cast<const TouchEvent*>(move) : static_cast<const TouchEvent*>(release));
                 if (!e) {
                     return;
                 }
-                const char* phase = (event.type() == EventType::eTouchPress)
-                                        ? "BEGIN"
-                                        : (event.type() == EventType::eTouchRelease) ? "END" : "MOVED";
+                const char* phase = (event.type() == EventType::eTouchPress)     ? "BEGIN"
+                                    : (event.type() == EventType::eTouchRelease) ? "END"
+                                                                                 : "MOVED";
                 VNE_LOG_INFO << "[TOUCH ] " << std::left << std::setw(8) << phase << " id=" << e->touchId() << " at ("
                              << formatPoint(e->x(), e->y()) << ")";
                 return;
@@ -319,15 +360,27 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
                 VNE_LOG_INFO << "[WINDOW] FOCUS    " << (e->focused() ? "gained" : "lost");
                 return;
             }
-            default: return;
+            default:
+                return;
         }
     }
 
     bool onFrame(float /*dt*/) override {
-        ++frame_count_;
-        if ((frame_count_ % 60U) == 0U) {
-            VNE_LOG_INFO << "[FRAME ] alive";
+        if (should_exit_) {
+            return false;
         }
+
+        if (window_ != nullptr) {
+            const int w = window_->getWidth();
+            const int h = window_->getHeight();
+            if (w != last_width_ || h != last_height_) {
+                last_width_ = w;
+                last_height_ = h;
+                VNE_LOG_INFO << "[WINDOW] RESIZE   " << w << "x" << h;
+            }
+        }
+
+        ++frame_count_;
         if ((frame_count_ % 60U) != 0U) {
             return true;
         }
@@ -336,9 +389,16 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
         using vne::events::KeyCode;
 
         const std::vector<std::pair<KeyCode, const char*>> watch = {
-            {KeyCode::eSpace, "Space"}, {KeyCode::eW, "W"},       {KeyCode::eA, "A"},    {KeyCode::eS, "S"},
-            {KeyCode::eD, "D"},         {KeyCode::eLeft, "Left"}, {KeyCode::eRight, "Right"},
-            {KeyCode::eUp, "Up"},       {KeyCode::eDown, "Down"}, {KeyCode::eLeftShift, "Shift"},
+            {KeyCode::eSpace, "Space"},
+            {KeyCode::eW, "W"},
+            {KeyCode::eA, "A"},
+            {KeyCode::eS, "S"},
+            {KeyCode::eD, "D"},
+            {KeyCode::eLeft, "Left"},
+            {KeyCode::eRight, "Right"},
+            {KeyCode::eUp, "Up"},
+            {KeyCode::eDown, "Down"},
+            {KeyCode::eLeftShift, "Shift"},
             {KeyCode::eLeftControl, "Ctrl"},
         };
 
@@ -359,7 +419,11 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
     }
 
    private:
+    vne::xwin::IWindow* window_ = nullptr;
     std::uint32_t frame_count_ = 0U;
+    int last_width_ = 0;
+    int last_height_ = 0;
+    bool should_exit_ = false;
     bool suppress_next_touch_event_ = false;
 };
 
