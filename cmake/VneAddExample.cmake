@@ -60,8 +60,25 @@ function(vne_add_example TARGET_NAME)
             "${_VNE_EXAMPLE_PLAT_DIR}/desktop/main.cpp"
         )
 
+    elseif(VNE_TARGET_PLATFORM STREQUAL "Web")
+        add_executable(${TARGET_NAME}
+            ${_ARG_SOURCES}
+            "${_VNE_EXAMPLE_PLAT_DIR}/wasm/main.cpp"
+        )
+        set(_HTML_TEMPLATE "${_VNE_EXAMPLE_PLAT_DIR}/wasm/template.html")
+        target_link_options(${TARGET_NAME} PRIVATE
+            # Use our custom HTML shell (Emscripten replaces {{{ SCRIPT }}})
+            "SHELL:--shell-file ${_HTML_TEMPLATE}"
+            # Allow heap to grow as needed (no fixed WASM memory cap)
+            "SHELL:-sALLOW_MEMORY_GROWTH=1"
+            # Browser target only (not Node.js)
+            "SHELL:-sENVIRONMENT=web"
+        )
+        # Output as .html so Emscripten bundles HTML + JS + WASM together
+        set_target_properties(${TARGET_NAME} PROPERTIES SUFFIX ".html")
+
     else()
-        # Linux (X11 / Wayland), Android stub, Web stub, etc.
+        # Linux (X11 / Wayland), Android stub, etc.
         add_executable(${TARGET_NAME}
             ${_ARG_SOURCES}
             "${_VNE_EXAMPLE_PLAT_DIR}/desktop/main.cpp"

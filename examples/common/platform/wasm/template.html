@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VneWindow Example</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #111;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ccc;
+        }
+
+        #canvas-container {
+            position: relative;
+            border: 1px solid #333;
+            border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+
+        #canvas {
+            display: block;
+            outline: none;
+        }
+
+        #canvas:focus {
+            outline: 2px solid #4a9eff;
+        }
+
+        #overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            background: rgba(17, 17, 17, 0.92);
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+
+        #overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #333;
+            border-top-color: #4a9eff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #status-text {
+            font-size: 14px;
+            color: #888;
+        }
+
+        #error-box {
+            display: none;
+            position: absolute;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(17, 17, 17, 0.95);
+            z-index: 20;
+            padding: 24px;
+            text-align: center;
+        }
+
+        #error-box.visible {
+            display: flex;
+        }
+
+        #error-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+
+        #error-msg {
+            font-size: 13px;
+            color: #aaa;
+            max-width: 480px;
+        }
+
+        #footer {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #444;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-container">
+        <canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+
+        <div id="overlay">
+            <div class="spinner"></div>
+            <div id="status-text">Loading...</div>
+        </div>
+
+        <div id="error-box">
+            <div id="error-title">Initialization failed</div>
+            <div id="error-msg"></div>
+        </div>
+    </div>
+
+    <div id="footer">vnewindow &mdash; WebAssembly</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const overlay = document.getElementById('overlay');
+        const statusText = document.getElementById('status-text');
+        const errorBox = document.getElementById('error-box');
+        const errorMsg = document.getElementById('error-msg');
+
+        function showError(msg) {
+            overlay.classList.add('hidden');
+            errorMsg.textContent = msg;
+            errorBox.classList.add('visible');
+        }
+
+        // Resize canvas to match initial Module dimensions (set by ExampleConfig).
+        // Emscripten's Module.canvas must be sized before the runtime starts so
+        // the wasm backend reads the correct width/height from the DOM element.
+        function applyCanvasSize(w, h) {
+            canvas.width  = w || 800;
+            canvas.height = h || 600;
+            const container = document.getElementById('canvas-container');
+            container.style.width  = canvas.width  + 'px';
+            container.style.height = canvas.height + 'px';
+        }
+
+        applyCanvasSize(800, 600);
+
+        // Give the canvas keyboard focus so key events reach the C++ callbacks.
+        canvas.addEventListener('click', () => canvas.focus());
+        window.addEventListener('load', () => canvas.focus());
+
+        window.addEventListener('error', (e) => {
+            showError('JavaScript error: ' + (e.error ? e.error.message : e.message));
+        });
+
+        // Emscripten module configuration.
+        // Must be set BEFORE the generated script is executed.
+        var Module = {
+            canvas: canvas,
+
+            onRuntimeInitialized: function () {
+                overlay.classList.add('hidden');
+                canvas.focus();
+            },
+
+            setStatus: function (text) {
+                if (text) {
+                    statusText.textContent = text;
+                }
+            },
+
+            print: function (text) {
+                console.log('[vnewindow]', text);
+            },
+
+            printErr: function (text) {
+                console.error('[vnewindow]', text);
+            },
+
+            onAbort: function (what) {
+                showError('Fatal error: ' + what);
+            }
+        };
+    </script>
+
+    {{{ SCRIPT }}}
+
+</body>
+
+</html>
