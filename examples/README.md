@@ -8,12 +8,14 @@ Cross-platform example programs for `vne::xwin`. Each example is a single
 `vne_add_example()` (defined in `cmake/VneAddExample.cmake`) injects the
 correct platform entry point automatically:
 
+<!-- markdownlint-disable MD060 -->
 | Platform | Entry point injected |
 |----------|----------------------|
-| macOS    | `common/platform/desktop/main.cpp` (Cocoa backend) |
-| iOS      | `common/platform/ios/main.mm` + `app_delegate.mm` (UIKit + CADisplayLink) |
-| Linux    | `common/platform/desktop/main.cpp` (X11 or Wayland) |
-| Windows  | `common/platform/desktop/main.cpp` (Win32) |
+| macOS | `common/platform/desktop/main.cpp` (Cocoa backend) |
+| iOS | `common/platform/ios/main.mm` + `app_delegate.mm` (UIKit + CADisplayLink) |
+| visionOS | `common/platform/visionos/main.mm` + `app_delegate.mm` + `scene_delegate.mm` (UIKit) |
+| Linux | `common/platform/desktop/main.cpp` (X11 or Wayland) |
+| Windows | `common/platform/desktop/main.cpp` (Win32) |
 
 The shared `ExampleRunner` (`common/example_runner.h`) manages window creation,
 the event loop, and lifecycle. Example source files only implement `ExampleBase`:
@@ -39,6 +41,11 @@ cmake -B build/shared -DVNE_XWIN_EXAMPLES=ON && cmake --build build/shared
 # iOS simulator (UIKit window via Xcode)
 scripts/build_ios.sh -t Debug -simulator --with-examples -xcode
 
+# visionOS simulator (UIKit window via Xcode)
+scripts/build_visionos.sh -t Debug -simulator --with-examples -xcode
+# Then run:
+#   scripts/run_visionos_simulator.sh <path-to-.app>
+
 # Linux (X11 / Wayland)
 cmake -B build/shared -DVNE_XWIN_EXAMPLES=ON && cmake --build build/shared
 
@@ -55,13 +62,17 @@ Executables land in `build/<lib_type>/bin/examples/`.
 | `example_01_hello_xwin` | Open a native window; log build/version info. |
 | `example_02_xwin_events` | Wire `EventBridgeCallbacks`; log key/mouse/touch events. |
 
+<!-- markdownlint-enable MD060 -->
+
 ## Adding a New Example
 
 1. Create `examples/03_my_example/example.cpp` implementing `ExampleBase`.
 2. Add to `examples/03_my_example/CMakeLists.txt`:
+
    ```cmake
    vne_add_example(example_03_my_example SOURCES example.cpp)
    ```
+
 3. Add `add_subdirectory(03_my_example)` to `examples/CMakeLists.txt`.
 
 No platform-specific code needed in `example.cpp`.

@@ -38,6 +38,21 @@ Build scripts for macOS, iOS, Linux, and Windows.
 
 **Options:** `-t` build type, `-a` action, `-l` lib type (`static|shared`), `-simulator|-device`, `-deployment-target`, `--with-tests`, `--with-examples`, `-xcode`, `-xcode-only`, `-j` jobs, `-clean`, `-h`
 
+### visionOS (`build_visionos.sh`)
+
+```bash
+# visionOS simulator (Apple Silicon arm64 simulator binary)
+./scripts/build_visionos.sh -t Debug -simulator --with-examples -xcode
+
+# Optional: specify deployment target
+./scripts/build_visionos.sh -t Debug -simulator -deployment-target 1.0 --with-examples
+
+# Then run:
+#   ./scripts/run_visionos_simulator.sh <path-to-.app>
+```
+
+**Options:** `-t` build type, `-a` action, `-l` lib type (`static|shared`), `-simulator|-device`, `-deployment-target`, `--with-tests`, `--with-examples`, `-xcode`, `-xcode-only`, `-j` jobs, `-clean`, `-h`
+
 ### Windows
 
 **Bash** (Git Bash / WSL): `build_windows.sh`

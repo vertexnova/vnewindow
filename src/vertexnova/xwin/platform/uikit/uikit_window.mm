@@ -247,8 +247,19 @@ int UIKitWindow::getHeight() const noexcept {
 }
 
 float UIKitWindow::getDpiScale() const noexcept {
+#if defined(VNE_PLATFORM_VISIONOS)
+    if (ui_view_) {
+        UIView* v = (__bridge UIView*)ui_view_;
+        const CGFloat scale = v.traitCollection.displayScale;
+        if (scale > 0.0) {
+            return static_cast<float>(scale);
+        }
+    }
+    return 2.0F;
+#else
     UIScreen* s = [UIScreen mainScreen];
     return s ? static_cast<float>(s.scale) : 1.0F;
+#endif
 }
 
 }  // namespace vne::xwin
