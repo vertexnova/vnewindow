@@ -25,7 +25,8 @@
 #   -l <lib_type>     static|shared  (default: static)
 #   -clean            Remove the build directory first
 #   -j <jobs>         Parallel jobs  (default: 10)
-#   --with-examples   Enable VNE_XWIN_EXAMPLES=ON  (on by default for wasm)
+#   --with-examples   Enable examples (default; explicit only)
+#   --no-examples     Disable examples (VNE_XWIN_EXAMPLES=OFF)
 #   --serve           Start a local HTTP server after building
 #   -h|--help         Print this help message
 #==============================================================================
@@ -56,7 +57,7 @@ done
 set -- "${ARGS[@]}"
 
 usage() {
-    echo "Usage: $0 [-t <build_type>] [-a <action>] [-l <lib_type>] [-clean] [-j <jobs>] [--with-examples] [--serve]"
+    echo "Usage: $0 [-t <build_type>] [-a <action>] [-l <lib_type>] [-clean] [-j <jobs>] [--with-examples|--no-examples] [--serve]"
     echo ""
     echo "Options:"
     echo "  -t <build_type>   Debug|Release|RelWithDebInfo|MinSizeRel  (default: Debug)"
@@ -64,7 +65,8 @@ usage() {
     echo "  -l <lib_type>     static|shared  (default: static)"
     echo "  -clean            Remove the build directory first"
     echo "  -j <jobs>         Parallel jobs  (default: 10)"
-    echo "  --with-examples   Enable examples (on by default)"
+    echo "  --with-examples   Build examples (default; flag is optional)"
+    echo "  --no-examples     Omit examples (library-only wasm build)"
     echo "  --serve           Start a local HTTP server on port 8080 after building"
     echo "  -h|--help         Print this help"
     echo ""
@@ -88,6 +90,7 @@ while [[ $# -gt 0 ]]; do
         -l|--lib-type)   LIB_TYPE="$2"; shift 2 ;;
         -clean|--clean)  CLEAN=true; shift ;;
         --with-examples) WITH_EXAMPLES=true; shift ;;
+        --no-examples)   WITH_EXAMPLES=false; shift ;;
         --serve)         SERVE=true; shift ;;
         -h|--help)       usage ;;
         *) echo "Unknown option: $1"; usage ;;
@@ -179,7 +182,7 @@ run_build() {
 run_serve() {
     if [ ! -d "$SERVE_DIR" ]; then
         echo "WARNING: Example output directory not found: $SERVE_DIR"
-        echo "Run a build first with --with-examples."
+        echo "Run a build with examples enabled first (default; do not pass --no-examples)."
         exit 1
     fi
 
@@ -218,7 +221,9 @@ echo "Jobs       : $JOBS"
 echo "Build dir  : $BUILD_DIR"
 echo ""
 
-check_emscripten
+if [ "$ACTION" != serve ]; then
+    check_emscripten
+fi
 
 if [ "$CLEAN" = true ]; then
     echo "Cleaning: $BUILD_DIR"
