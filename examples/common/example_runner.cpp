@@ -159,11 +159,11 @@ bool ExampleRunner::tick() {
         manager_->processEvents();
     }
     vne::events::EventManager::instance().processEvents();
-    vne::events::Input::nextFrame();
 
     // Check close conditions
     if (!is_running_ || (manager_ && manager_->shouldClose()) || (!window_ || !window_->isOpen())
         || (manager_ && manager_->getWindowCount() == 0)) {
+        vne::events::Input::nextFrame();
         return false;
     }
 
@@ -178,6 +178,7 @@ bool ExampleRunner::tick() {
     }
 
     const bool keep_running = example_->onFrame(dt);
+    vne::events::Input::nextFrame();
     if (!keep_running) {
         onCloseRequest();
         return false;
