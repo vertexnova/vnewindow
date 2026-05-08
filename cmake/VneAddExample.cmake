@@ -68,7 +68,7 @@ function(vne_add_example TARGET_NAME)
         set(_HTML_TEMPLATE "${_VNE_EXAMPLE_PLAT_DIR}/wasm/template.html")
         target_link_options(${TARGET_NAME} PRIVATE
             # Use our custom HTML shell (Emscripten replaces {{{ SCRIPT }}})
-            "SHELL:--shell-file ${_HTML_TEMPLATE}"
+            "SHELL:--shell-file=${_HTML_TEMPLATE}"
             # Allow heap to grow as needed (no fixed WASM memory cap)
             "SHELL:-sALLOW_MEMORY_GROWTH=1"
             # Browser target only (not Node.js)
