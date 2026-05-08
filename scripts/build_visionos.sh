@@ -68,7 +68,7 @@ usage() {
     echo "  -clean             Clean build and xcode directories first"
     echo "  -xcode             Also generate dedicated Xcode project dir"
     echo "  -xcode-only        Only generate dedicated Xcode project dir"
-    echo "  -simulator         Build for visionOS simulator (default)"
+    echo "  -simulator         Build for visionOS simulator (default; arm64 on Apple Silicon)"
     echo "  -device            Build for visionOS device"
     echo "  -deployment-target visionOS deployment target (default: 1.0; X.Y)"
     echo "  --with-tests       Enable VNE_XWIN_TESTS=ON"
@@ -244,7 +244,8 @@ if [ "$TARGET" = "device" ]; then
 else
     CMAKE_ARGS+=(
         "-DCMAKE_OSX_SYSROOT=xrsimulator"
-        "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+        # visionOS simulator on Apple Silicon is arm64-only in practice.
+        "-DCMAKE_OSX_ARCHITECTURES=arm64"
     )
 fi
 
@@ -327,6 +328,12 @@ case $ACTION in
         fi
         run_cmake_configure "$BUILD_DIR"
         run_xcode_build "$BUILD_DIR"
+        if [ "$WITH_TESTS" = true ]; then
+            echo "Running tests with CTest..."
+            ctest --test-dir "$BUILD_DIR" -C "$BUILD_TYPE" --output-on-failure
+        else
+            echo "Skipping test execution because --with-tests was not set."
+        fi
         ;;
     *)
         echo "ERROR: Unknown action: $ACTION"

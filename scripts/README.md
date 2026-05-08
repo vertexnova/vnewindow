@@ -41,7 +41,7 @@ Build scripts for macOS, iOS, Linux, and Windows.
 ### visionOS (`build_visionos.sh`)
 
 ```bash
-# visionOS simulator (examples as .app bundles)
+# visionOS simulator (Apple Silicon arm64 simulator binary)
 ./scripts/build_visionos.sh -t Debug -simulator --with-examples -xcode
 
 # Optional: specify deployment target

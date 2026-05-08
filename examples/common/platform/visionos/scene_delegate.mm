@@ -33,7 +33,6 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 - (void)scene:(UIScene*)scene
     willConnectToSession:(UISceneSession*)session
                  options:(UISceneConnectionOptions*)connection_options {
-    (void)scene;
     (void)session;
     (void)connection_options;
     _isShutdown = NO;

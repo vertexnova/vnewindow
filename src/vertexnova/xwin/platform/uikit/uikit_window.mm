@@ -248,8 +248,13 @@ int UIKitWindow::getHeight() const noexcept {
 
 float UIKitWindow::getDpiScale() const noexcept {
 #if defined(VNE_PLATFORM_VISIONOS)
-    // visionOS does not expose a screen-backed UIScreen API.
-    // Use a reasonable default scale; view layout code can refine dimensions.
+    if (ui_view_) {
+        UIView* v = (__bridge UIView*)ui_view_;
+        const CGFloat scale = v.traitCollection.displayScale;
+        if (scale > 0.0) {
+            return static_cast<float>(scale);
+        }
+    }
     return 2.0F;
 #else
     UIScreen* s = [UIScreen mainScreen];
