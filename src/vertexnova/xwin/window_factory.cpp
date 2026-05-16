@@ -133,7 +133,9 @@ WindowAPI WindowFactory::getBestWindowAPIForPlatform() {
 #if VNE_XWIN_HAS_WAYLAND
     const bool prefer_wl = env_nonempty(std::getenv("WAYLAND_DISPLAY"));
 #endif
+#if VNE_XWIN_HAS_X11
     const bool prefer_x = env_nonempty(std::getenv("DISPLAY"));
+#endif
 #if VNE_XWIN_HAS_WAYLAND
     if (prefer_wl) {
         return WindowAPI::eWaylandWindow;
