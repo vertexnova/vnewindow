@@ -129,6 +129,7 @@ WindowAPI WindowFactory::getBestWindowAPIForPlatform() {
 #elif VNE_XWIN_HAS_COCOA
     return WindowAPI::eCocoaWindow;
 #elif defined(__linux__)
+#if VNE_XWIN_HAS_WAYLAND || VNE_XWIN_HAS_X11
     const auto env_nonempty = [](const char* v) { return v != nullptr && v[0] != '\0'; };
 #if VNE_XWIN_HAS_WAYLAND
     const bool prefer_wl = env_nonempty(std::getenv("WAYLAND_DISPLAY"));
@@ -150,6 +151,7 @@ WindowAPI WindowFactory::getBestWindowAPIForPlatform() {
     return WindowAPI::eWaylandWindow;
 #elif VNE_XWIN_HAS_X11
     return WindowAPI::eX11Window;
+#endif
 #else
     return WindowAPI::eNullWindow;
 #endif
