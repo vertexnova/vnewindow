@@ -12,6 +12,8 @@
 
 /** @file time_step.h Fixed timestep helper for polling loops. */
 
+#include "vertexnova/xwin/xwin_export.h"
+
 #include <chrono>
 #include <cstdint>
 #include <limits>
@@ -25,7 +27,7 @@ constexpr double kDefaultTargetFps = 60.0;
 constexpr double kDefaultMaxDeltaTimeLimit = 0.1;
 }  // namespace
 
-class TimeStep {
+class VNE_XWIN_API TimeStep {
    public:
     TimeStep() noexcept;
     explicit TimeStep(double target_fps) noexcept;
