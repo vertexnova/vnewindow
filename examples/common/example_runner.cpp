@@ -23,6 +23,28 @@
 
 namespace vne::xwin::examples {
 
+namespace {
+
+constexpr std::array kForwardedEventTypes = {
+    vne::events::EventType::eWindowClose,
+    vne::events::EventType::eWindowResize,
+    vne::events::EventType::eWindowFocus,
+    vne::events::EventType::eKeyPressed,
+    vne::events::EventType::eKeyReleased,
+    vne::events::EventType::eKeyRepeat,
+    vne::events::EventType::eKeyTyped,
+    vne::events::EventType::eMouseButtonPressed,
+    vne::events::EventType::eMouseButtonReleased,
+    vne::events::EventType::eMouseButtonDoubleClicked,
+    vne::events::EventType::eMouseMoved,
+    vne::events::EventType::eMouseScrolled,
+    vne::events::EventType::eTouchPress,
+    vne::events::EventType::eTouchRelease,
+    vne::events::EventType::eTouchMove,
+};
+
+}  // namespace
+
 // ---------------------------------------------------------------------------
 // Inner event listener
 // ---------------------------------------------------------------------------
@@ -110,24 +132,7 @@ bool ExampleRunner::initialize() {
     // Register close + escape listeners and forward all structured events.
     listener_ = std::make_shared<RunnerListener>(this);
     auto& ev = vne::events::EventManager::instance();
-    constexpr std::array all_types = {
-        vne::events::EventType::eWindowClose,
-        vne::events::EventType::eWindowResize,
-        vne::events::EventType::eWindowFocus,
-        vne::events::EventType::eKeyPressed,
-        vne::events::EventType::eKeyReleased,
-        vne::events::EventType::eKeyRepeat,
-        vne::events::EventType::eKeyTyped,
-        vne::events::EventType::eMouseButtonPressed,
-        vne::events::EventType::eMouseButtonReleased,
-        vne::events::EventType::eMouseButtonDoubleClicked,
-        vne::events::EventType::eMouseMoved,
-        vne::events::EventType::eMouseScrolled,
-        vne::events::EventType::eTouchPress,
-        vne::events::EventType::eTouchRelease,
-        vne::events::EventType::eTouchMove,
-    };
-    for (const auto t : all_types) {
+    for (const auto t : kForwardedEventTypes) {
         ev.registerListener(t, listener_);
     }
 
@@ -200,24 +205,7 @@ void ExampleRunner::shutdown() {
 
     if (listener_) {
         auto& ev = vne::events::EventManager::instance();
-        constexpr std::array all_types = {
-            vne::events::EventType::eWindowClose,
-            vne::events::EventType::eWindowResize,
-            vne::events::EventType::eWindowFocus,
-            vne::events::EventType::eKeyPressed,
-            vne::events::EventType::eKeyReleased,
-            vne::events::EventType::eKeyRepeat,
-            vne::events::EventType::eKeyTyped,
-            vne::events::EventType::eMouseButtonPressed,
-            vne::events::EventType::eMouseButtonReleased,
-            vne::events::EventType::eMouseButtonDoubleClicked,
-            vne::events::EventType::eMouseMoved,
-            vne::events::EventType::eMouseScrolled,
-            vne::events::EventType::eTouchPress,
-            vne::events::EventType::eTouchRelease,
-            vne::events::EventType::eTouchMove,
-        };
-        for (const auto t : all_types) {
+        for (const auto t : kForwardedEventTypes) {
             ev.unregisterListener(t, listener_.get());
         }
         listener_.reset();
