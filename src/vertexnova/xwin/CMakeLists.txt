@@ -299,6 +299,9 @@ if(_vx_wasm)
     if(TARGET emhtml5)
         target_link_libraries(vnexwin PUBLIC emhtml5)
     endif()
+    # Emscripten with pthreads requires atomics for all object files
+    target_compile_options(vnexwin PUBLIC "SHELL:-pthread")
+    target_link_options(vnexwin PUBLIC "SHELL:-pthread")
 endif()
 
 if(_vx_android)
