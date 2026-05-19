@@ -106,6 +106,11 @@ void UIKitWindow::destroyNative() {
         }
         [v removeFromSuperview];
     }
+    if (ui_window_) {
+        UIWindow* window = (__bridge_transfer UIWindow*)ui_window_;
+        ui_window_ = nullptr;
+        window.hidden = YES;
+    }
     open_ = false;
 }
 
@@ -113,13 +118,43 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
     uikitRunOnMainSync(^{
       destroyNative();
       desc_ = descriptor;
-      CGRect frame = CGRectMake(static_cast<CGFloat>(desc_.position.x),
-                                static_cast<CGFloat>(desc_.position.y),
-                                static_cast<CGFloat>(desc_.size.width),
-                                static_cast<CGFloat>(desc_.size.height));
-      VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:frame xwin:this];
+
+      UIWindow* window = nil;
+      if (@available(iOS 13.0, *)) {
+          for (UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
+              if (![scene isKindOfClass:[UIWindowScene class]]) {
+                  continue;
+              }
+              auto* window_scene = static_cast<UIWindowScene*>(scene);
+              window = [[UIWindow alloc] initWithWindowScene:window_scene];
+              break;
+          }
+      }
+      if (window == nil) {
+          window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+      }
+
+      UIViewController* root_vc = window.rootViewController;
+      if (root_vc == nil) {
+          root_vc = [[UIViewController alloc] init];
+          window.rootViewController = root_vc;
+      }
+
+      CGRect bounds = root_vc.view.bounds;
+      if (CGRectIsEmpty(bounds)) {
+          bounds = UIScreen.mainScreen.bounds;
+      }
+      if (desc_.size.width > 0 && desc_.size.height > 0) {
+          bounds.size.width = static_cast<CGFloat>(desc_.size.width);
+          bounds.size.height = static_cast<CGFloat>(desc_.size.height);
+      }
+
+      VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:bounds xwin:this];
       v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+      [root_vc.view addSubview:v];
+
       ui_view_ = (__bridge_retained void*)v;
+      ui_window_ = (__bridge_retained void*)window;
       open_ = true;
     });
 }
@@ -220,13 +255,14 @@ void UIKitWindow::close() {
 }
 
 bool UIKitWindow::isOpen() const noexcept {
-    return open_ && ui_view_ != nullptr;
+    return open_ && ui_view_ != nullptr && ui_window_ != nullptr;
 }
 
 NativeWindowHandle UIKitWindow::getNativeHandle() const noexcept {
     NativeWindowHandle handle{};
     handle.api = WindowAPI::eIosUikitWindow;
     handle.ui_view = ui_view_;
+    handle.ui_window = ui_window_;
     if (ui_view_) {
         UIView* view = (__bridge UIView*)ui_view_;
         handle.ca_layer = (__bridge void*)view.layer;

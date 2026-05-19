@@ -49,6 +49,7 @@ TEST_F(NullWindowTest, NativeHandleFieldsAreDefaulted) {
     EXPECT_EQ(handle.ns_window, nullptr);
     EXPECT_EQ(handle.ca_layer, nullptr);
     EXPECT_EQ(handle.ui_view, nullptr);
+    EXPECT_EQ(handle.ui_window, nullptr);
     EXPECT_EQ(handle.x11_display, nullptr);
     EXPECT_EQ(handle.xcb_connection, nullptr);
     EXPECT_EQ(handle.wl_display, nullptr);

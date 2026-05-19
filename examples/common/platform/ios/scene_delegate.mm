@@ -31,10 +31,10 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 - (void)scene:(UIScene*)scene
     willConnectToSession:(UISceneSession*)session
                  options:(UISceneConnectionOptions*)connection_options {
+    (void)scene;
     (void)session;
     (void)connection_options;
     _isShutdown = NO;
-    UIWindowScene* window_scene = (UIWindowScene*)scene;
 
     _runner = std::make_unique<vne::xwin::examples::ExampleRunner>(createExample());
 
@@ -43,29 +43,15 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
         return;
     }
 
-    // ------------------------------------------------------------------
-    // Bridge: embed the UIView created by UIKitWindow into the scene's
-    // UIWindow. Window is created with the UIWindowScene to satisfy the
-    // modern scene lifecycle (suppresses the "UIScene lifecycle" assert).
-    // ------------------------------------------------------------------
+    // Adopt the UIWindow created by UIKitWindow (already bound to a UIWindowScene).
     vne::xwin::IWindow* xwin_window = _runner->window();
     if (xwin_window) {
         vne::xwin::NativeWindowHandle handle = xwin_window->getNativeHandle();
-        UIView* xwin_view = (__bridge UIView*)handle.ui_view;
-
-        self.window = [[UIWindow alloc] initWithWindowScene:window_scene];
-
-        UIViewController* view_controller = [[UIViewController alloc] init];
-        view_controller.view.backgroundColor = UIColor.blackColor;
-
-        if (xwin_view) {
-            xwin_view.frame = view_controller.view.bounds;
-            xwin_view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-            [view_controller.view addSubview:xwin_view];
+        UIWindow* window = (__bridge UIWindow*)handle.ui_window;
+        if (window) {
+            self.window = window;
+            [self.window makeKeyAndVisible];
         }
-
-        self.window.rootViewController = view_controller;
-        [self.window makeKeyAndVisible];
     }
 
     // CADisplayLink drives the per-frame tick (replaces the desktop while loop)

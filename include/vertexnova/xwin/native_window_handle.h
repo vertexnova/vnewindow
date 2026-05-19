@@ -28,6 +28,7 @@ struct NativeWindowHandle {
 
     void* ca_layer = nullptr;
     void* ui_view = nullptr;
+    void* ui_window = nullptr;
 
     uint32_t x11_window_id = 0;
     void* x11_display = nullptr;
