@@ -155,7 +155,7 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
 
       ui_view_ = (__bridge_retained void*)v;
       ui_window_ = (__bridge_retained void*)window;
-      open_ = true;
+      open_ = (ui_view_ != nullptr) && (ui_window_ != nullptr);
     });
 }
 
