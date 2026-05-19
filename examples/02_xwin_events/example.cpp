@@ -19,11 +19,40 @@
 #include <vertexnova/logging/logging.h>
 
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
+
+namespace {
+
+/** Default event log path; override at runtime with VNE_EVENT_LOG_MODE=raw|structured. */
+enum class EventLogMode { kStructured, kRawCallbacks };
+
+constexpr EventLogMode kDefaultEventLogMode = EventLogMode::kStructured;
+
+EventLogMode eventLogModeFromEnv() {
+    const char* env = std::getenv("VNE_EVENT_LOG_MODE");
+    if (env == nullptr) {
+        return kDefaultEventLogMode;
+    }
+    if (std::strcmp(env, "raw") == 0 || std::strcmp(env, "callbacks") == 0) {
+        return EventLogMode::kRawCallbacks;
+    }
+    if (std::strcmp(env, "structured") == 0 || std::strcmp(env, "events") == 0) {
+        return EventLogMode::kStructured;
+    }
+    return kDefaultEventLogMode;
+}
+
+const char* eventLogModeName(EventLogMode mode) {
+    return mode == EventLogMode::kRawCallbacks ? "EventBridgeCallbacks (raw)" : "vne::events (structured)";
+}
+
+}  // namespace
 
 namespace {
 
@@ -164,65 +193,65 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
    public:
     vne::xwin::examples::ExampleConfig configure() override { return {"03 Events - Comprehensive Input", 1000, 700}; }
 
-    void onInit(vne::xwin::IWindow& window, vne::xwin::IWindowManager& mgr) override {
-        window_ = &window;
-        last_width_ = window.getWidth();
-        last_height_ = window.getHeight();
+    void onInit(vne::xwin::IWindow& /*window*/, vne::xwin::IWindowManager& mgr) override {
+        log_mode_ = eventLogModeFromEnv();
 
-        // Keep bridge callbacks as a cross-platform fallback logger.
-        vne::xwin::EventBridgeCallbacks hooks{};
-        hooks.on_key_down =
-            [this](vne::xwin::IWindow* /*win*/, vne::events::KeyCode key, std::uint8_t mods, bool repeat) {
-                if (key == vne::events::KeyCode::eEscape) {
-                    should_exit_ = true;
-                }
-                VNE_LOG_INFO << "[KEY   ] " << std::left << std::setw(8) << (repeat ? "REPEAT" : "DOWN") << " "
-                             << std::setw(12) << keyName(key) << " mods: " << std::setw(14) << modNames(mods)
-                             << " repeat: " << (repeat ? "yes" : "no");
+        if (log_mode_ == EventLogMode::kRawCallbacks) {
+            vne::xwin::EventBridgeCallbacks hooks{};
+            hooks.on_key_down =
+                [this](vne::xwin::IWindow* /*win*/, vne::events::KeyCode key, std::uint8_t mods, bool repeat) {
+                    if (key == vne::events::KeyCode::eEscape) {
+                        should_exit_ = true;
+                    }
+                    VNE_LOG_INFO << "[KEY   ] " << std::left << std::setw(8) << (repeat ? "REPEAT" : "DOWN") << " "
+                                 << std::setw(12) << keyName(key) << " mods: " << std::setw(14) << modNames(mods)
+                                 << " repeat: " << (repeat ? "yes" : "no");
+                };
+            hooks.on_key_up = [](vne::xwin::IWindow* /*win*/, vne::events::KeyCode key, std::uint8_t /*mods*/) {
+                VNE_LOG_INFO << "[KEY   ] " << std::left << std::setw(8) << "UP" << " " << keyName(key);
             };
-        hooks.on_key_up = [](vne::xwin::IWindow* /*win*/, vne::events::KeyCode key, std::uint8_t /*mods*/) {
-            VNE_LOG_INFO << "[KEY   ] " << std::left << std::setw(8) << "UP" << " " << keyName(key);
-        };
-        hooks.on_mouse_button = [](vne::xwin::IWindow* /*win*/,
-                                   vne::events::MouseButton btn,
-                                   bool pressed,
-                                   double x,
-                                   double y,
-                                   std::uint8_t /*mods*/) {
-            VNE_LOG_INFO << "[MOUSE ] BTN      " << std::setw(7) << btnDisplayName(btn) << " " << std::setw(6)
-                         << (pressed ? "DOWN" : "UP") << " at (" << formatPoint(x, y) << ")";
-        };
-        hooks.on_mouse_move = [](vne::xwin::IWindow* /*win*/, double x, double y, std::uint8_t /*mods*/) {
-            if (!vne::events::Input::isMouseButtonPressed(0)) {
-                return;
-            }
-            VNE_LOG_INFO << "[MOUSE ] MOVED    x=" << std::fixed << std::setprecision(1) << x << "  y=" << y;
-        };
-        hooks.on_mouse_scroll = [](vne::xwin::IWindow* /*win*/, float dx, float dy) {
-            VNE_LOG_INFO << "[MOUSE ] SCROLL   dx=" << std::fixed << std::setprecision(1) << dx << "  dy=" << dy;
-        };
-        hooks.on_window_focus = [](vne::xwin::IWindow* /*win*/, bool focused) {
-            VNE_LOG_INFO << "[WINDOW] FOCUS    " << (focused ? "gained" : "lost");
-        };
-        hooks.on_touch = [this](vne::xwin::IWindow* /*win*/,
+            hooks.on_mouse_button = [](vne::xwin::IWindow* /*win*/,
+                                       vne::events::MouseButton btn,
+                                       bool pressed,
+                                       double x,
+                                       double y,
+                                       std::uint8_t /*mods*/) {
+                VNE_LOG_INFO << "[MOUSE ] BTN      " << std::setw(7) << btnDisplayName(btn) << " " << std::setw(6)
+                             << (pressed ? "DOWN" : "UP") << " at (" << formatPoint(x, y) << ")";
+            };
+            hooks.on_mouse_move = [](vne::xwin::IWindow* /*win*/, double x, double y, std::uint8_t /*mods*/) {
+                if (!vne::events::Input::isMouseButtonPressed(0)) {
+                    return;
+                }
+                VNE_LOG_INFO << "[MOUSE ] MOVED    x=" << std::fixed << std::setprecision(1) << x << "  y=" << y;
+            };
+            hooks.on_mouse_scroll = [](vne::xwin::IWindow* /*win*/, float dx, float dy) {
+                VNE_LOG_INFO << "[MOUSE ] SCROLL   dx=" << std::fixed << std::setprecision(1) << dx << "  dy=" << dy;
+            };
+            hooks.on_window_focus = [](vne::xwin::IWindow* /*win*/, bool focused) {
+                VNE_LOG_INFO << "[WINDOW] FOCUS    " << (focused ? "gained" : "lost");
+            };
+            hooks.on_touch = [](vne::xwin::IWindow* /*win*/,
                                 std::uint32_t touch_id,
                                 double x,
                                 double y,
                                 vne::xwin::EventBridgeTouchPhase phase) {
-            suppress_next_touch_event_ = true;
-            const char* phase_name = "MOVED";
-            if (phase == vne::xwin::EventBridgeTouchPhase::eDown) {
-                phase_name = "BEGIN";
-            } else if (phase == vne::xwin::EventBridgeTouchPhase::eUp) {
-                phase_name = "END";
-            }
-            VNE_LOG_INFO << "[TOUCH ] " << std::left << std::setw(8) << phase_name << " id=" << touch_id << " at ("
-                         << formatPoint(x, y) << ")";
-        };
+                const char* phase_name = "MOVED";
+                if (phase == vne::xwin::EventBridgeTouchPhase::eDown) {
+                    phase_name = "BEGIN";
+                } else if (phase == vne::xwin::EventBridgeTouchPhase::eUp) {
+                    phase_name = "END";
+                }
+                VNE_LOG_INFO << "[TOUCH ] " << std::left << std::setw(8) << phase_name << " id=" << touch_id << " at ("
+                             << formatPoint(x, y) << ")";
+            };
 
-        mgr.setEventBridgeCallbacks(std::move(hooks));
+            mgr.setEventBridgeCallbacks(std::move(hooks));
+        }
 
         VNE_LOG_INFO << "03_events demo ready (in 02_xwin_events target).";
+        VNE_LOG_INFO << "Event logging: " << eventLogModeName(log_mode_)
+                     << " (set VNE_EVENT_LOG_MODE=raw|structured to switch).";
         VNE_LOG_INFO << "Try keyboard, mouse, touch, resize/focus, and hold movement keys.";
         VNE_LOG_INFO << "Runner API: window=" << static_cast<int>(mgr.getPrimaryWindow()->getWindowAPI())
                      << " platform=" << mgr.getPlatformInfo();
@@ -230,6 +259,18 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
 
     void onEvent(const vne::events::Event& event) override {
         using namespace vne::events;
+
+        if (log_mode_ == EventLogMode::kRawCallbacks) {
+            switch (event.type()) {
+                case EventType::eWindowClose:
+                case EventType::eWindowResize:
+                case EventType::eKeyTyped:
+                    break;
+                default:
+                    return;
+            }
+        }
+
         switch (event.type()) {
             case EventType::eWindowClose: {
                 VNE_LOG_INFO << "[WINDOW] CLOSE";
@@ -322,10 +363,6 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
             case EventType::eTouchPress:
             case EventType::eTouchMove:
             case EventType::eTouchRelease: {
-                if (suppress_next_touch_event_) {
-                    suppress_next_touch_event_ = false;
-                    return;
-                }
                 const auto* press = dynamic_cast<const TouchPressEvent*>(&event);
                 const auto* move = dynamic_cast<const TouchMoveEvent*>(&event);
                 const auto* release = dynamic_cast<const TouchReleaseEvent*>(&event);
@@ -368,16 +405,6 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
             return false;
         }
 
-        if (window_ != nullptr) {
-            const int w = window_->getWidth();
-            const int h = window_->getHeight();
-            if (w != last_width_ || h != last_height_) {
-                last_width_ = w;
-                last_height_ = h;
-                VNE_LOG_INFO << "[WINDOW] RESIZE   " << w << "x" << h;
-            }
-        }
-
         ++frame_count_;
         if ((frame_count_ % 60U) != 0U) {
             return true;
@@ -417,12 +444,9 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
     }
 
    private:
-    vne::xwin::IWindow* window_ = nullptr;
+    EventLogMode log_mode_ = kDefaultEventLogMode;
     std::uint32_t frame_count_ = 0U;
-    int last_width_ = 0;
-    int last_height_ = 0;
     bool should_exit_ = false;
-    bool suppress_next_touch_event_ = false;
 };
 
 std::unique_ptr<vne::xwin::examples::ExampleBase> createExample() {
