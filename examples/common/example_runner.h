@@ -24,6 +24,7 @@
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_manager.h"
 
+#include <cstddef>
 #include <memory>
 
 namespace vne::xwin::examples {
@@ -41,6 +42,12 @@ class ExampleRunner {
      * Returns false on failure.
      */
     [[nodiscard]] bool initialize();
+
+    /** Optional host-native data forwarded into WindowDescriptor::platform_data (e.g. UIWindowScene*). */
+    void setPlatformData(void* data, std::size_t size = sizeof(void*)) noexcept {
+        platform_data_ = data;
+        platform_data_size_ = (data != nullptr) ? size : 0U;
+    }
 
     /**
      * Execute one frame: processEvents → onFrame(dt) → return running state.
@@ -81,6 +88,8 @@ class ExampleRunner {
     bool is_initialized_ = false;
     bool is_running_ = false;
     double last_time_ = 0.0;
+    void* platform_data_ = nullptr;
+    std::size_t platform_data_size_ = 0U;
 };
 
 }  // namespace vne::xwin::examples

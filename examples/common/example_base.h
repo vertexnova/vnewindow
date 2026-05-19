@@ -28,6 +28,7 @@
 
 #include "common/logging_guard.h"
 
+#include "vertexnova/events/event.h"
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_manager.h"
 
@@ -62,6 +63,9 @@ class ExampleBase {
      * Return false to request window close.
      */
     virtual bool onFrame(float /*dt_sec*/) { return true; }
+
+    /** Called whenever a structured vne::events event is dispatched. */
+    virtual void onEvent(const vne::events::Event& /*event*/) {}
 
     /** Called once when the example is about to be destroyed. */
     virtual void onShutdown() {}

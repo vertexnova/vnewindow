@@ -1,6 +1,7 @@
 #pragma once
 /*
- * UIKit views are main-thread only. Host app typically owns UIWindow; this view is a surface host.
+ * UIKit views are main-thread only. UIKitWindow owns a UIWindow + content view
+ * when no host window is supplied; hosts can adopt handle.ui_window instead.
  */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
@@ -65,6 +66,7 @@ class UIKitWindow final : public IWindow {
     WindowDescriptor desc_{};
     bool open_ = false;
     void* ui_view_ = nullptr;
+    void* ui_window_ = nullptr;
 
     EventBridgeCallbacks empty_callbacks_{};
 };

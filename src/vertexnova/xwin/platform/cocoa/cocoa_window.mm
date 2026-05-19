@@ -452,8 +452,12 @@ void CocoaWindow::initialize(const WindowDescriptor& descriptor) {
     ns_delegate_ = (__bridge_retained void*)delegate;
 
     if (desc_.visible) {
-        [win orderFrontRegardless];
-        [NSApp activateIgnoringOtherApps:YES];
+        if (desc_.focused) {
+            [win makeKeyAndOrderFront:nil];
+            [NSApp activateIgnoringOtherApps:YES];
+        } else {
+            [win orderFront:nil];
+        }
     }
 
     // Apply size limits from descriptor

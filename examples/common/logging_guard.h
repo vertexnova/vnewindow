@@ -38,6 +38,7 @@ class LoggingGuard {
         config.sink = vne::log::LogSinkType::eConsole;
         config.console_pattern = "[%l] [%n] %v";
         config.log_level = vne::log::LogLevel::eInfo;
+        config.flush_level = vne::log::LogLevel::eInfo;
         config.async = false;
 
         vne::log::Logging::configureLogger(config);

@@ -19,7 +19,31 @@
 
 #include "vertexnova/logging/logging.h"
 
+#include <array>
+
 namespace vne::xwin::examples {
+
+namespace {
+
+constexpr std::array kForwardedEventTypes = {
+    vne::events::EventType::eWindowClose,
+    vne::events::EventType::eWindowResize,
+    vne::events::EventType::eWindowFocus,
+    vne::events::EventType::eKeyPressed,
+    vne::events::EventType::eKeyReleased,
+    vne::events::EventType::eKeyRepeat,
+    vne::events::EventType::eKeyTyped,
+    vne::events::EventType::eMouseButtonPressed,
+    vne::events::EventType::eMouseButtonReleased,
+    vne::events::EventType::eMouseButtonDoubleClicked,
+    vne::events::EventType::eMouseMoved,
+    vne::events::EventType::eMouseScrolled,
+    vne::events::EventType::eTouchPress,
+    vne::events::EventType::eTouchRelease,
+    vne::events::EventType::eTouchMove,
+};
+
+}  // namespace
 
 // ---------------------------------------------------------------------------
 // Inner event listener
@@ -36,7 +60,6 @@ class ExampleRunner::RunnerListener : public vne::events::EventListener {
         }
         if (event.type() == vne::events::EventType::eWindowClose) {
             runner_->onCloseRequest();
-            return;
         }
         if (event.type() == vne::events::EventType::eKeyPressed) {
             const auto* ke = dynamic_cast<const vne::events::KeyPressedEvent*>(&event);
@@ -44,6 +67,9 @@ class ExampleRunner::RunnerListener : public vne::events::EventListener {
                 VNE_LOG_INFO << "[ExampleRunner] ESC pressed — closing.";
                 runner_->onCloseRequest();
             }
+        }
+        if (runner_->example_) {
+            runner_->example_->onEvent(event);
         }
     }
 
@@ -80,6 +106,8 @@ bool ExampleRunner::initialize() {
     WindowDescriptor desc(cfg.title, cfg.width, cfg.height);
     desc.enable_events = cfg.enable_events;
     desc.enable_input = cfg.enable_input;
+    desc.platform_data = platform_data_;
+    desc.platform_data_size = platform_data_size_;
 
     // Auto-select best backend for the current platform
     manager_ = WindowFactory::createWindowManager();
@@ -103,11 +131,12 @@ bool ExampleRunner::initialize() {
         return false;
     }
 
-    // Register close + escape listeners
+    // Register close + escape listeners and forward all structured events.
     listener_ = std::make_shared<RunnerListener>(this);
     auto& ev = vne::events::EventManager::instance();
-    ev.registerListener(vne::events::EventType::eWindowClose, listener_);
-    ev.registerListener(vne::events::EventType::eKeyPressed, listener_);
+    for (const auto t : kForwardedEventTypes) {
+        ev.registerListener(t, listener_);
+    }
 
     is_initialized_ = true;
     is_running_ = true;
@@ -137,11 +166,11 @@ bool ExampleRunner::tick() {
         manager_->processEvents();
     }
     vne::events::EventManager::instance().processEvents();
-    vne::events::Input::nextFrame();
 
     // Check close conditions
     if (!is_running_ || (manager_ && manager_->shouldClose()) || (!window_ || !window_->isOpen())
         || (manager_ && manager_->getWindowCount() == 0)) {
+        vne::events::Input::nextFrame();
         return false;
     }
 
@@ -156,6 +185,7 @@ bool ExampleRunner::tick() {
     }
 
     const bool keep_running = example_->onFrame(dt);
+    vne::events::Input::nextFrame();
     if (!keep_running) {
         onCloseRequest();
         return false;
@@ -177,8 +207,9 @@ void ExampleRunner::shutdown() {
 
     if (listener_) {
         auto& ev = vne::events::EventManager::instance();
-        ev.unregisterListener(vne::events::EventType::eWindowClose, listener_.get());
-        ev.unregisterListener(vne::events::EventType::eKeyPressed, listener_.get());
+        for (const auto t : kForwardedEventTypes) {
+            ev.unregisterListener(t, listener_.get());
+        }
         listener_.reset();
     }
 

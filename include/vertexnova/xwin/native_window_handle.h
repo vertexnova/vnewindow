@@ -28,6 +28,9 @@ struct NativeWindowHandle {
 
     void* ca_layer = nullptr;
     void* ui_view = nullptr;
+    /** Non-owning UIWindow* (UIKit/visionOS). Retained by the backend IWindow; do not release. Null before window init
+     * or after close/destroy. */
+    void* ui_window = nullptr;
 
     uint32_t x11_window_id = 0;
     void* x11_display = nullptr;
