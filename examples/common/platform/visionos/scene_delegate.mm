@@ -33,12 +33,14 @@ std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();
 - (void)scene:(UIScene*)scene
     willConnectToSession:(UISceneSession*)session
                  options:(UISceneConnectionOptions*)connection_options {
-    (void)scene;
     (void)session;
     (void)connection_options;
     _isShutdown = NO;
 
     _runner = std::make_unique<vne::xwin::examples::ExampleRunner>(createExample());
+    if ([scene isKindOfClass:[UIWindowScene class]]) {
+        _runner->setPlatformData((__bridge void*)static_cast<UIWindowScene*>(scene));
+    }
 
     if (!_runner->initialize()) {
         VNE_LOG_ERROR << "[visionOS SceneDelegate] ExampleRunner::initialize() failed.";

@@ -106,6 +106,8 @@ bool ExampleRunner::initialize() {
     WindowDescriptor desc(cfg.title, cfg.width, cfg.height);
     desc.enable_events = cfg.enable_events;
     desc.enable_input = cfg.enable_input;
+    desc.platform_data = platform_data_;
+    desc.platform_data_size = platform_data_size_;
 
     // Auto-select best backend for the current platform
     manager_ = WindowFactory::createWindowManager();

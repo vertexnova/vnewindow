@@ -121,13 +121,24 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
 
       UIWindow* window = nil;
       if (@available(iOS 13.0, *)) {
-          for (UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
-              if (![scene isKindOfClass:[UIWindowScene class]]) {
-                  continue;
+          UIWindowScene* window_scene = nil;
+          if (desc_.platform_data != nullptr) {
+              id scene = (__bridge id)desc_.platform_data;
+              if ([scene isKindOfClass:[UIWindowScene class]]) {
+                  window_scene = (UIWindowScene*)scene;
               }
-              auto* window_scene = static_cast<UIWindowScene*>(scene);
+          }
+          if (window_scene == nil) {
+              for (UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
+                  if (![scene isKindOfClass:[UIWindowScene class]]) {
+                      continue;
+                  }
+                  window_scene = (UIWindowScene*)scene;
+                  break;
+              }
+          }
+          if (window_scene != nil) {
               window = [[UIWindow alloc] initWithWindowScene:window_scene];
-              break;
           }
       }
       if (window == nil) {
