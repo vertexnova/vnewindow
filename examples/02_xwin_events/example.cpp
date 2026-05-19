@@ -9,7 +9,12 @@
  * ----------------------------------------------------------------------
  */
 
-/** 03_events style demo implemented in 02_xwin_events target. */
+/**
+ * 02_xwin_events — vne::xwin + vne::events integration example.
+ *
+ * Logs keyboard, mouse, touch, and window events via structured vne::events
+ * (default) or raw EventBridgeCallbacks (VNE_EVENT_LOG_MODE=raw).
+ */
 
 #include "common/example_base.h"
 
@@ -191,7 +196,9 @@ std::string formatPoint(double x, double y) {
 
 class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
    public:
-    vne::xwin::examples::ExampleConfig configure() override { return {"03 Events - Comprehensive Input", 1000, 700}; }
+    vne::xwin::examples::ExampleConfig configure() override {
+        return {"02 XWin Events — Comprehensive Input", 1000, 700};
+    }
 
     void onInit(vne::xwin::IWindow& /*window*/, vne::xwin::IWindowManager& mgr) override {
         log_mode_ = eventLogModeFromEnv();
@@ -249,7 +256,7 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
             mgr.setEventBridgeCallbacks(std::move(hooks));
         }
 
-        VNE_LOG_INFO << "03_events demo ready (in 02_xwin_events target).";
+        VNE_LOG_INFO << "02_xwin_events demo ready.";
         VNE_LOG_INFO << "Event logging: " << eventLogModeName(log_mode_)
                      << " (set VNE_EVENT_LOG_MODE=raw|structured to switch).";
         VNE_LOG_INFO << "Try keyboard, mouse, touch, resize/focus, and hold movement keys.";
