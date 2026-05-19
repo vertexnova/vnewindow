@@ -46,7 +46,7 @@ class ExampleRunner {
     /** Optional host-native data forwarded into WindowDescriptor::platform_data (e.g. UIWindowScene*). */
     void setPlatformData(void* data, std::size_t size = sizeof(void*)) noexcept {
         platform_data_ = data;
-        platform_data_size_ = size;
+        platform_data_size_ = (data != nullptr) ? size : 0U;
     }
 
     /**
