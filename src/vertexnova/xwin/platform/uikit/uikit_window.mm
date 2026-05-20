@@ -18,6 +18,41 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/CAMetalLayer.h>
 
+namespace {
+
+CGRect vneXWinSceneBounds(UIWindowScene* window_scene) {
+    if (window_scene == nil) {
+        return CGRectZero;
+    }
+#if defined(VNE_PLATFORM_VISIONOS)
+    return window_scene.coordinateSpace.bounds;
+#else
+    return window_scene.screen.bounds;
+#endif
+}
+
+UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
+    if (@available(iOS 13.0, *)) {
+        if (platform_data != nullptr) {
+            id scene = (__bridge id)platform_data;
+            if ([scene isKindOfClass:[UIWindowScene class]]) {
+                return (UIWindowScene*)scene;
+            }
+        }
+        if (window.windowScene != nil) {
+            return window.windowScene;
+        }
+        for (UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
+            if ([scene isKindOfClass:[UIWindowScene class]]) {
+                return (UIWindowScene*)scene;
+            }
+        }
+    }
+    return nil;
+}
+
+}  // namespace
+
 // ---------------------------------------------------------------------------
 // VneXWinUIView — UIView subclass that routes multi-touch to the bridge
 // ---------------------------------------------------------------------------
@@ -120,8 +155,8 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
       desc_ = descriptor;
 
       UIWindow* window = nil;
+      UIWindowScene* window_scene = nil;
       if (@available(iOS 13.0, *)) {
-          UIWindowScene* window_scene = nil;
           if (desc_.platform_data != nullptr) {
               id scene = (__bridge id)desc_.platform_data;
               if ([scene isKindOfClass:[UIWindowScene class]]) {
@@ -142,7 +177,11 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
           }
       }
       if (window == nil) {
+#if defined(VNE_PLATFORM_VISIONOS)
+          window = [[UIWindow alloc] initWithFrame:CGRectMake(0, 0, 1280, 720)];
+#else
           window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+#endif
       }
 
       UIViewController* root_vc = window.rootViewController;
@@ -151,18 +190,38 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
           window.rootViewController = root_vc;
       }
 
-      CGRect bounds = root_vc.view.bounds;
-      if (CGRectIsEmpty(bounds)) {
-          bounds = UIScreen.mainScreen.bounds;
+      UIWindowScene* bounds_scene = vneXWinFindWindowScene(window, desc_.platform_data);
+      if (bounds_scene == nil) {
+          bounds_scene = window_scene;
       }
-      if (desc_.size.width > 0 && desc_.size.height > 0) {
+
+      CGRect bounds = root_vc.view.bounds;
+      if (desc_.size.width == 0 || desc_.size.height == 0) {
+          if (bounds_scene != nil) {
+              bounds = vneXWinSceneBounds(bounds_scene);
+          } else if (CGRectIsEmpty(bounds) && !CGRectIsEmpty(window.bounds)) {
+              bounds = window.bounds;
+          }
+#if !defined(VNE_PLATFORM_VISIONOS)
+          else if (CGRectIsEmpty(bounds)) {
+              bounds = UIScreen.mainScreen.bounds;
+          }
+#endif
+      } else {
           bounds.size.width = static_cast<CGFloat>(desc_.size.width);
           bounds.size.height = static_cast<CGFloat>(desc_.size.height);
       }
 
+      root_vc.view.frame = window.bounds;
+      root_vc.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+
       VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:bounds xwin:this];
       v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
       [root_vc.view addSubview:v];
+      v.frame = root_vc.view.bounds;
+
+      desc_.size.width = static_cast<uint32_t>(v.bounds.size.width);
+      desc_.size.height = static_cast<uint32_t>(v.bounds.size.height);
 
       ui_view_ = (__bridge_retained void*)v;
       ui_window_ = (__bridge_retained void*)window;
@@ -286,10 +345,32 @@ WindowAPI UIKitWindow::getWindowAPI() const noexcept {
 }
 
 int UIKitWindow::getWidth() const noexcept {
+    if (ui_view_) {
+        __block int width = 0;
+        UIKitWindow* self = const_cast<UIKitWindow*>(this);
+        uikitRunOnMainSync(^{
+          UIView* v = (__bridge UIView*)self->ui_view_;
+          width = static_cast<int>(CGRectGetWidth(v.bounds));
+        });
+        if (width > 0) {
+            return width;
+        }
+    }
     return static_cast<int>(desc_.size.width);
 }
 
 int UIKitWindow::getHeight() const noexcept {
+    if (ui_view_) {
+        __block int height = 0;
+        UIKitWindow* self = const_cast<UIKitWindow*>(this);
+        uikitRunOnMainSync(^{
+          UIView* v = (__bridge UIView*)self->ui_view_;
+          height = static_cast<int>(CGRectGetHeight(v.bounds));
+        });
+        if (height > 0) {
+            return height;
+        }
+    }
     return static_cast<int>(desc_.size.height);
 }
 

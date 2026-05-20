@@ -267,7 +267,7 @@ endif()
 
 if(_vx_uikit)
     target_include_directories(vnexwin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit)
-    target_link_libraries(vnexwin PRIVATE "-framework UIKit" "-framework QuartzCore")
+    target_link_libraries(vnexwin PRIVATE "-framework UIKit" "-framework QuartzCore" "-framework CoreGraphics")
 endif()
 
 if(_vx_x11)
