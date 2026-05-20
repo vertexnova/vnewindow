@@ -158,29 +158,33 @@ void X11Window::initialize(const WindowDescriptor& descriptor) {
         return;
     }
     desc_ = descriptor;
-    const unsigned long black = BlackPixel(display_, screen_);
-    const unsigned long white = WhitePixel(display_, screen_);
-    window_ = XCreateSimpleWindow(display_,
-                                  root_,
-                                  desc_.position.x,
-                                  desc_.position.y,
-                                  static_cast<unsigned>(desc_.size.width),
-                                  static_cast<unsigned>(desc_.size.height),
-                                  0,
-                                  black,
-                                  white);
+    // Use XCreateWindow with CWBackPixmap=None so X11 never paints a background
+    // color over the Vulkan surface, eliminating white flashes on expose/minimize.
+    XSetWindowAttributes wa{};
+    wa.background_pixmap = None;
+    wa.border_pixel = 0;
+    wa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
+                    | PointerMotionMask | StructureNotifyMask | FocusChangeMask;
+    window_ = XCreateWindow(display_,
+                            root_,
+                            desc_.position.x,
+                            desc_.position.y,
+                            static_cast<unsigned>(desc_.size.width),
+                            static_cast<unsigned>(desc_.size.height),
+                            0,
+                            CopyFromParent,
+                            InputOutput,
+                            CopyFromParent,
+                            CWBackPixmap | CWBorderPixel | CWEventMask,
+                            &wa);
     if (!window_) {
         return;
     }
-    XSelectInput(display_,
-                 window_,
-                 ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
-                     | StructureNotifyMask | FocusChangeMask);
     wm_delete_ = XInternAtom(display_, "WM_DELETE_WINDOW", False);
     Atom protocols[] = {wm_delete_};
     XSetWMProtocols(display_, window_, protocols, 1);
 
-    XStoreName(display_, window_, desc_.title.c_str());
+    setTitle(desc_.title);
 
     if (desc_.visible) {
         XMapWindow(display_, window_);
@@ -337,6 +341,25 @@ void X11Window::pollEvents() {
                 data.focused = false;
                 owner_->notifyWindowEvent(this, data);
             }
+        } else if (ev.type == UnmapNotify) {
+            if (!minimized_) {
+                minimized_ = true;
+                if (owner_) {
+                    WindowEventData data{};
+                    data.type = WindowEventType::eMinimize;
+                    data.minimized = true;
+                    owner_->notifyWindowEvent(this, data);
+                }
+            }
+        } else if (ev.type == MapNotify) {
+            if (minimized_) {
+                minimized_ = false;
+                if (owner_) {
+                    WindowEventData data{};
+                    data.type = WindowEventType::eRestore;
+                    owner_->notifyWindowEvent(this, data);
+                }
+            }
         }
     }
 }
@@ -346,7 +369,20 @@ void X11Window::swapBuffers() {}
 void X11Window::setTitle(const std::string& title) {
     desc_.title = title;
     if (display_ && window_) {
-        XStoreName(display_, window_, title.c_str());
+        // _NET_WM_NAME with UTF8_STRING is the EWMH standard; required for non-ASCII
+        // characters (e.g. em-dash U+2014). Modern WMs (KDE, GNOME) prefer this over
+        // the legacy WM_NAME set by XStoreName, which is Latin-1 only.
+        const Atom net_wm_name = XInternAtom(display_, "_NET_WM_NAME", False);
+        const Atom utf8_string = XInternAtom(display_, "UTF8_STRING", False);
+        XChangeProperty(display_,
+                        window_,
+                        net_wm_name,
+                        utf8_string,
+                        8,
+                        PropModeReplace,
+                        reinterpret_cast<const unsigned char*>(title.c_str()),
+                        static_cast<int>(title.size()));
+        XStoreName(display_, window_, title.c_str());  // Latin-1 fallback for legacy WMs
         XFlush(display_);
     }
 }
