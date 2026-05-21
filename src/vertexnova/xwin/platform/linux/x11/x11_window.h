@@ -18,9 +18,7 @@
 #include <string>
 
 namespace vne::xwin {
-namespace {
-constexpr size_t kMaxX11Keycodes = 256;
-}  // namespace
+inline constexpr size_t kMaxX11Keycodes = 256;
 
 class X11WindowManager;
 
@@ -54,14 +52,16 @@ class X11Window final : public IWindow {
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;
     [[nodiscard]] int getHeight() const noexcept override;
+    [[nodiscard]] uint32_t getFramebufferWidth() const noexcept override;
+    [[nodiscard]] uint32_t getFramebufferHeight() const noexcept override;
     [[nodiscard]] float getDpiScale() const noexcept override;
     [[nodiscard]] std::string getClipboardText() const override;
     void setClipboardText(const std::string& text) override;
     void setWindowIcon(std::span<const uint8_t> rgba_pixels, uint32_t width, uint32_t height) override;
 
    private:
-    void destroyNative();
-    void sendEwmhState(bool add, Atom atom1, Atom atom2 = 0);
+    void destroyNativeWindow();
+    void sendEwmhStateClientMessage(bool add, Atom atom1, Atom atom2 = 0);
     void handleSelectionRequest(const XSelectionRequestEvent& req);
 
     Display* display_ = nullptr;
@@ -73,6 +73,7 @@ class X11Window final : public IWindow {
     WindowDescriptor desc_{};
     bool open_ = false;
     bool fullscreen_ = false;
+    bool minimized_ = false;
     Atom wm_delete_ = 0;
     Cursor blank_cursor_ = None;
     mutable std::string clipboard_text_;  ///< text we own as selection owner

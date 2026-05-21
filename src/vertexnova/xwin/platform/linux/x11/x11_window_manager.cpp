@@ -13,15 +13,56 @@
 
 #include "x11_window.h"
 
+#include "vertexnova/logging/logging.h"
+
 #include <algorithm>
+#include <csignal>
+#include <csetjmp>
 #include <chrono>
+#include <mutex>
 #include <thread>
-#if __has_include(<X11/Xlib-xcb.h>)
-#include <X11/Xlib-xcb.h>
-#define VNE_X11_HAS_XLIB_XCB 1
-#endif
 
 namespace vne::xwin {
+
+namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.xwin.x11_window_manager");
+
+sigjmp_buf g_xclose_display_jmp{};
+
+void handleXCloseDisplaySignal(int /*signal*/) {
+    siglongjmp(g_xclose_display_jmp, 1);
+}
+
+bool closeDisplaySafely(Display* display) {
+    struct sigaction crash_handler{};
+    crash_handler.sa_handler = handleXCloseDisplaySignal;
+    sigemptyset(&crash_handler.sa_mask);
+    crash_handler.sa_flags = 0;
+
+    struct sigaction previous_sigsegv{};
+    struct sigaction previous_sigabrt{};
+    struct sigaction previous_sigbus{};
+    sigaction(SIGSEGV, &crash_handler, &previous_sigsegv);
+    sigaction(SIGABRT, &crash_handler, &previous_sigabrt);
+#ifdef SIGBUS
+    sigaction(SIGBUS, &crash_handler, &previous_sigbus);
+#endif
+
+    bool close_succeeded = true;
+    if (sigsetjmp(g_xclose_display_jmp, 1) == 0) {
+        XCloseDisplay(display);
+    } else {
+        close_succeeded = false;
+    }
+
+    sigaction(SIGSEGV, &previous_sigsegv, nullptr);
+    sigaction(SIGABRT, &previous_sigabrt, nullptr);
+#ifdef SIGBUS
+    sigaction(SIGBUS, &previous_sigbus, nullptr);
+#endif
+    return close_succeeded;
+}
+}  // namespace
 
 X11WindowManager::X11WindowManager() = default;
 
@@ -36,26 +77,35 @@ void X11WindowManager::notifyWindowEvent(IWindow* window, const WindowEventData&
 }
 
 bool X11WindowManager::initialize() {
+    static std::once_flag x11_threads_init_once;
+    std::call_once(x11_threads_init_once, []() { (void)XInitThreads(); });
+
     display_ = XOpenDisplay(nullptr);
     if (!display_) {
         return false;
     }
     screen_ = DefaultScreen(display_);
     root_ = RootWindow(display_, screen_);
-#if defined(VNE_X11_HAS_XLIB_XCB)
-    xcb_connection_ = XGetXCBConnection(display_);
-#endif
+    xcb_connection_ = nullptr;
     initialized_ = true;
     return true;
 }
 
 void X11WindowManager::shutdown() {
+    if (!initialized_ && display_ == nullptr) {
+        return;
+    }
     destroyAllWindows();
     if (display_) {
-        XCloseDisplay(display_);
+        XSync(display_, False);
+        if (!closeDisplaySafely(display_)) {
+            VNE_LOG_DEBUG << "X11WindowManager::shutdown: XCloseDisplay crashed; display handle detached defensively";
+        }
         display_ = nullptr;
     }
     xcb_connection_ = nullptr;
+    screen_ = 0;
+    root_ = 0;
     initialized_ = false;
 }
 
@@ -108,6 +158,9 @@ void X11WindowManager::destroyAllWindows() {
     for (auto& w : windows_) {
         if (w) {
             w->close();
+            if (auto x11_window = std::dynamic_pointer_cast<X11Window>(w)) {
+                x11_window->setDisplay(nullptr, 0, 0, nullptr);
+            }
         }
     }
     windows_.clear();
