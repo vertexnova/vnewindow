@@ -27,6 +27,7 @@ namespace vne::xwin {
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.xwin.x11_window_manager");
 
+std::mutex g_xclose_mutex;
 sigjmp_buf g_xclose_display_jmp{};
 
 void handleXCloseDisplaySignal(int /*signal*/) {
@@ -34,6 +35,8 @@ void handleXCloseDisplaySignal(int /*signal*/) {
 }
 
 bool closeDisplaySafely(Display* display) {
+    std::lock_guard<std::mutex> lock(g_xclose_mutex);
+
     struct sigaction crash_handler = {};
     crash_handler.sa_handler = handleXCloseDisplaySignal;
     sigemptyset(&crash_handler.sa_mask);
