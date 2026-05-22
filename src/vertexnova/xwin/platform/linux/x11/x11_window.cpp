@@ -204,8 +204,10 @@ void X11Window::initialize(const WindowDescriptor& descriptor) {
     wa.border_pixel = 0;
     wa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
                     | PointerMotionMask | StructureNotifyMask | FocusChangeMask;
-    if (desc_.size.width == 0U || desc_.size.height == 0U) {
+    if (desc_.size.width == 0U) {
         desc_.size.width = 1U;
+    }
+    if (desc_.size.height == 0U) {
         desc_.size.height = 1U;
     }
     window_ = XCreateWindow(display_,
