@@ -61,6 +61,7 @@ class X11Window final : public IWindow {
 
    private:
     void destroyNativeWindow();
+    [[nodiscard]] bool isIconified() const;
     void sendEwmhStateClientMessage(bool add, Atom atom1, Atom atom2 = 0);
     void handleSelectionRequest(const XSelectionRequestEvent& req);
 

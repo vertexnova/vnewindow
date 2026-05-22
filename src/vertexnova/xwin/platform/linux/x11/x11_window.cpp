@@ -155,6 +155,42 @@ void X11Window::destroyNativeWindow() {
     fullscreen_ = false;
 }
 
+bool X11Window::isIconified() const {
+    if (!display_ || !window_) {
+        return false;
+    }
+    const Atom wm_state_atom = XInternAtom(display_, "WM_STATE", False);
+    Atom actual_type = None;
+    int actual_format = 0;
+    unsigned long nitems = 0;
+    unsigned long bytes_after = 0;
+    unsigned char* prop = nullptr;
+    if (XGetWindowProperty(display_,
+                           window_,
+                           wm_state_atom,
+                           0,
+                           2,
+                           False,
+                           wm_state_atom,
+                           &actual_type,
+                           &actual_format,
+                           &nitems,
+                           &bytes_after,
+                           &prop)
+        != Success) {
+        return false;
+    }
+    if (prop == nullptr || nitems < 1) {
+        if (prop != nullptr) {
+            XFree(prop);
+        }
+        return false;
+    }
+    const long state = *reinterpret_cast<long*>(prop);
+    XFree(prop);
+    return state == IconicState;
+}
+
 void X11Window::initialize(const WindowDescriptor& descriptor) {
     destroyNativeWindow();
     if (!display_) {
@@ -369,7 +405,8 @@ void X11Window::pollEvents() {
                 owner_->notifyWindowEvent(this, data);
             }
         } else if (ev.type == UnmapNotify) {
-            if (!minimized_) {
+            const bool iconified = isIconified();
+            if (iconified && !minimized_) {
                 minimized_ = true;
                 if (owner_) {
                     WindowEventData data{};
@@ -379,7 +416,7 @@ void X11Window::pollEvents() {
                 }
             }
         } else if (ev.type == MapNotify) {
-            if (minimized_) {
+            if (minimized_ && !isIconified()) {
                 minimized_ = false;
                 if (owner_) {
                     WindowEventData data{};
