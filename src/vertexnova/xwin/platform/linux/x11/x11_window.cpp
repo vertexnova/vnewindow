@@ -21,6 +21,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
+#include <climits>
 #include <cstdint>
 #include <vector>
 
@@ -390,6 +391,9 @@ void X11Window::swapBuffers() {}
 void X11Window::setTitle(const std::string& title) {
     desc_.title = title;
     if (display_ && window_) {
+        if (title.size() > static_cast<size_t>(INT_MAX)) {
+            return;
+        }
         // _NET_WM_NAME with UTF8_STRING is the EWMH standard; required for non-ASCII
         // characters (e.g. em-dash U+2014). Modern WMs (KDE, GNOME) prefer this over
         // the legacy WM_NAME set by XStoreName, which is Latin-1 only.
