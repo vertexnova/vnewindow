@@ -21,6 +21,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
+#include <climits>
 #include <cstdint>
 #include <vector>
 
@@ -126,7 +127,7 @@ std::string utf8ToLatin1Lossy(const std::string& utf8) {
 X11Window::X11Window() = default;
 
 X11Window::~X11Window() {
-    destroyNative();
+    destroyNativeWindow();
 }
 
 void X11Window::setEventOwner(X11WindowManager* owner) {
@@ -140,7 +141,7 @@ void X11Window::setDisplay(Display* display, int screen, ::Window root, void* xc
     xcb_connection_ = xcb_connection;
 }
 
-void X11Window::destroyNative() {
+void X11Window::destroyNativeWindow() {
     if (display_ && window_) {
         const Atom clip = XInternAtom(display_, "CLIPBOARD", False);
         if (XGetSelectionOwner(display_, clip) == window_) {
@@ -150,37 +151,87 @@ void X11Window::destroyNative() {
         window_ = 0;
     }
     open_ = false;
+    minimized_ = false;
+    fullscreen_ = false;
+}
+
+bool X11Window::isIconified() const {
+    if (!display_ || !window_) {
+        return false;
+    }
+    const Atom wm_state_atom = XInternAtom(display_, "WM_STATE", False);
+    Atom actual_type = None;
+    int actual_format = 0;
+    unsigned long nitems = 0;
+    unsigned long bytes_after = 0;
+    unsigned char* prop = nullptr;
+    if (XGetWindowProperty(display_,
+                           window_,
+                           wm_state_atom,
+                           0,
+                           2,
+                           False,
+                           wm_state_atom,
+                           &actual_type,
+                           &actual_format,
+                           &nitems,
+                           &bytes_after,
+                           &prop)
+        != Success) {
+        return false;
+    }
+    if (prop == nullptr || nitems < 1) {
+        if (prop != nullptr) {
+            XFree(prop);
+        }
+        return false;
+    }
+    const long state = *reinterpret_cast<long*>(prop);
+    XFree(prop);
+    return state == IconicState;
 }
 
 void X11Window::initialize(const WindowDescriptor& descriptor) {
-    destroyNative();
+    destroyNativeWindow();
     if (!display_) {
         return;
     }
     desc_ = descriptor;
-    const unsigned long black = BlackPixel(display_, screen_);
-    const unsigned long white = WhitePixel(display_, screen_);
-    window_ = XCreateSimpleWindow(display_,
-                                  root_,
-                                  desc_.position.x,
-                                  desc_.position.y,
-                                  static_cast<unsigned>(desc_.size.width),
-                                  static_cast<unsigned>(desc_.size.height),
-                                  0,
-                                  black,
-                                  white);
+    // Use XCreateWindow with CWBackPixmap=None so X11 never paints a background
+    // color over the Vulkan surface, eliminating white flashes on expose/minimize.
+    XSetWindowAttributes wa{};
+    wa.background_pixmap = None;
+    wa.border_pixel = 0;
+    wa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
+                    | PointerMotionMask | StructureNotifyMask | FocusChangeMask;
+    if (desc_.size.width == 0U) {
+        desc_.size.width = 1U;
+    }
+    if (desc_.size.height == 0U) {
+        desc_.size.height = 1U;
+    }
+    window_ = XCreateWindow(display_,
+                            root_,
+                            desc_.position.x,
+                            desc_.position.y,
+                            static_cast<unsigned>(desc_.size.width),
+                            static_cast<unsigned>(desc_.size.height),
+                            0,
+                            CopyFromParent,
+                            InputOutput,
+                            CopyFromParent,
+                            CWBackPixmap | CWBorderPixel | CWEventMask,
+                            &wa);
     if (!window_) {
         return;
     }
-    XSelectInput(display_,
-                 window_,
-                 ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
-                     | StructureNotifyMask | FocusChangeMask);
     wm_delete_ = XInternAtom(display_, "WM_DELETE_WINDOW", False);
+    net_wm_name_ = XInternAtom(display_, "_NET_WM_NAME", False);
+    utf8_string_ = XInternAtom(display_, "UTF8_STRING", False);
     Atom protocols[] = {wm_delete_};
     XSetWMProtocols(display_, window_, protocols, 1);
 
-    XStoreName(display_, window_, desc_.title.c_str());
+    setTitle(desc_.title);
 
     if (desc_.visible) {
         XMapWindow(display_, window_);
@@ -217,7 +268,7 @@ void X11Window::pollEvents() {
             if (static_cast<Atom>(ev.xclient.data.l[0]) == wm_delete_) {
                 eventBridgeWindowClose(this, desc_, cb);
                 open_ = false;
-                destroyNative();
+                destroyNativeWindow();
                 if (owner_) {
                     WindowEventData data{};
                     data.type = WindowEventType::eClose;
@@ -225,13 +276,33 @@ void X11Window::pollEvents() {
                 }
             }
         } else if (ev.type == ConfigureNotify) {
-            desc_.size.width = static_cast<uint32_t>(ev.xconfigure.width);
-            desc_.size.height = static_cast<uint32_t>(ev.xconfigure.height);
-            eventBridgeWindowResize(this, desc_, cb, desc_.size.width, desc_.size.height);
-            if (owner_) {
+            const auto new_width = static_cast<uint32_t>(ev.xconfigure.width);
+            const auto new_height = static_cast<uint32_t>(ev.xconfigure.height);
+            const auto new_x = static_cast<int32_t>(ev.xconfigure.x);
+            const auto new_y = static_cast<int32_t>(ev.xconfigure.y);
+
+            const bool size_changed = desc_.size.width != new_width || desc_.size.height != new_height;
+            const bool position_changed = desc_.position.x != new_x || desc_.position.y != new_y;
+
+            desc_.size.width = new_width;
+            desc_.size.height = new_height;
+            desc_.position.x = new_x;
+            desc_.position.y = new_y;
+
+            if (size_changed) {
+                eventBridgeWindowResize(this, desc_, cb, desc_.size.width, desc_.size.height);
+                if (owner_) {
+                    WindowEventData data{};
+                    data.type = WindowEventType::eResize;
+                    data.size = desc_.size;
+                    owner_->notifyWindowEvent(this, data);
+                }
+            }
+
+            if (position_changed && owner_) {
                 WindowEventData data{};
-                data.type = WindowEventType::eResize;
-                data.size = desc_.size;
+                data.type = WindowEventType::eMove;
+                data.position = desc_.position;
                 owner_->notifyWindowEvent(this, data);
             }
         } else if (ev.type == KeyPress) {
@@ -337,6 +408,26 @@ void X11Window::pollEvents() {
                 data.focused = false;
                 owner_->notifyWindowEvent(this, data);
             }
+        } else if (ev.type == UnmapNotify) {
+            const bool iconified = isIconified();
+            if (iconified && !minimized_) {
+                minimized_ = true;
+                if (owner_) {
+                    WindowEventData data{};
+                    data.type = WindowEventType::eMinimize;
+                    data.minimized = true;
+                    owner_->notifyWindowEvent(this, data);
+                }
+            }
+        } else if (ev.type == MapNotify) {
+            if (minimized_ && !isIconified()) {
+                minimized_ = false;
+                if (owner_) {
+                    WindowEventData data{};
+                    data.type = WindowEventType::eRestore;
+                    owner_->notifyWindowEvent(this, data);
+                }
+            }
         }
     }
 }
@@ -346,7 +437,21 @@ void X11Window::swapBuffers() {}
 void X11Window::setTitle(const std::string& title) {
     desc_.title = title;
     if (display_ && window_) {
-        XStoreName(display_, window_, title.c_str());
+        if (title.size() > static_cast<size_t>(INT_MAX)) {
+            return;
+        }
+        // _NET_WM_NAME with UTF8_STRING is the EWMH standard; required for non-ASCII
+        // characters (e.g. em-dash U+2014). Modern WMs (KDE, GNOME) prefer this over
+        // the legacy WM_NAME set by XStoreName, which is Latin-1 only.
+        XChangeProperty(display_,
+                        window_,
+                        net_wm_name_,
+                        utf8_string_,
+                        kBitsPerItem8,
+                        PropModeReplace,
+                        reinterpret_cast<const unsigned char*>(title.c_str()),
+                        static_cast<int>(title.size()));
+        XStoreName(display_, window_, title.c_str());  // Latin-1 fallback for legacy WMs
         XFlush(display_);
     }
 }
@@ -405,7 +510,7 @@ WindowMode X11Window::getWindowMode() const noexcept {
     return desc_.mode;
 }
 
-void X11Window::sendEwmhState(bool add, Atom atom1, Atom atom2) {
+void X11Window::sendEwmhStateClientMessage(bool add, Atom atom1, Atom atom2) {
     if (!display_ || !window_) {
         return;
     }
@@ -427,7 +532,7 @@ void X11Window::setFullscreen(bool enabled) {
         return;
     }
     Atom fs = XInternAtom(display_, "_NET_WM_STATE_FULLSCREEN", False);
-    sendEwmhState(enabled, fs);
+    sendEwmhStateClientMessage(enabled, fs);
     fullscreen_ = enabled;
 }
 
@@ -448,7 +553,7 @@ void X11Window::maximize() {
     }
     Atom max_h = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
     Atom max_v = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-    sendEwmhState(true, max_h, max_v);
+    sendEwmhStateClientMessage(true, max_h, max_v);
 }
 
 void X11Window::restore() {
@@ -456,7 +561,7 @@ void X11Window::restore() {
         // Unset maximized states first, then map
         Atom max_h = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
         Atom max_v = XInternAtom(display_, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-        sendEwmhState(false, max_h, max_v);
+        sendEwmhStateClientMessage(false, max_h, max_v);
         XMapWindow(display_, window_);
         XFlush(display_);
     }
@@ -536,7 +641,7 @@ void X11Window::resize(uint32_t width, uint32_t height) {
 }
 
 void X11Window::close() {
-    destroyNative();
+    destroyNativeWindow();
 }
 
 bool X11Window::isOpen() const noexcept {
@@ -563,6 +668,14 @@ int X11Window::getWidth() const noexcept {
 
 int X11Window::getHeight() const noexcept {
     return static_cast<int>(desc_.size.height);
+}
+
+uint32_t X11Window::getFramebufferWidth() const noexcept {
+    return desc_.size.width;
+}
+
+uint32_t X11Window::getFramebufferHeight() const noexcept {
+    return desc_.size.height;
 }
 
 float X11Window::getDpiScale() const noexcept {

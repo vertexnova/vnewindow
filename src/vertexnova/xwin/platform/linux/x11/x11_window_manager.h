@@ -63,7 +63,8 @@ class X11WindowManager final : public IWindowManager {
     void sleep(uint32_t milliseconds) const noexcept override;
     [[nodiscard]] double getPlatformTime() const noexcept override;
 
-    [[nodiscard]] void* nativeXcbConnection() const noexcept { return xcb_connection_; }
+    [[nodiscard]] void* getNativeXcbConnection() const noexcept { return xcb_connection_; }
+    [[nodiscard]] void* nativeXcbConnection() const noexcept { return getNativeXcbConnection(); }
 
    private:
     Display* display_ = nullptr;
