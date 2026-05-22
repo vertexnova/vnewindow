@@ -224,6 +224,8 @@ void X11Window::initialize(const WindowDescriptor& descriptor) {
         return;
     }
     wm_delete_ = XInternAtom(display_, "WM_DELETE_WINDOW", False);
+    net_wm_name_ = XInternAtom(display_, "_NET_WM_NAME", False);
+    utf8_string_ = XInternAtom(display_, "UTF8_STRING", False);
     Atom protocols[] = {wm_delete_};
     XSetWMProtocols(display_, window_, protocols, 1);
 
@@ -439,12 +441,10 @@ void X11Window::setTitle(const std::string& title) {
         // _NET_WM_NAME with UTF8_STRING is the EWMH standard; required for non-ASCII
         // characters (e.g. em-dash U+2014). Modern WMs (KDE, GNOME) prefer this over
         // the legacy WM_NAME set by XStoreName, which is Latin-1 only.
-        const Atom net_wm_name = XInternAtom(display_, "_NET_WM_NAME", False);
-        const Atom utf8_string = XInternAtom(display_, "UTF8_STRING", False);
         XChangeProperty(display_,
                         window_,
-                        net_wm_name,
-                        utf8_string,
+                        net_wm_name_,
+                        utf8_string_,
                         8,
                         PropModeReplace,
                         reinterpret_cast<const unsigned char*>(title.c_str()),

@@ -76,6 +76,8 @@ class X11Window final : public IWindow {
     bool fullscreen_ = false;
     bool minimized_ = false;
     Atom wm_delete_ = 0;
+    Atom net_wm_name_ = 0;
+    Atom utf8_string_ = 0;
     Cursor blank_cursor_ = None;
     mutable std::string clipboard_text_;  ///< text we own as selection owner
     /** Physical keycodes currently held (for KeyPress repeat detection). */
