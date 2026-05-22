@@ -80,8 +80,8 @@ void X11WindowManager::notifyWindowEvent(IWindow* window, const WindowEventData&
 }
 
 bool X11WindowManager::initialize() {
-    static std::once_flag x11_threads_init_once;
-    std::call_once(x11_threads_init_once, []() { (void)XInitThreads(); });
+    static std::once_flag s_x11_threads_init_once;
+    std::call_once(s_x11_threads_init_once, []() { (void)XInitThreads(); });
 
     display_ = XOpenDisplay(nullptr);
     if (!display_) {

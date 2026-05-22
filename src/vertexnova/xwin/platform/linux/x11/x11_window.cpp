@@ -274,10 +274,10 @@ void X11Window::pollEvents() {
                 }
             }
         } else if (ev.type == ConfigureNotify) {
-            const uint32_t new_width = static_cast<uint32_t>(ev.xconfigure.width);
-            const uint32_t new_height = static_cast<uint32_t>(ev.xconfigure.height);
-            const int32_t new_x = static_cast<int32_t>(ev.xconfigure.x);
-            const int32_t new_y = static_cast<int32_t>(ev.xconfigure.y);
+            const auto new_width = static_cast<uint32_t>(ev.xconfigure.width);
+            const auto new_height = static_cast<uint32_t>(ev.xconfigure.height);
+            const auto new_x = static_cast<int32_t>(ev.xconfigure.x);
+            const auto new_y = static_cast<int32_t>(ev.xconfigure.y);
 
             const bool size_changed = desc_.size.width != new_width || desc_.size.height != new_height;
             const bool position_changed = desc_.position.x != new_x || desc_.position.y != new_y;
@@ -445,7 +445,7 @@ void X11Window::setTitle(const std::string& title) {
                         window_,
                         net_wm_name_,
                         utf8_string_,
-                        8,
+                        kBitsPerItem8,
                         PropModeReplace,
                         reinterpret_cast<const unsigned char*>(title.c_str()),
                         static_cast<int>(title.size()));
