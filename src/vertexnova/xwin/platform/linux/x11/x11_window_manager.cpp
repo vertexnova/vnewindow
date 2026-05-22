@@ -34,14 +34,14 @@ void handleXCloseDisplaySignal(int /*signal*/) {
 }
 
 bool closeDisplaySafely(Display* display) {
-    struct sigaction crash_handler{};
+    struct sigaction crash_handler = {};
     crash_handler.sa_handler = handleXCloseDisplaySignal;
     sigemptyset(&crash_handler.sa_mask);
     crash_handler.sa_flags = 0;
 
-    struct sigaction previous_sigsegv{};
-    struct sigaction previous_sigabrt{};
-    struct sigaction previous_sigbus{};
+    struct sigaction previous_sigsegv = {};
+    struct sigaction previous_sigabrt = {};
+    struct sigaction previous_sigbus = {};
     sigaction(SIGSEGV, &crash_handler, &previous_sigsegv);
     sigaction(SIGABRT, &crash_handler, &previous_sigabrt);
 #ifdef SIGBUS
