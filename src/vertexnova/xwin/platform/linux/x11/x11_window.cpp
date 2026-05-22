@@ -152,6 +152,7 @@ void X11Window::destroyNativeWindow() {
     }
     open_ = false;
     minimized_ = false;
+    fullscreen_ = false;
 }
 
 void X11Window::initialize(const WindowDescriptor& descriptor) {
