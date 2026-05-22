@@ -43,7 +43,11 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
             return window.windowScene;
         }
         for (UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
-            if ([scene isKindOfClass:[UIWindowScene class]]) {
+            if (![scene isKindOfClass:[UIWindowScene class]]) {
+                continue;
+            }
+            if (scene.activationState == UISceneActivationStateForegroundActive
+                || scene.activationState == UISceneActivationStateForegroundInactive) {
                 return (UIWindowScene*)scene;
             }
         }
@@ -157,21 +161,7 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
       UIWindow* window = nil;
       UIWindowScene* window_scene = nil;
       if (@available(iOS 13.0, *)) {
-          if (desc_.platform_data != nullptr) {
-              id scene = (__bridge id)desc_.platform_data;
-              if ([scene isKindOfClass:[UIWindowScene class]]) {
-                  window_scene = (UIWindowScene*)scene;
-              }
-          }
-          if (window_scene == nil) {
-              for (UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
-                  if (![scene isKindOfClass:[UIWindowScene class]]) {
-                      continue;
-                  }
-                  window_scene = (UIWindowScene*)scene;
-                  break;
-              }
-          }
+          window_scene = vneXWinFindWindowScene(nil, desc_.platform_data);
           if (window_scene != nil) {
               window = [[UIWindow alloc] initWithWindowScene:window_scene];
           }
