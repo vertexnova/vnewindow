@@ -129,11 +129,9 @@ void WasmWindow::initialize(const WindowDescriptor& descriptor) {
 #ifdef __EMSCRIPTEN__
 
 bool WasmWindow::queryBrowserViewport(int& out_width, int& out_height) {
-    out_width = EM_ASM_INT({
-        return (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 0;
+    out_width = EM_ASM_INT({ return (typeof window != = 'undefined' && window.innerWidth) ? window.innerWidth : 0;
     });
-    out_height = EM_ASM_INT({
-        return (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 0;
+    out_height = EM_ASM_INT({ return (typeof window != = 'undefined' && window.innerHeight) ? window.innerHeight : 0;
     });
     return out_width > 0 && out_height > 0;
 }
