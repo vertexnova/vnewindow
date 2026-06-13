@@ -15,6 +15,8 @@
 #include "wasm_window_manager.h"
 #include "event_bridge.h"
 
+#include <algorithm>
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten/em_js.h>
 #include <emscripten/emscripten.h>
@@ -76,9 +78,6 @@ void WasmWindow::initialize(const WindowDescriptor& descriptor) {
     desc_ = descriptor;
 #ifdef __EMSCRIPTEN__
     canvas_tag_ = const_cast<char*>("#canvas");
-    emscripten_set_canvas_element_size("#canvas",
-                                       static_cast<int>(desc_.size.width),
-                                       static_cast<int>(desc_.size.height));
 
     // Window resize
     emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::ResizeCallback);
@@ -108,6 +107,16 @@ void WasmWindow::initialize(const WindowDescriptor& descriptor) {
     // Window / document: focus routing for WindowFocusEvent
     emscripten_set_focus_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::FocusCallback);
     emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::BlurCallback);
+
+    uint32_t css_w = desc_.size.width;
+    uint32_t css_h = desc_.size.height;
+    int vp_w = 0;
+    int vp_h = 0;
+    if (queryBrowserViewport(vp_w, vp_h) && vp_w > 0 && vp_h > 0) {
+        css_w = std::min(css_w, static_cast<uint32_t>(vp_w));
+        css_h = std::min(css_h, static_cast<uint32_t>(vp_h));
+    }
+    applyViewportSize(css_w, css_h);
 #endif
     initialized_ = true;
     should_close_ = false;
@@ -119,27 +128,43 @@ void WasmWindow::initialize(const WindowDescriptor& descriptor) {
 
 #ifdef __EMSCRIPTEN__
 
+bool WasmWindow::queryBrowserViewport(int& out_width, int& out_height) {
+    out_width = EM_ASM_INT({ return (window && window.innerWidth) ? window.innerWidth : 0; });
+    out_height = EM_ASM_INT({ return (window && window.innerHeight) ? window.innerHeight : 0; });
+    return out_width > 0 && out_height > 0;
+}
+
+void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_height) {
+    if (css_width == 0 || css_height == 0) {
+        return;
+    }
+
+    desc_.size.width = css_width;
+    desc_.size.height = css_height;
+
+    const float dpr = emscripten_get_device_pixel_ratio();
+    const int backing_w = static_cast<int>(static_cast<float>(css_width) * dpr);
+    const int backing_h = static_cast<int>(static_cast<float>(css_height) * dpr);
+
+    emscripten_set_element_css_size("#canvas", static_cast<double>(css_width), static_cast<double>(css_height));
+    emscripten_set_canvas_element_size("#canvas", backing_w, backing_h);
+
+    eventBridgeWindowResize(this, desc_, eventBridgeCallbacks(), css_width, css_height);
+    if (owner_) {
+        WindowEventData data{};
+        data.type = WindowEventType::eResize;
+        data.size = desc_.size;
+        owner_->notifyWindowEvent(this, data);
+    }
+}
+
 EM_BOOL WasmWindow::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent* event, void* user_data) {
     auto* self = static_cast<WasmWindow*>(user_data);
     if (!self || !event) {
         return EM_FALSE;
     }
-    self->desc_.size.width = static_cast<uint32_t>(event->windowInnerWidth);
-    self->desc_.size.height = static_cast<uint32_t>(event->windowInnerHeight);
-    emscripten_set_canvas_element_size("#canvas",
-                                       static_cast<int>(self->desc_.size.width),
-                                       static_cast<int>(self->desc_.size.height));
-    eventBridgeWindowResize(self,
-                            self->desc_,
-                            self->eventBridgeCallbacks(),
-                            self->desc_.size.width,
-                            self->desc_.size.height);
-    if (self->owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eResize;
-        data.size = self->desc_.size;
-        self->owner_->notifyWindowEvent(self, data);
-    }
+    self->applyViewportSize(static_cast<uint32_t>(event->windowInnerWidth),
+                            static_cast<uint32_t>(event->windowInnerHeight));
     return EM_TRUE;
 }
 
@@ -413,10 +438,11 @@ WindowPosition WasmWindow::getPosition() const {
 }
 
 void WasmWindow::resize(uint32_t width, uint32_t height) {
+#ifdef __EMSCRIPTEN__
+    applyViewportSize(width, height);
+#else
     desc_.size.width = width;
     desc_.size.height = height;
-#ifdef __EMSCRIPTEN__
-    emscripten_set_canvas_element_size("#canvas", static_cast<int>(width), static_cast<int>(height));
 #endif
 }
 

@@ -76,6 +76,11 @@ class WasmWindow final : public IWindow {
    private:
     [[nodiscard]] const EventBridgeCallbacks& eventBridgeCallbacks() const noexcept;
 
+#ifdef __EMSCRIPTEN__
+    void applyViewportSize(uint32_t css_width, uint32_t css_height);
+    [[nodiscard]] static bool queryBrowserViewport(int& out_width, int& out_height);
+#endif
+
     WasmWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool initialized_ = false;
