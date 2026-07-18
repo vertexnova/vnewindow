@@ -196,12 +196,12 @@
     <div id="canvas-wrap">
         <canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
 
-        <div id="overlay">
-            <div class="spinner"></div>
+        <div id="overlay" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
             <div id="loading-text">Initializing&hellip;</div>
         </div>
 
-        <div id="error-overlay">
+        <div id="error-overlay" role="alert" aria-live="assertive">
             <div id="error-icon">&#9888;</div>
             <div id="error-title">Initialization failed</div>
             <div id="error-msg"></div>
