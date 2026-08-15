@@ -17,6 +17,8 @@
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/event_bridge_callbacks.h"
 
+#include <vertexnova/events/types.h>
+
 #include <string>
 
 namespace vne::xwin {
@@ -56,6 +58,11 @@ class UIKitWindow final : public IWindow {
 
     // Called from VneXWinUIView
     void handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
+    // Indirect pointer (mouse / trackpad) and scroll wheel, so a mouse drives the desktop
+    // camera bindings (left = orbit, right = pan, scroll = zoom) on iOS / iPadOS.
+    void handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y);
+    void handleMouseMove(double x, double y);
+    void handleMouseScroll(double x_offset, double y_offset);
 
     [[nodiscard]] const WindowInputMapping* inputMapping() const noexcept { return desc_.input_mapping.get(); }
 

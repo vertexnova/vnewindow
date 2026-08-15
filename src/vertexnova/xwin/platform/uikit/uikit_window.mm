@@ -18,7 +18,15 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/CAMetalLayer.h>
 
+#include <cmath>
+
 namespace {
+
+// Pan translation (points) below which a scroll sample is treated as one discrete
+// wheel notch rather than a continuous trackpad glide.
+constexpr double kWheelNotchTranslationThreshold = 5.0;
+// Points-to-scroll-lines factor for continuous (trackpad) scrolling.
+constexpr double kContinuousScrollToLines = 0.1;
 
 CGRect vneXWinSceneBounds(UIWindowScene* window_scene) {
     if (window_scene == nil) {
@@ -36,7 +44,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
         if (platform_data != nullptr) {
             id scene = (__bridge id)platform_data;
             if ([scene isKindOfClass:[UIWindowScene class]]) {
-                return (UIWindowScene*)scene;
+                return static_cast<UIWindowScene*>(scene);
             }
         }
         if (window.windowScene != nil) {
@@ -48,7 +56,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
             }
             if (scene.activationState == UISceneActivationStateForegroundActive
                 || scene.activationState == UISceneActivationStateForegroundInactive) {
-                return (UIWindowScene*)scene;
+                return static_cast<UIWindowScene*>(scene);
             }
         }
     }
@@ -58,13 +66,42 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// VneXWinUIView — UIView subclass that routes multi-touch to the bridge
+// VneXWinUIView — UIView subclass that routes multi-touch / pointer / scroll
+//
+// Pointer input (hover, secondary/middle button, scroll wheel) only exists when the
+// OS delivers indirect pointer events. Info.plist must set
+// UIApplicationSupportsIndirectInputEvents, which every sample bundle does.
+//
+// In the iOS Simulator that is not sufficient: the host mouse is delivered as a plain
+// direct touch (UITouchTypeDirect, buttonMask 0) and the wheel produces no event at
+// all until "I/O > Input > Send Pointer to Device" is enabled. That toggle is host
+// side, session scoped, has no persisted preference, and no guest API can request it,
+// so wheel zoom in the Simulator is opt-in by the developer running it. Pinch (which
+// the Simulator synthesizes from Option+drag as two real touches) always works and is
+// the fallback path.
 // ---------------------------------------------------------------------------
-@interface VneXWinUIView : UIView {
+@interface VneXWinUIView : UIView <UIGestureRecognizerDelegate> {
     vne::xwin::UIKitWindow* xwin_;
+    // Active indirect-pointer (mouse) button, so the matching release is emitted on lift.
+    vne::events::MouseButton pointer_button_;
+    BOOL pointer_down_;
+    UIPanGestureRecognizer* scroll_recognizer_;
+    id app_active_observer_;
 }
 - (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow*)xwin;
 - (void)clearXwin;
+- (void)activateInputRouting;
+- (void)onScroll:(UIPanGestureRecognizer*)recognizer;
+#if !defined(VNE_PLATFORM_VISIONOS)
+- (void)onHover:(UIHoverGestureRecognizer*)recognizer;
+#endif
+@end
+
+// Reasserts first-responder status on the Metal view when the window becomes key.
+@interface VneXWinUIWindow : UIWindow
+@end
+
+@interface VneXWinRootViewController : UIViewController
 @end
 
 @implementation VneXWinUIView
@@ -77,46 +114,250 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     self = [super initWithFrame:frame];
     if (self) {
         xwin_ = xwin;
+        pointer_button_ = vne::events::MouseButton::eLeft;
+        pointer_down_ = NO;
+        app_active_observer_ = nil;
         self.multipleTouchEnabled = YES;
         self.userInteractionEnabled = YES;
+
+        // Scroll wheel / trackpad scroll -> zoom.
+        // An empty allowedTouchTypes is the documented way to make a pan recognizer
+        // scroll-only, so it never steals finger pans. Do not also clamp
+        // maximumNumberOfTouches: minimumNumberOfTouches defaults to 1, and a
+        // maximum below that leaves the recognizer unable to ever begin.
+        if (@available(iOS 13.4, *)) {
+            scroll_recognizer_ = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onScroll:)];
+            scroll_recognizer_.allowedScrollTypesMask = UIScrollTypeMaskAll;
+            scroll_recognizer_.allowedTouchTypes = @[];
+            scroll_recognizer_.cancelsTouchesInView = NO;
+            scroll_recognizer_.delaysTouchesBegan = NO;
+            scroll_recognizer_.delaysTouchesEnded = NO;
+            scroll_recognizer_.delegate = self;
+            [self addGestureRecognizer:scroll_recognizer_];
+
+#if !defined(VNE_PLATFORM_VISIONOS)
+            UIHoverGestureRecognizer* hover = [[UIHoverGestureRecognizer alloc] initWithTarget:self
+                                                                                        action:@selector(onHover:)];
+            [self addGestureRecognizer:hover];
+            [self addInteraction:[[UIPointerInteraction alloc] initWithDelegate:nil]];
+#endif
+        }
+
+        // No pinch recognizer here on purpose. The simulator synthesizes Option+drag as
+        // two real touches, which already reach TouchToMouseConverter in the sample
+        // framework and become a scroll there. A recognizer would double the zoom.
+
+        __weak VneXWinUIView* weak_self = self;
+        app_active_observer_ =
+            [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationDidBecomeActiveNotification
+                                                            object:nil
+                                                             queue:NSOperationQueue.mainQueue
+                                                        usingBlock:^(NSNotification* note) {
+                                                          (void)note;
+                                                          [weak_self activateInputRouting];
+                                                        }];
     }
     return self;
 }
 
-- (void)clearXwin {
-    xwin_ = nullptr;
+- (BOOL)canBecomeFirstResponder {
+    return YES;
 }
 
-- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase)phase {
+- (void)didMoveToWindow {
+    [super didMoveToWindow];
+    if (self.window != nil) {
+        [self activateInputRouting];
+    }
+}
+
+- (void)activateInputRouting {
+    [self becomeFirstResponder];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer*)a
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)b {
+    (void)a;
+    (void)b;
+    return YES;
+}
+
+#if !defined(VNE_PLATFORM_VISIONOS)
+- (void)onHover:(UIHoverGestureRecognizer*)recognizer {
+    if (xwin_ == nullptr) {
+        return;
+    }
+    const CGPoint p = [recognizer locationInView:self];
+    xwin_->handleMouseMove(static_cast<double>(p.x), static_cast<double>(p.y));
+}
+#endif
+
+- (void)clearXwin {
+    xwin_ = nullptr;
+    NSNotificationCenter* center = NSNotificationCenter.defaultCenter;
+    if (app_active_observer_ != nil) {
+        [center removeObserver:app_active_observer_];
+        app_active_observer_ = nil;
+    }
+}
+
+// UIEventButtonMaskForButtonNumber(n) expands to (1 << (n - 1)), so button 2 is the
+// same bit as UIEventButtonMaskSecondary. Middle is button 3. Test the higher button
+// first so a chorded press reports middle instead of falling through to right.
+- (vne::events::MouseButton)buttonFromEvent:(UIEvent*)event {
+    vne::events::MouseButton button = vne::events::MouseButton::eLeft;
+    if (@available(iOS 13.4, *)) {
+        if (event != nil) {
+            const UIEventButtonMask mask = event.buttonMask;
+            if ((mask & UIEventButtonMaskForButtonNumber(3)) != 0) {
+                button = vne::events::MouseButton::eMiddle;
+            } else if ((mask & UIEventButtonMaskSecondary) != 0) {
+                button = vne::events::MouseButton::eRight;
+            }
+        }
+    }
+    return button;
+}
+
+- (void)deliverPointer:(CGPoint)p phase:(vne::xwin::EventBridgeTouchPhase)phase event:(UIEvent*)event {
+    const double x = static_cast<double>(p.x);
+    const double y = static_cast<double>(p.y);
+    const vne::events::MouseButton button = [self buttonFromEvent:event];
+
+    switch (phase) {
+        case vne::xwin::EventBridgeTouchPhase::eDown:
+            pointer_button_ = button;
+            pointer_down_ = YES;
+            xwin_->handleMouseMove(x, y);
+            xwin_->handleMouseButton(button, true, x, y);
+            break;
+        case vne::xwin::EventBridgeTouchPhase::eMove:
+            xwin_->handleMouseMove(x, y);
+            break;
+        case vne::xwin::EventBridgeTouchPhase::eUp:
+            xwin_->handleMouseMove(x, y);
+            if (pointer_down_) {
+                xwin_->handleMouseButton(pointer_button_, false, x, y);
+                pointer_down_ = NO;
+            }
+            break;
+    }
+}
+
+- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase)phase event:(UIEvent*)event {
     if (!xwin_) {
         return;
     }
+    NSUInteger button_mask = 0;
+    if (@available(iOS 13.4, *)) {
+        if (event != nil) {
+            button_mask = static_cast<NSUInteger>(event.buttonMask);
+        }
+    }
     for (UITouch* touch in touches) {
         const CGPoint p = [touch locationInView:self];
-        // Use the touch object pointer hash as a stable per-finger id
-        const uint32_t touch_id = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(touch) & 0xFFFFFFFFu);
+        // Mouse / trackpad: emit real mouse events (left/right/middle) so CameraLayer
+        // does not need TouchToMouseConverter. Real fingers stay as touch events.
+        if (@available(iOS 13.4, *)) {
+            if (touch.type == UITouchTypeIndirectPointer) {
+                [self deliverPointer:p phase:phase event:event];
+                continue;
+            }
+            // iPhone Simulator often reports the mouse as Direct. Still honor buttonMask.
+            const NSUInteger non_primary_buttons =
+                static_cast<NSUInteger>(UIEventButtonMaskSecondary | UIEventButtonMaskForButtonNumber(3));
+            if ((button_mask & non_primary_buttons) != 0) {
+                [self deliverPointer:p phase:phase event:event];
+                continue;
+            }
+        }
+        // Stable per-touch identity for the lifetime of the gesture. Bridge to void*
+        // first: bitmasking an Objective-C pointer directly is diagnosed.
+        const auto touch_key = reinterpret_cast<uintptr_t>((__bridge const void*)touch);
+        const uint32_t touch_id = static_cast<uint32_t>(touch_key & 0xFFFFFFFFu);
         xwin_->handleTouch(touch_id, static_cast<double>(p.x), static_cast<double>(p.y), phase);
     }
 }
 
-- (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eDown];
-}
-- (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eMove];
-}
-- (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    (void)event;
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp];
-}
-- (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    (void)event;
-    // Treat cancel as up so the app can release any held state
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp];
+- (void)onScroll:(UIPanGestureRecognizer*)recognizer {
+    if (!xwin_) {
+        return;
+    }
+    const UIGestureRecognizerState state = recognizer.state;
+    const CGPoint loc = [recognizer locationInView:self];
+    const CGPoint t = [recognizer translationInView:self];
+    if (state != UIGestureRecognizerStateBegan && state != UIGestureRecognizerStateChanged) {
+        return;
+    }
+
+    // Hover does not move the tracked cursor; update before zoom so hit-tests work.
+    xwin_->handleMouseMove(static_cast<double>(loc.x), static_cast<double>(loc.y));
+    [recognizer setTranslation:CGPointZero inView:self];
+    if (t.x == 0.0 && t.y == 0.0) {
+        return;
+    }
+
+    // Scroll lines, matching the convention the interaction layer expects: positive
+    // scroll_y zooms in (factor = kWheelZoomFactorPerLine^dy, applied to orbit
+    // distance). A discrete wheel notch reports a small translation, so quantize it to
+    // one line; a trackpad reports large continuous deltas, so scale those down.
+    //
+    // TODO(xwin): the notch threshold and 0.1 scale are hand-tuned and the sign of
+    // t.y has only been checked against trackpad scroll, not a discrete wheel. Cocoa
+    // (cocoa_window.mm) forwards scrollingDeltaX/Y unscaled, so iOS and macOS zoom at
+    // different rates for the same gesture. Normalize both once a device with a real
+    // wheel is available to measure against.
+    auto to_scroll_unit = [](const CGFloat v) -> double {
+        if (v == 0.0) {
+            return 0.0;
+        }
+        const double abs_v = std::fabs(static_cast<double>(v));
+        if (abs_v < kWheelNotchTranslationThreshold) {
+            return (v > 0.0) ? 1.0 : -1.0;
+        }
+        return static_cast<double>(v) * kContinuousScrollToLines;
+    };
+    const double dx = to_scroll_unit(t.x);
+    const double dy = to_scroll_unit(-t.y);
+    xwin_->handleMouseScroll(dx, dy);
 }
 
+- (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eDown event:event];
+}
+- (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eMove event:event];
+}
+- (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp event:event];
+}
+- (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp event:event];
+}
+
+@end
+
+@implementation VneXWinUIWindow
+- (void)becomeKeyWindow {
+    [super becomeKeyWindow];
+    if ([self.rootViewController.view isKindOfClass:[VneXWinUIView class]]) {
+        [static_cast<VneXWinUIView*>(self.rootViewController.view) activateInputRouting];
+    }
+}
+
+@end
+
+@implementation VneXWinRootViewController
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if ([self.view isKindOfClass:[VneXWinUIView class]]) {
+        [static_cast<VneXWinUIView*>(self.view) activateInputRouting];
+    }
+}
+
+- (BOOL)prefersStatusBarHidden {
+    return YES;
+}
 @end
 
 // ---------------------------------------------------------------------------
@@ -158,26 +399,20 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
       destroyNative();
       desc_ = descriptor;
 
-      UIWindow* window = nil;
+      VneXWinUIWindow* window = nil;
       UIWindowScene* window_scene = nil;
       if (@available(iOS 13.0, *)) {
           window_scene = vneXWinFindWindowScene(nil, desc_.platform_data);
           if (window_scene != nil) {
-              window = [[UIWindow alloc] initWithWindowScene:window_scene];
+              window = [[VneXWinUIWindow alloc] initWithWindowScene:window_scene];
           }
       }
       if (window == nil) {
 #if defined(VNE_PLATFORM_VISIONOS)
-          window = [[UIWindow alloc] initWithFrame:CGRectMake(0, 0, 1280, 720)];
+          window = [[VneXWinUIWindow alloc] initWithFrame:CGRectMake(0, 0, 1280, 720)];
 #else
-          window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+          window = [[VneXWinUIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
 #endif
-      }
-
-      UIViewController* root_vc = window.rootViewController;
-      if (root_vc == nil) {
-          root_vc = [[UIViewController alloc] init];
-          window.rootViewController = root_vc;
       }
 
       UIWindowScene* bounds_scene = vneXWinFindWindowScene(window, desc_.platform_data);
@@ -185,30 +420,28 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
           bounds_scene = window_scene;
       }
 
-      CGRect bounds = root_vc.view.bounds;
+      CGRect bounds = window.bounds;
       if (desc_.size.width == 0 || desc_.size.height == 0) {
           if (bounds_scene != nil) {
               bounds = vneXWinSceneBounds(bounds_scene);
-          } else if (CGRectIsEmpty(bounds) && !CGRectIsEmpty(window.bounds)) {
-              bounds = window.bounds;
-          }
+          } else if (CGRectIsEmpty(bounds)) {
 #if !defined(VNE_PLATFORM_VISIONOS)
-          else if (CGRectIsEmpty(bounds)) {
               bounds = UIScreen.mainScreen.bounds;
-          }
 #endif
+          }
       } else {
           bounds.size.width = static_cast<CGFloat>(desc_.size.width);
           bounds.size.height = static_cast<CGFloat>(desc_.size.height);
       }
 
-      root_vc.view.frame = window.bounds;
-      root_vc.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-
+      // Metal view must be the root view (not a subview). Scroll-type pans and
+      // HID I/O land on the first responder / root, not a covered child.
+      VneXWinRootViewController* root_vc = [[VneXWinRootViewController alloc] init];
       VneXWinUIView* v = [[VneXWinUIView alloc] initWithFrame:bounds xwin:this];
       v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-      [root_vc.view addSubview:v];
-      v.frame = root_vc.view.bounds;
+      root_vc.view = v;
+      window.rootViewController = root_vc;
+      v.frame = window.bounds;
 
       desc_.size.width = static_cast<uint32_t>(v.bounds.size.width);
       desc_.size.height = static_cast<uint32_t>(v.bounds.size.height);
@@ -222,6 +455,21 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
 void UIKitWindow::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeTouch(this, desc_, cb, touch_id, x, y, phase);
+}
+
+void UIKitWindow::handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y) {
+    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
+    eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, 0);
+}
+
+void UIKitWindow::handleMouseMove(double x, double y) {
+    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
+    eventBridgeMouseMove(this, desc_, cb, x, y, 0);
+}
+
+void UIKitWindow::handleMouseScroll(double x_offset, double y_offset) {
+    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
+    eventBridgeMouseScroll(this, desc_, cb, static_cast<float>(x_offset), static_cast<float>(y_offset));
 }
 
 void UIKitWindow::pollEvents() {
