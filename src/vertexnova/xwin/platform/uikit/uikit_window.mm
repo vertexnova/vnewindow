@@ -151,15 +151,15 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
         // defaults to 1, and a maximum below that leaves the recognizer unable to begin.
         if (@available(iOS 13.4, *)) {
             auto make_scroll_pan = ^(SEL action, UIScrollTypeMask mask) {
-                UIPanGestureRecognizer* pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:action];
-                pan.allowedScrollTypesMask = mask;
-                pan.allowedTouchTypes = @[];
-                pan.cancelsTouchesInView = NO;
-                pan.delaysTouchesBegan = NO;
-                pan.delaysTouchesEnded = NO;
-                pan.delegate = self;
-                [self addGestureRecognizer:pan];
-                return pan;
+              UIPanGestureRecognizer* pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:action];
+              pan.allowedScrollTypesMask = mask;
+              pan.allowedTouchTypes = @[];
+              pan.cancelsTouchesInView = NO;
+              pan.delaysTouchesBegan = NO;
+              pan.delaysTouchesEnded = NO;
+              pan.delegate = self;
+              [self addGestureRecognizer:pan];
+              return pan;
             };
             discrete_scroll_recognizer_ = make_scroll_pan(@selector(onDiscreteScroll:), UIScrollTypeMaskDiscrete);
             continuous_scroll_recognizer_ = make_scroll_pan(@selector(onContinuousScroll:), UIScrollTypeMaskContinuous);
@@ -475,11 +475,8 @@ void UIKitWindow::handleTouch(uint32_t touch_id, double x, double y, EventBridge
     eventBridgeTouch(this, desc_, cb, touch_id, x, y, phase);
 }
 
-void UIKitWindow::handleMouseButton(vne::events::MouseButton button,
-                                    bool pressed,
-                                    double x,
-                                    double y,
-                                    uint8_t modifiers) {
+void UIKitWindow::handleMouseButton(
+    vne::events::MouseButton button, bool pressed, double x, double y, uint8_t modifiers) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
     eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, modifiers);
 }
