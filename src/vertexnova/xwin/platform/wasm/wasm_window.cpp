@@ -129,8 +129,22 @@ void WasmWindow::initialize(const WindowDescriptor& descriptor) {
 #ifdef __EMSCRIPTEN__
 
 bool WasmWindow::queryBrowserViewport(int& out_width, int& out_height) {
-    out_width = EM_ASM_INT({ return (window && window.innerWidth) ? window.innerWidth : 0; });
-    out_height = EM_ASM_INT({ return (window && window.innerHeight) ? window.innerHeight : 0; });
+    // Prefer the shell's #canvas-wrap box so a framed/resizable HTML view drives
+    // the logical size. Fall back to the browser viewport when the wrap is absent.
+    out_width = EM_ASM_INT({
+        var wrap = (typeof document !== 'undefined') ? document.getElementById('canvas-wrap') : null;
+        if (wrap && wrap.clientWidth > 0) {
+            return wrap.clientWidth | 0;
+        }
+        return (window && window.innerWidth) ? (window.innerWidth | 0) : 0;
+    });
+    out_height = EM_ASM_INT({
+        var wrap = (typeof document !== 'undefined') ? document.getElementById('canvas-wrap') : null;
+        if (wrap && wrap.clientHeight > 0) {
+            return wrap.clientHeight | 0;
+        }
+        return (window && window.innerHeight) ? (window.innerHeight | 0) : 0;
+    });
     return out_width > 0 && out_height > 0;
 }
 
@@ -158,13 +172,17 @@ void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_
     }
 }
 
-EM_BOOL WasmWindow::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent* event, void* user_data) {
+EM_BOOL WasmWindow::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent* /*event*/, void* user_data) {
     auto* self = static_cast<WasmWindow*>(user_data);
-    if (!self || !event) {
+    if (!self) {
         return EM_FALSE;
     }
-    self->applyViewportSize(static_cast<uint32_t>(event->windowInnerWidth),
-                            static_cast<uint32_t>(event->windowInnerHeight));
+    int width = 0;
+    int height = 0;
+    if (!queryBrowserViewport(width, height)) {
+        return EM_FALSE;
+    }
+    self->applyViewportSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     return EM_TRUE;
 }
 
