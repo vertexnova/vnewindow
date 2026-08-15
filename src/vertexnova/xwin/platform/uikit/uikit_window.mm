@@ -14,19 +14,37 @@
 #include "uikit_main_sync.h"
 #include "uikit_window_manager.h"
 #include "event_bridge.h"
+#include "platform/cocoa/cocoa_map_key.h"
 
 #import <UIKit/UIKit.h>
 #import <QuartzCore/CAMetalLayer.h>
 
-#include <cmath>
-
 namespace {
 
-// Pan translation (points) below which a scroll sample is treated as one discrete
-// wheel notch rather than a continuous trackpad glide.
-constexpr double kWheelNotchTranslationThreshold = 5.0;
 // Points-to-scroll-lines factor for continuous (trackpad) scrolling.
 constexpr double kContinuousScrollToLines = 0.1;
+
+double discreteScrollUnit(const CGFloat v) {
+    if (v == 0.0) {
+        return 0.0;
+    }
+    return (v > 0.0) ? 1.0 : -1.0;
+}
+
+double continuousScrollUnit(const CGFloat v) {
+    return static_cast<double>(v) * kContinuousScrollToLines;
+}
+
+// UIKeyModifierFlags uses the same shift/ctrl/alt/cmd bits as NSEventModifierFlags.
+uint8_t modifiersFromEvent(UIEvent* event) {
+    if (event == nil) {
+        return 0;
+    }
+    if (@available(iOS 13.4, *)) {
+        return vne::xwin::mapCocoaModifiers(static_cast<unsigned long>(event.modifierFlags));
+    }
+    return 0;
+}
 
 CGRect vneXWinSceneBounds(UIWindowScene* window_scene) {
     if (window_scene == nil) {
@@ -85,13 +103,16 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     // Active indirect-pointer (mouse) button, so the matching release is emitted on lift.
     vne::events::MouseButton pointer_button_;
     BOOL pointer_down_;
-    UIPanGestureRecognizer* scroll_recognizer_;
+    UIPanGestureRecognizer* discrete_scroll_recognizer_;
+    UIPanGestureRecognizer* continuous_scroll_recognizer_;
     id app_active_observer_;
 }
 - (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow*)xwin;
 - (void)clearXwin;
 - (void)activateInputRouting;
-- (void)onScroll:(UIPanGestureRecognizer*)recognizer;
+- (void)emitScroll:(UIPanGestureRecognizer*)recognizer discrete:(BOOL)discrete;
+- (void)onDiscreteScroll:(UIPanGestureRecognizer*)recognizer;
+- (void)onContinuousScroll:(UIPanGestureRecognizer*)recognizer;
 #if !defined(VNE_PLATFORM_VISIONOS)
 - (void)onHover:(UIHoverGestureRecognizer*)recognizer;
 #endif
@@ -116,24 +137,32 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
         xwin_ = xwin;
         pointer_button_ = vne::events::MouseButton::eLeft;
         pointer_down_ = NO;
+        discrete_scroll_recognizer_ = nil;
+        continuous_scroll_recognizer_ = nil;
         app_active_observer_ = nil;
         self.multipleTouchEnabled = YES;
         self.userInteractionEnabled = YES;
 
         // Scroll wheel / trackpad scroll -> zoom.
-        // An empty allowedTouchTypes is the documented way to make a pan recognizer
-        // scroll-only, so it never steals finger pans. Do not also clamp
-        // maximumNumberOfTouches: minimumNumberOfTouches defaults to 1, and a
-        // maximum below that leaves the recognizer unable to ever begin.
+        // UIPanGestureRecognizer has no scrollType, so discrete and continuous each
+        // get their own recognizer and mapping. An empty allowedTouchTypes is the
+        // documented way to make a pan recognizer scroll-only, so it never steals
+        // finger pans. Do not also clamp maximumNumberOfTouches: minimumNumberOfTouches
+        // defaults to 1, and a maximum below that leaves the recognizer unable to begin.
         if (@available(iOS 13.4, *)) {
-            scroll_recognizer_ = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onScroll:)];
-            scroll_recognizer_.allowedScrollTypesMask = UIScrollTypeMaskAll;
-            scroll_recognizer_.allowedTouchTypes = @[];
-            scroll_recognizer_.cancelsTouchesInView = NO;
-            scroll_recognizer_.delaysTouchesBegan = NO;
-            scroll_recognizer_.delaysTouchesEnded = NO;
-            scroll_recognizer_.delegate = self;
-            [self addGestureRecognizer:scroll_recognizer_];
+            auto make_scroll_pan = ^(SEL action, UIScrollTypeMask mask) {
+                UIPanGestureRecognizer* pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:action];
+                pan.allowedScrollTypesMask = mask;
+                pan.allowedTouchTypes = @[];
+                pan.cancelsTouchesInView = NO;
+                pan.delaysTouchesBegan = NO;
+                pan.delaysTouchesEnded = NO;
+                pan.delegate = self;
+                [self addGestureRecognizer:pan];
+                return pan;
+            };
+            discrete_scroll_recognizer_ = make_scroll_pan(@selector(onDiscreteScroll:), UIScrollTypeMaskDiscrete);
+            continuous_scroll_recognizer_ = make_scroll_pan(@selector(onContinuousScroll:), UIScrollTypeMaskContinuous);
 
 #if !defined(VNE_PLATFORM_VISIONOS)
             UIHoverGestureRecognizer* hover = [[UIHoverGestureRecognizer alloc] initWithTarget:self
@@ -188,7 +217,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
         return;
     }
     const CGPoint p = [recognizer locationInView:self];
-    xwin_->handleMouseMove(static_cast<double>(p.x), static_cast<double>(p.y));
+    xwin_->handleMouseMove(static_cast<double>(p.x), static_cast<double>(p.y), 0);
 }
 #endif
 
@@ -223,21 +252,22 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     const double x = static_cast<double>(p.x);
     const double y = static_cast<double>(p.y);
     const vne::events::MouseButton button = [self buttonFromEvent:event];
+    const uint8_t modifiers = modifiersFromEvent(event);
 
     switch (phase) {
         case vne::xwin::EventBridgeTouchPhase::eDown:
             pointer_button_ = button;
             pointer_down_ = YES;
-            xwin_->handleMouseMove(x, y);
-            xwin_->handleMouseButton(button, true, x, y);
+            xwin_->handleMouseMove(x, y, modifiers);
+            xwin_->handleMouseButton(button, true, x, y, modifiers);
             break;
         case vne::xwin::EventBridgeTouchPhase::eMove:
-            xwin_->handleMouseMove(x, y);
+            xwin_->handleMouseMove(x, y, modifiers);
             break;
         case vne::xwin::EventBridgeTouchPhase::eUp:
-            xwin_->handleMouseMove(x, y);
+            xwin_->handleMouseMove(x, y, modifiers);
             if (pointer_down_) {
-                xwin_->handleMouseButton(pointer_button_, false, x, y);
+                xwin_->handleMouseButton(pointer_button_, false, x, y, modifiers);
                 pointer_down_ = NO;
             }
             break;
@@ -279,7 +309,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     }
 }
 
-- (void)onScroll:(UIPanGestureRecognizer*)recognizer {
+- (void)emitScroll:(UIPanGestureRecognizer*)recognizer discrete:(BOOL)discrete {
     if (!xwin_) {
         return;
     }
@@ -291,35 +321,26 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     }
 
     // Hover does not move the tracked cursor; update before zoom so hit-tests work.
-    xwin_->handleMouseMove(static_cast<double>(loc.x), static_cast<double>(loc.y));
+    xwin_->handleMouseMove(static_cast<double>(loc.x), static_cast<double>(loc.y), 0);
     [recognizer setTranslation:CGPointZero inView:self];
     if (t.x == 0.0 && t.y == 0.0) {
         return;
     }
 
-    // Scroll lines, matching the convention the interaction layer expects: positive
-    // scroll_y zooms in (factor = kWheelZoomFactorPerLine^dy, applied to orbit
-    // distance). A discrete wheel notch reports a small translation, so quantize it to
-    // one line; a trackpad reports large continuous deltas, so scale those down.
-    //
-    // TODO(xwin): the notch threshold and 0.1 scale are hand-tuned and the sign of
-    // t.y has only been checked against trackpad scroll, not a discrete wheel. Cocoa
-    // (cocoa_window.mm) forwards scrollingDeltaX/Y unscaled, so iOS and macOS zoom at
-    // different rates for the same gesture. Normalize both once a device with a real
-    // wheel is available to measure against.
-    auto to_scroll_unit = [](const CGFloat v) -> double {
-        if (v == 0.0) {
-            return 0.0;
-        }
-        const double abs_v = std::fabs(static_cast<double>(v));
-        if (abs_v < kWheelNotchTranslationThreshold) {
-            return (v > 0.0) ? 1.0 : -1.0;
-        }
-        return static_cast<double>(v) * kContinuousScrollToLines;
-    };
-    const double dx = to_scroll_unit(t.x);
-    const double dy = to_scroll_unit(-t.y);
+    // Scroll lines: positive scroll_y zooms in. Discrete wheel: one line per
+    // non-zero sample (one notch). Continuous trackpad: scale translation; the
+    // mapping is monotonic in |t| and does not promote small chunks to a notch.
+    const double dx = discrete ? discreteScrollUnit(t.x) : continuousScrollUnit(t.x);
+    const double dy = discrete ? discreteScrollUnit(-t.y) : continuousScrollUnit(-t.y);
     xwin_->handleMouseScroll(dx, dy);
+}
+
+- (void)onDiscreteScroll:(UIPanGestureRecognizer*)recognizer {
+    [self emitScroll:recognizer discrete:YES];
+}
+
+- (void)onContinuousScroll:(UIPanGestureRecognizer*)recognizer {
+    [self emitScroll:recognizer discrete:NO];
 }
 
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
@@ -420,18 +441,15 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
           bounds_scene = window_scene;
       }
 
+      // The Metal view is the root view, so UIKit always sizes it to the window.
+      // desc_.size is a hint only and is overwritten from the view below.
       CGRect bounds = window.bounds;
-      if (desc_.size.width == 0 || desc_.size.height == 0) {
-          if (bounds_scene != nil) {
-              bounds = vneXWinSceneBounds(bounds_scene);
-          } else if (CGRectIsEmpty(bounds)) {
+      if (bounds_scene != nil) {
+          bounds = vneXWinSceneBounds(bounds_scene);
+      } else if (CGRectIsEmpty(bounds)) {
 #if !defined(VNE_PLATFORM_VISIONOS)
-              bounds = UIScreen.mainScreen.bounds;
+          bounds = UIScreen.mainScreen.bounds;
 #endif
-          }
-      } else {
-          bounds.size.width = static_cast<CGFloat>(desc_.size.width);
-          bounds.size.height = static_cast<CGFloat>(desc_.size.height);
       }
 
       // Metal view must be the root view (not a subview). Scroll-type pans and
@@ -457,14 +475,18 @@ void UIKitWindow::handleTouch(uint32_t touch_id, double x, double y, EventBridge
     eventBridgeTouch(this, desc_, cb, touch_id, x, y, phase);
 }
 
-void UIKitWindow::handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y) {
+void UIKitWindow::handleMouseButton(vne::events::MouseButton button,
+                                    bool pressed,
+                                    double x,
+                                    double y,
+                                    uint8_t modifiers) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, 0);
+    eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, modifiers);
 }
 
-void UIKitWindow::handleMouseMove(double x, double y) {
+void UIKitWindow::handleMouseMove(double x, double y, uint8_t modifiers) {
     const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseMove(this, desc_, cb, x, y, 0);
+    eventBridgeMouseMove(this, desc_, cb, x, y, modifiers);
 }
 
 void UIKitWindow::handleMouseScroll(double x_offset, double y_offset) {
@@ -543,17 +565,9 @@ WindowPosition UIKitWindow::getPosition() const {
 }
 
 void UIKitWindow::resize(uint32_t width, uint32_t height) {
-    uikitRunOnMainSync(^{
-      desc_.size.width = width;
-      desc_.size.height = height;
-      if (ui_view_) {
-          UIView* v = (__bridge UIView*)ui_view_;
-          CGRect f = v.frame;
-          f.size.width = static_cast<CGFloat>(width);
-          f.size.height = static_cast<CGFloat>(height);
-          v.frame = f;
-      }
-    });
+    // Root view is sized to the window on every layout pass; a caller size cannot hold.
+    (void)width;
+    (void)height;
 }
 
 void UIKitWindow::close() {
