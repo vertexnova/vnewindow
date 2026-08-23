@@ -106,6 +106,11 @@ if(VNE_XWIN_LIB_TYPE STREQUAL "shared")
     message(STATUS "VneCrossWindow: VNE_XWIN_LIB_TYPE=shared -> CMAKE_POSITION_INDEPENDENT_CODE=ON (before deps)")
 endif()
 
+# Embedded deps must match vne::xwin's library kind so process-wide singletons
+# (EventManager, InputManager) live in one module on Windows shared builds.
+set(VNEEVENTS_LIB_TYPE "${VNE_XWIN_LIB_TYPE}" CACHE STRING "" FORCE)
+set(VNE_LOGGING_LIB_TYPE "${VNE_XWIN_LIB_TYPE}" CACHE STRING "" FORCE)
+
 #==============================================================================
 # Internal Libraries (deps/internal) - use if already in build, else add
 #==============================================================================
