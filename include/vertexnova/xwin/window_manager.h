@@ -15,6 +15,7 @@
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_descriptor.h"
 #include "vertexnova/xwin/monitor_info.h"
+#include "vertexnova/xwin/xwin_export.h"
 #include "vertexnova/xwin/xwin_types.h"
 
 #include <memory>
@@ -72,9 +73,13 @@ class IWindowManager {
      * friends, the browser on visibilitychange. Not window-scoped, so the resulting event carries
      * no window id.
      *
+     * Static because the transition belongs to the process, not to any window or manager: it
+     * carries no window id and fires once however many windows exist. No backend overrides it —
+     * a backend needing to react should subscribe to the events like any other consumer.
+     *
      * On eLowMemory, release what you can — mobile systems terminate apps that ignore it.
      */
-    virtual void notifyApplicationLifecycle(ApplicationLifecycle transition);
+    static VNE_XWIN_API void notifyApplicationLifecycle(ApplicationLifecycle transition);
     [[nodiscard]] virtual bool shouldClose() const noexcept = 0;
     [[nodiscard]] virtual bool shouldCloseAll() const noexcept = 0;
 
