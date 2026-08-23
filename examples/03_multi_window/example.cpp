@@ -100,19 +100,19 @@ class MultiWindowExample final : public vne::xwin::examples::ExampleBase {
 
         if (mgr.getWindowAPI() == vne::xwin::WindowAPI::eIosUikitWindow) {
             VNE_LOG_INFO << "Note: UIKit is typically single-scene; child windows may not be supported.";
-        } else if (mgr.getWindowAPI() == vne::xwin::WindowAPI::eWasmWindow) {
+            return;
+        }
+        if (!mgr.supportsMultipleWindows()) {
+            VNE_LOG_INFO << "This backend hosts a single window; child windows are skipped.";
+            return;
+        }
+        if (mgr.getWindowAPI() == vne::xwin::WindowAPI::eWasmWindow) {
             VNE_LOG_INFO << "Web: multiple panels inside #vne-desktop (click a panel to focus, then type).";
-            openChild();
-            openChild();
-            if (main_) {
-                mgr.focusWindow(main_);
-            }
-        } else {
-            openChild();
-            openChild();
-            if (main_) {
-                mgr.focusWindow(main_);
-            }
+        }
+        openChild();
+        openChild();
+        if (main_) {
+            mgr.focusWindow(main_);
         }
     }
 
