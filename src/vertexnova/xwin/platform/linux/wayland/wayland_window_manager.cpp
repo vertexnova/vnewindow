@@ -436,17 +436,20 @@ void WaylandWindowManager::onOutputScale(struct wl_output* output, int32_t facto
     if (!output || factor <= 0) {
         return;
     }
-    // Previously this only updated cached state; the scale change never reached the app.
+    const int32_t previous_scale = output_scale_;
+    const auto it = std::find_if(outputs_.begin(), outputs_.end(),
+                                 [output](const auto& entry) { return entry.second.output == output; });
+    if (it == outputs_.end()) {
+        return;
+    }
+    it->second.scale = factor;
+    recomputeOutputScale();
+    if (output_scale_ == previous_scale) {
+        return;
+    }
     for (const auto& w : windows_) {
         if (auto* wl_win = dynamic_cast<WaylandWindow*>(w.get())) {
-            wl_win->events().windowDpiChanged(static_cast<float>(factor));
-        }
-    }
-    for (auto& [_, info] : outputs_) {
-        if (info.output == output) {
-            info.scale = factor;
-            recomputeOutputScale();
-            return;
+            wl_win->events().windowDpiChanged(static_cast<float>(output_scale_));
         }
     }
 }
