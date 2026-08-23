@@ -175,7 +175,7 @@ class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
     void onInit(vne::xwin::IWindow& /*window*/, vne::xwin::IWindowManager& mgr) override {
         VNE_LOG_INFO << "02_xwin_events demo ready.";
         VNE_LOG_INFO << "Try keyboard, mouse, touch, resize/focus/minimize, and hold movement keys.";
-        VNE_LOG_INFO << "Every line below is one vne::events event, tagged with its window id.";
+        VNE_LOG_INFO << "Every line below is one vne::events event.";
         VNE_LOG_INFO << "Runner API: window=" << static_cast<int>(mgr.getPrimaryWindow()->getWindowAPI())
                      << " platform=" << mgr.getPlatformInfo();
     }
