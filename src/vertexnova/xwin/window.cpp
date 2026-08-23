@@ -81,8 +81,7 @@ vne::events::WindowId IWindow::nextId() noexcept {
         if (id == kMaxId || id == vne::events::kInvalidWindowId) {
             std::terminate();
         }
-        if (s_next_window_id.compare_exchange_weak(
-                id, id + 1, std::memory_order_relaxed, std::memory_order_relaxed)) {
+        if (s_next_window_id.compare_exchange_weak(id, id + 1, std::memory_order_relaxed, std::memory_order_relaxed)) {
             return id;
         }
     }
