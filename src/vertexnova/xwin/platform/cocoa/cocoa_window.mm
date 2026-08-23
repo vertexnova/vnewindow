@@ -500,9 +500,9 @@ void CocoaWindow::initialize(const WindowDescriptor& descriptor) {
     }
 
     NSWindow* win = [[VneXWinWindow alloc] initWithContentRect:content_rect
-                                                styleMask:style
-                                                  backing:NSBackingStoreBuffered
-                                                    defer:NO];
+                                                     styleMask:style
+                                                       backing:NSBackingStoreBuffered
+                                                         defer:NO];
     // Match setPosition(): descriptor coordinates are the window's top-left on screen.
     [win setFrameTopLeftPoint:NSMakePoint(static_cast<CGFloat>(desc_.position.x),
                                           static_cast<CGFloat>(desc_.position.y))];
