@@ -211,11 +211,11 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 
         if (@available(iOS 17.0, tvOS 17.0, visionOS 1.0, *)) {
             [self registerForTraitChanges:@[ UITraitDisplayScale.class ]
-                                withHandler:^(__kindof id<UITraitEnvironment> traitEnvironment,
-                                                UITraitCollection* previousTraitCollection) {
-                                  VneXWinUIView* view = (VneXWinUIView*)traitEnvironment;
-                                  [view handleDisplayScaleTraitChangeFrom:previousTraitCollection];
-                                }];
+                              withHandler:^(__kindof id<UITraitEnvironment> traitEnvironment,
+                                            UITraitCollection* previousTraitCollection) {
+                                VneXWinUIView* view = (VneXWinUIView*)traitEnvironment;
+                                [view handleDisplayScaleTraitChangeFrom:previousTraitCollection];
+                              }];
         }
     }
     return self;
