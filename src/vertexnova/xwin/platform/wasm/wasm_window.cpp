@@ -193,10 +193,7 @@ void WasmWindow::registerCanvasCallbacks() {
     emscripten_set_touchend_callback(sel, this, 1, &WasmWindow::TouchEndCallback);
     emscripten_set_touchmove_callback(sel, this, 1, &WasmWindow::TouchMoveCallback);
     emscripten_set_touchcancel_callback(sel, this, 1, &WasmWindow::TouchCancelCallback);
-    emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT,
-                                             this,
-                                             1,
-                                             &WasmWindow::FullscreenChangeCallback);
+    emscripten_set_fullscreenchange_callback(sel, this, 1, &WasmWindow::FullscreenChangeCallback);
 }
 
 void WasmWindow::unregisterCanvasCallbacks() {
@@ -212,7 +209,7 @@ void WasmWindow::unregisterCanvasCallbacks() {
     emscripten_set_touchend_callback(sel, nullptr, 0, nullptr);
     emscripten_set_touchmove_callback(sel, nullptr, 0, nullptr);
     emscripten_set_touchcancel_callback(sel, nullptr, 0, nullptr);
-    emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, nullptr);
+    emscripten_set_fullscreenchange_callback(sel, nullptr, 0, nullptr);
 }
 
 void WasmWindow::dispatchKeyDown(const vne::events::KeyCode key, const uint8_t mods, const bool repeat) {
