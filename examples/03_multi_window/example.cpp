@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
