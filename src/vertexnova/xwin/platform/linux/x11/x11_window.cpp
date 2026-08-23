@@ -334,11 +334,7 @@ void X11Window::pollEvents() {
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                      static_cast<std::uint64_t>(ev.xbutton.state),
                                                                      desc_.input_mapping.get());
-                events_.mouseScroll(x,
-                                    y,
-                                    static_cast<double>(ev.xbutton.x),
-                                    static_cast<double>(ev.xbutton.y),
-                                    mods);
+                events_.mouseScroll(x, y, static_cast<double>(ev.xbutton.x), static_cast<double>(ev.xbutton.y), mods);
             } else {
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                      static_cast<std::uint64_t>(ev.xbutton.state),
@@ -361,11 +357,7 @@ void X11Window::pollEvents() {
                                                                  desc_.input_mapping.get());
             const vne::events::MouseButton mb =
                 mapNativeMouseToEvents(WindowAPI::eX11Window, packX11NativeMouse(b), desc_.input_mapping.get());
-            events_.mouseButton(mb,
-                                false,
-                                static_cast<double>(ev.xbutton.x),
-                                static_cast<double>(ev.xbutton.y),
-                                mods);
+            events_.mouseButton(mb, false, static_cast<double>(ev.xbutton.x), static_cast<double>(ev.xbutton.y), mods);
         } else if (ev.type == MotionNotify) {
             const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                  static_cast<std::uint64_t>(ev.xmotion.state),

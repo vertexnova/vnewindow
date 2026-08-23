@@ -441,11 +441,7 @@ void WaylandWindowManager::onPointerAxis(double x_off, double y_off) {
     if (!win) {
         return;
     }
-    win->events().mouseScroll(static_cast<float>(x_off),
-                              static_cast<float>(y_off),
-                              ptr_x_,
-                              ptr_y_,
-                              seatModifiers(win));
+    win->events().mouseScroll(static_cast<float>(x_off), static_cast<float>(y_off), ptr_x_, ptr_y_, seatModifiers(win));
 }
 
 void WaylandWindowManager::onOutputScale(struct wl_output* output, int32_t factor) {

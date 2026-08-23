@@ -20,7 +20,6 @@ namespace vne::xwin {
 
 class WasmWindowManager final : public IWindowManager {
    public:
-
     WasmWindowManager();
     ~WasmWindowManager() override;
 

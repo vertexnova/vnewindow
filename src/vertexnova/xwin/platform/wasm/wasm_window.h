@@ -70,15 +70,12 @@ class WasmWindow final : public IWindow {
     static EM_BOOL TouchMoveCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
     static EM_BOOL TouchCancelCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
     static EM_BOOL FullscreenChangeCallback(int event_type, const EmscriptenFullscreenChangeEvent* ev, void* ud);
-    static EM_BOOL VisibilityChangeCallback(int event_type,
-                                           const EmscriptenVisibilityChangeEvent* ev,
-                                           void* user_data);
+    static EM_BOOL VisibilityChangeCallback(int event_type, const EmscriptenVisibilityChangeEvent* ev, void* user_data);
     static EM_BOOL FocusCallback(int event_type, const EmscriptenFocusEvent* ev, void* ud);
     static EM_BOOL BlurCallback(int event_type, const EmscriptenFocusEvent* ev, void* ud);
 #endif
 
    private:
-
 #ifdef __EMSCRIPTEN__
     void applyViewportSize(uint32_t css_width, uint32_t css_height);
     [[nodiscard]] static bool queryBrowserViewport(int& out_width, int& out_height);

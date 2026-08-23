@@ -287,8 +287,10 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     xwin_ = nullptr;
     NSNotificationCenter* center = NSNotificationCenter.defaultCenter;
     for (id observer : @[
-             app_active_observer_ ?: NSNull.null, app_background_observer_ ?: NSNull.null,
-             app_foreground_observer_ ?: NSNull.null, app_memory_observer_ ?: NSNull.null
+             app_active_observer_ ?: NSNull.null,
+             app_background_observer_ ?: NSNull.null,
+             app_foreground_observer_ ?: NSNull.null,
+             app_memory_observer_ ?: NSNull.null
          ]) {
         if (observer != NSNull.null) {
             [center removeObserver:observer];

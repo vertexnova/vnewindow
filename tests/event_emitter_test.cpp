@@ -72,17 +72,28 @@ class CaptureListener final : public ev::EventListener {
 
 /** Every type the bridge can emit, so a listener sees the full output of one call. */
 constexpr ev::EventType kAllBridgeTypes[] = {
-    ev::EventType::eKeyPressed,           ev::EventType::eKeyReleased,
-    ev::EventType::eKeyRepeat,            ev::EventType::eTextInput,
-    ev::EventType::eMouseButtonPressed,   ev::EventType::eMouseButtonReleased,
-    ev::EventType::eMouseMoved,           ev::EventType::eMouseScrolled,
-    ev::EventType::eTouchPress,           ev::EventType::eTouchRelease,
-    ev::EventType::eTouchMove,            ev::EventType::eWindowResize,
-    ev::EventType::eWindowClose,          ev::EventType::eWindowFocus,
-    ev::EventType::eWindowMinimize,       ev::EventType::eWindowRestore,
-    ev::EventType::eWindowMove,           ev::EventType::eWindowDpiChanged,
-    ev::EventType::eWindowSafeAreaChanged, ev::EventType::eApplicationPause,
-    ev::EventType::eApplicationResume,    ev::EventType::eApplicationLowMemory,
+    ev::EventType::eKeyPressed,
+    ev::EventType::eKeyReleased,
+    ev::EventType::eKeyRepeat,
+    ev::EventType::eTextInput,
+    ev::EventType::eMouseButtonPressed,
+    ev::EventType::eMouseButtonReleased,
+    ev::EventType::eMouseMoved,
+    ev::EventType::eMouseScrolled,
+    ev::EventType::eTouchPress,
+    ev::EventType::eTouchRelease,
+    ev::EventType::eTouchMove,
+    ev::EventType::eWindowResize,
+    ev::EventType::eWindowClose,
+    ev::EventType::eWindowFocus,
+    ev::EventType::eWindowMinimize,
+    ev::EventType::eWindowRestore,
+    ev::EventType::eWindowMove,
+    ev::EventType::eWindowDpiChanged,
+    ev::EventType::eWindowSafeAreaChanged,
+    ev::EventType::eApplicationPause,
+    ev::EventType::eApplicationResume,
+    ev::EventType::eApplicationLowMemory,
 };
 
 class EventEmitterTest : public ::testing::Test {
@@ -290,9 +301,12 @@ TEST_F(EventEmitterTest, EmitsEveryWindowStateTransition) {
     drain();
 
     const std::vector<ev::EventType> expected = {
-        ev::EventType::eWindowClose,      ev::EventType::eWindowFocus,
-        ev::EventType::eWindowMinimize,   ev::EventType::eWindowRestore,
-        ev::EventType::eWindowMove,       ev::EventType::eWindowDpiChanged,
+        ev::EventType::eWindowClose,
+        ev::EventType::eWindowFocus,
+        ev::EventType::eWindowMinimize,
+        ev::EventType::eWindowRestore,
+        ev::EventType::eWindowMove,
+        ev::EventType::eWindowDpiChanged,
         ev::EventType::eWindowSafeAreaChanged,
     };
     EXPECT_EQ(listener_->types, expected);

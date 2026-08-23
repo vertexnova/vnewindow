@@ -31,11 +31,8 @@ void xdgSurfaceConfigureThunk(void* data, struct xdg_surface* xdg_surface, uint3
     xdg_surface_ack_configure(xdg_surface, serial);
 }
 
-void xdgToplevelConfigureThunk(void* data,
-                               struct xdg_toplevel*,
-                               int32_t width,
-                               int32_t height,
-                               struct wl_array* states) {
+void xdgToplevelConfigureThunk(
+    void* data, struct xdg_toplevel*, int32_t width, int32_t height, struct wl_array* states) {
     auto* self = static_cast<WaylandWindow*>(data);
     if (width > 0 && height > 0) {
         self->applyToplevelConfigure(static_cast<uint32_t>(width), static_cast<uint32_t>(height));

@@ -37,7 +37,6 @@ class WaylandWindow;
 
 class WaylandWindowManager final : public IWindowManager {
    public:
-
     /** @brief Bound from wl_registry global callback (xdg-shell + compositor + seat). */
     void onRegistryGlobal(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version);
     void onRegistryGlobalRemove(uint32_t name);

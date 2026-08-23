@@ -274,8 +274,8 @@
                              static_cast<double>(p.x),
                              static_cast<double>(bounds.size.height - p.y),  // flip to top-left origin
                              vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
-                                                                  static_cast<uint64_t>(ev.modifierFlags),
-                                                                  xwin_->inputMapping()));
+                                                                   static_cast<uint64_t>(ev.modifierFlags),
+                                                                   xwin_->inputMapping()));
 }
 
 // ---- Text / IME input ----

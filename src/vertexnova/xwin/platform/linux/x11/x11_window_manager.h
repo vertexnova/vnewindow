@@ -22,7 +22,6 @@ namespace vne::xwin {
 
 class X11WindowManager final : public IWindowManager {
    public:
-
     X11WindowManager();
     ~X11WindowManager() override;
 

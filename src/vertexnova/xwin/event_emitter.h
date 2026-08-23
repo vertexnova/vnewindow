@@ -59,11 +59,7 @@ class VNE_XWIN_API EventEmitter {
     void textInput(const char* utf8_text) const;
 
     // -- Pointer ------------------------------------------------------------
-    void mouseButton(vne::events::MouseButton button,
-                     bool pressed,
-                     double x,
-                     double y,
-                     std::uint8_t modifiers) const;
+    void mouseButton(vne::events::MouseButton button, bool pressed, double x, double y, std::uint8_t modifiers) const;
     void mouseMove(double x, double y, std::uint8_t modifiers) const;
     void mouseScroll(float x_offset, float y_offset, double x, double y, std::uint8_t modifiers) const;
 

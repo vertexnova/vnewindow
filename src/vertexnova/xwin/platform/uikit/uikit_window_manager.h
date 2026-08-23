@@ -20,7 +20,6 @@ namespace vne::xwin {
 
 class UIKitWindowManager final : public IWindowManager {
    public:
-
     UIKitWindowManager();
     ~UIKitWindowManager() override;
 

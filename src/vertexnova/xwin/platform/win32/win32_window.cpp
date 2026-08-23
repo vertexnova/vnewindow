@@ -189,9 +189,10 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
                                                                  packWin32NativeKey(wParam, lParam),
                                                                  desc_.input_mapping.get());
             if (kc != vne::events::KeyCode::eUnknown) {
-                const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWin32Window,
-                                                                     static_cast<std::uint64_t>(mapWin32ModifierFlags()),
-                                                                     desc_.input_mapping.get());
+                const std::uint8_t mods =
+                    mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                               static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                               desc_.input_mapping.get());
                 const bool repeat = (lParam & (1 << 30)) != 0;
                 events_.keyDown(kc, mods, repeat);
             }
@@ -206,9 +207,10 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
                                                                  packWin32NativeKey(wParam, lParam),
                                                                  desc_.input_mapping.get());
             if (kc != vne::events::KeyCode::eUnknown) {
-                const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWin32Window,
-                                                                     static_cast<std::uint64_t>(mapWin32ModifierFlags()),
-                                                                     desc_.input_mapping.get());
+                const std::uint8_t mods =
+                    mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                               static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                               desc_.input_mapping.get());
                 events_.keyUp(kc, mods);
             }
             if (msg == WM_SYSKEYUP) {
@@ -227,9 +229,8 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWin32Window,
                                                                  static_cast<std::uint64_t>(mapWin32ModifierFlags()),
                                                                  desc_.input_mapping.get());
-            const vne::events::MouseButton btn = mapNativeMouseToEvents(WindowAPI::eWin32Window,
-                                                                        packWin32Mouse(msg, wParam),
-                                                                        desc_.input_mapping.get());
+            const vne::events::MouseButton btn =
+                mapNativeMouseToEvents(WindowAPI::eWin32Window, packWin32Mouse(msg, wParam), desc_.input_mapping.get());
             const bool down =
                 (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
             events_.mouseButton(btn,

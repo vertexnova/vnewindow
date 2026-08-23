@@ -214,11 +214,7 @@ EM_BOOL WasmWindow::MouseDownCallback(int /*event_type*/, const EmscriptenMouseE
         return EM_FALSE;
     }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    self->events_.mouseButton(btn,
-                           true,
-                           static_cast<double>(ev->targetX),
-                           static_cast<double>(ev->targetY),
-                           mods);
+    self->events_.mouseButton(btn, true, static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
 }
 
@@ -232,11 +228,7 @@ EM_BOOL WasmWindow::MouseUpCallback(int /*event_type*/, const EmscriptenMouseEve
         return EM_FALSE;
     }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    self->events_.mouseButton(btn,
-                           false,
-                           static_cast<double>(ev->targetX),
-                           static_cast<double>(ev->targetY),
-                           mods);
+    self->events_.mouseButton(btn, false, static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
 }
 
@@ -246,9 +238,7 @@ EM_BOOL WasmWindow::MouseMoveCallback(int /*event_type*/, const EmscriptenMouseE
         return EM_FALSE;
     }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    self->events_.mouseMove(static_cast<double>(ev->targetX),
-                         static_cast<double>(ev->targetY),
-                         mods);
+    self->events_.mouseMove(static_cast<double>(ev->targetX), static_cast<double>(ev->targetY), mods);
     return EM_TRUE;
 }
 
@@ -348,9 +338,7 @@ EM_BOOL WasmWindow::TouchCancelCallback(int /*event_type*/, const EmscriptenTouc
     return EM_TRUE;
 }
 
-EM_BOOL WasmWindow::VisibilityChangeCallback(int /*event_type*/,
-                                             const EmscriptenVisibilityChangeEvent* ev,
-                                             void* ud) {
+EM_BOOL WasmWindow::VisibilityChangeCallback(int /*event_type*/, const EmscriptenVisibilityChangeEvent* ev, void* ud) {
     auto* self = static_cast<WasmWindow*>(ud);
     if (!self || !ev) {
         return EM_FALSE;

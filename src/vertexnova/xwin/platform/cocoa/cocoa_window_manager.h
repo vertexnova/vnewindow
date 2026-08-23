@@ -20,7 +20,6 @@ namespace vne::xwin {
 
 class CocoaWindowManager final : public IWindowManager {
    public:
-
     CocoaWindowManager();
     ~CocoaWindowManager() override;
 

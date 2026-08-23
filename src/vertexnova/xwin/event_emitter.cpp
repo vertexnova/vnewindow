@@ -88,11 +88,8 @@ void EventEmitter::textInput(const char* utf8_text) const {
 // Pointer
 // ---------------------------------------------------------------------------
 
-void EventEmitter::mouseButton(vne::events::MouseButton button,
-                              bool pressed,
-                              double x,
-                              double y,
-                              std::uint8_t modifiers) const {
+void EventEmitter::mouseButton(
+    vne::events::MouseButton button, bool pressed, double x, double y, std::uint8_t modifiers) const {
     if (button == vne::events::MouseButton::eUnknown) {
         return;
     }
@@ -117,11 +114,7 @@ void EventEmitter::mouseMove(double x, double y, std::uint8_t modifiers) const {
     }
 }
 
-void EventEmitter::mouseScroll(float x_offset,
-                              float y_offset,
-                              double x,
-                              double y,
-                              std::uint8_t modifiers) const {
+void EventEmitter::mouseScroll(float x_offset, float y_offset, double x, double y, std::uint8_t modifiers) const {
     if (descriptor_->enable_input) {
         vne::events::Input::updateMouseScroll(x_offset, y_offset);
     }
@@ -139,11 +132,7 @@ void EventEmitter::mouseScroll(float x_offset,
 // Touch
 // ---------------------------------------------------------------------------
 
-void EventEmitter::touch(std::uint32_t touch_id,
-                        double x,
-                        double y,
-                        TouchPhase phase,
-                        std::uint8_t modifiers) const {
+void EventEmitter::touch(std::uint32_t touch_id, double x, double y, TouchPhase phase, std::uint8_t modifiers) const {
     if (!descriptor_->enable_events) {
         return;
     }

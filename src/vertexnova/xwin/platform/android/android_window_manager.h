@@ -21,7 +21,6 @@ namespace vne::xwin {
 
 class AndroidWindowManager final : public IWindowManager {
    public:
-
     AndroidWindowManager();
     ~AndroidWindowManager() override;
 
