@@ -78,10 +78,7 @@ std::shared_ptr<IWindow> WasmWindowManager::openWindow(const WindowDescriptor& d
     if (!primary_) {
         primary_ = w;
     }
-    focused_ = w;
-#ifdef __EMSCRIPTEN__
     focusWindow(w);
-#endif
     return w;
 }
 
@@ -106,9 +103,11 @@ void WasmWindowManager::removeWindow(std::shared_ptr<IWindow> window) {
         primary_ = windows_.empty() ? nullptr : windows_.front();
     }
     if (focused_ == window) {
-        focused_ = primary_;
-        if (focused_) {
-            focusWindow(focused_);
+        // Clear before focusWindow so the early-return guard does not suppress the new focus event.
+        const auto next = primary_;
+        focused_.reset();
+        if (next) {
+            focusWindow(next);
         }
     }
 }
@@ -148,6 +147,9 @@ void WasmWindowManager::setPrimaryWindow(std::shared_ptr<IWindow> window) {
 }
 
 void WasmWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
+    if (focused_ == window) {
+        return;
+    }
     if (focused_ && focused_ != window) {
         if (auto* prev = dynamic_cast<WasmWindow*>(focused_.get())) {
             prev->emitWindowFocus(false);
