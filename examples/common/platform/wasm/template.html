@@ -25,7 +25,8 @@
 
         body {
             background: var(--bg);
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -60,18 +61,17 @@
 
         #vne-desktop {
             position: relative;
-            /* Fills the viewport: with one window the canvas reads as a full-page app, and with
-               several the grid has the whole area to divide. */
-            width: 100vw;
-            height: 100vh;
+            /* Fills remaining column space below titlebar and above statusbar. */
+            width: 100%;
+            flex: 1 1 auto;
             min-height: 320px;
+            min-width: 0;
             border: 1px solid var(--border);
             border-radius: var(--radius);
             background:
                 radial-gradient(circle at 1px 1px, #1f1f1f 1px, transparent 0) 0 0 / 16px 16px,
                 #121212;
             overflow: hidden;
-            flex-shrink: 0;
         }
 
         .vne-window {
