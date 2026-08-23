@@ -303,7 +303,7 @@ void X11Window::pollEvents() {
                 events_.keyDown(mapped, mods, repeat);
             }
             // Text input: decode printable characters via XLookupString
-            if (desc_.enable_events || cb.on_text_input) {
+            {
                 char buf[kTextInputBufferSize] = {};
                 const int n = XLookupString(&ev.xkey, buf, static_cast<int>(sizeof(buf) - 1), nullptr, nullptr);
                 if (n > 0 && static_cast<unsigned char>(buf[0]) >= kAsciiSpace) {
