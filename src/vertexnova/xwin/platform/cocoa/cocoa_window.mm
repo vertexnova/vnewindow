@@ -267,12 +267,12 @@
     if (!xwin_) {
         return;
     }
+    // isFlipped=YES: convertPoint: already yields top-left-origin Y (same as mouseDown:/mouseMoved:).
     const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-    const NSRect bounds = [self bounds];
     xwin_->handleMouseScroll(static_cast<float>(ev.scrollingDeltaX),
                              static_cast<float>(ev.scrollingDeltaY),
                              static_cast<double>(p.x),
-                             static_cast<double>(bounds.size.height - p.y),  // flip to top-left origin
+                             static_cast<double>(p.y),
                              vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
                                                                    static_cast<uint64_t>(ev.modifierFlags),
                                                                    xwin_->inputMapping()));
@@ -405,7 +405,11 @@
     }
     NSWindow* win = notification.object;
     const NSRect frame = [win frame];
-    // AppKit's origin is bottom-left of the main screen; xwin reports top-left.
+    // TODO(xwin): Investigate windowMove vs getPosition()/setPosition() origin consistency.
+    // windowDidMove currently converts to top-of-screen Y; getPosition() returns NSMaxY in
+    // AppKit bottom-left screen space (matching setFrameTopLeftPoint). Aligning these may
+    // affect cascade placement and any listener comparing the event payload with getPosition().
+    // Verify against vnerhi/vnegfx multi-backend samples before changing.
     const NSRect screen = NSScreen.screens.firstObject ? NSScreen.screens.firstObject.frame : NSMakeRect(0, 0, 0, 0);
     xwin_->handleWindowMove(static_cast<int32_t>(frame.origin.x),
                             static_cast<int32_t>(screen.size.height - frame.origin.y - frame.size.height));

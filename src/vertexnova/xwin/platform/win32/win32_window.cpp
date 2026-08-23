@@ -150,6 +150,10 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             return 0;
         }
         case WM_MOVE: {
+            // TODO(xwin): Investigate windowMove vs getPosition()/setPosition() origin consistency.
+            // WM_MOVE lParam is the client-area origin; getPosition() returns GetWindowRect frame
+            // origin. Aligning these may matter for listeners that compare the event with
+            // getPosition(). Verify against vnerhi/vnegfx multi-backend samples before changing.
             desc_.position.x = static_cast<int32_t>(GET_X_LPARAM(lParam));
             desc_.position.y = static_cast<int32_t>(GET_Y_LPARAM(lParam));
             events_.windowMove(desc_.position.x, desc_.position.y);
