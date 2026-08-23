@@ -77,9 +77,14 @@ class IWindow {
      * an event came from without holding a raw pointer. Ids are never reused; a window recreated
      * after a platform teardown (e.g. Android surface loss) gets a new one.
      *
+     * The default returns vne::events::kInvalidWindowId so prebuilt or legacy backends that
+     * predate window ids remain link-compatible. Concrete backends should override and assign
+     * one id per window via IWindow::nextId(). Making this pure virtual is reserved for a
+     * future major-version API break.
+     *
      * @see IWindowManager::findWindow
      */
-    [[nodiscard]] virtual vne::events::WindowId getId() const noexcept = 0;
+    [[nodiscard]] virtual vne::events::WindowId getId() const noexcept;
     [[nodiscard]] virtual NativeWindowHandle getNativeHandle() const noexcept = 0;
     [[nodiscard]] virtual WindowAPI getWindowAPI() const noexcept = 0;
     [[nodiscard]] virtual int getWidth() const noexcept = 0;
@@ -139,6 +144,9 @@ inline bool IWindow::isVSyncEnabled() const noexcept {
 inline void IWindow::minimize() {}
 inline void IWindow::maximize() {}
 inline void IWindow::restore() {}
+inline vne::events::WindowId IWindow::getId() const noexcept {
+    return vne::events::kInvalidWindowId;
+}
 inline std::string IWindow::getClipboardText() const {
     return {};
 }
