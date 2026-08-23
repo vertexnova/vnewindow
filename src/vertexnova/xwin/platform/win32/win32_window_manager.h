@@ -21,7 +21,6 @@ namespace vne::xwin {
 class Win32WindowManager final : public IWindowManager {
    public:
     /** @brief Invoked by Win32Window for resize/close notifications. */
-    void notifyWindowEvent(IWindow* window, const WindowEventData& event);
 
     Win32WindowManager();
     ~Win32WindowManager() override;
@@ -43,11 +42,8 @@ class Win32WindowManager final : public IWindowManager {
     void focusWindow(std::shared_ptr<IWindow> window) override;
 
     void processEvents() override;
-    void setEventCallback(const WindowManagerEventCallbackT& callback) override;
-    void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) override;
 
     /** @brief Used by Win32Window when forwarding input to optional callbacks. */
-    [[nodiscard]] const EventBridgeCallbacks& eventBridgeCallbacks() const noexcept { return event_bridge_callbacks_; }
     [[nodiscard]] bool shouldClose() const noexcept override;
     [[nodiscard]] bool shouldCloseAll() const noexcept override;
 
@@ -65,8 +61,6 @@ class Win32WindowManager final : public IWindowManager {
     std::vector<std::shared_ptr<IWindow>> windows_;
     std::shared_ptr<IWindow> primary_;
     std::shared_ptr<IWindow> focused_;
-    WindowManagerEventCallbackT callback_{};
-    EventBridgeCallbacks event_bridge_callbacks_{};
     bool initialized_ = false;
     std::string properties_;
     bool class_registered_ = false;

@@ -30,12 +30,10 @@ enum class WindowAPI {
     eX11Window = 30,
     eWaylandWindow = 31,
 
-    eIosUikitWindow = 40,
-    eTvosUikitWindow = 41,
+    eIosUikitWindow = 40,  // iOS, visionOS, and tvOS (UIKit)
     eAndroidSurfaceWindow = 50,
 
-    eWasmWindow = 60,
-    eWebgpuWindow = 61,
+    eWasmWindow = 60,  // Emscripten canvas; use RHI WebGPU for presentation
 };
 
 enum class GraphicsBackend {
@@ -45,7 +43,6 @@ enum class GraphicsBackend {
     eMetal = 3,
     eDirectX11 = 4,
     eDirectX12 = 5,
-    eWebGL = 6,
     eWebGPU = 7,
     eUnknown = 99
 };
@@ -66,24 +63,16 @@ enum class WindowTransparency { eOpaque = 0, eTranslucent = 1 };
 
 enum class WindowCursor { eNormal = 0, eHidden = 1, eDisabled = 2 };
 
-enum class WindowEventType {
-    eClose = 0,
-    eResize = 1,
-    eMove = 2,
-    eFocus = 3,
-    eMinimize = 4,
-    eMaximize = 5,
-    eRestore = 6,
-    eShow = 7,
-    eHide = 8,
-    eTap = 10,
-    ePan = 11,
-    ePinch = 12,
-    eOrientation = 13,
-    eStatusBar = 14
-};
+/**
+ * @brief Phase of a touch point, as delivered to the event bridge and the host injection APIs.
+ *
+ * Platform "cancelled" phases (UIKit touchesCancelled, browser touchcancel) collapse to eUp:
+ * consumers must release the touch either way, and the distinction has no consumer today.
+ */
+enum class TouchPhase : std::uint8_t { eDown = 0, eUp = 1, eMove = 2 };
 
-enum class EventAction { eBegan = 0, eChanged = 1, eEnded = 2, eCancelled = 3 };
+/** @brief Process-wide application lifecycle transitions, injected by the platform host. */
+enum class ApplicationLifecycle : std::uint8_t { ePause = 0, eResume = 1, eLowMemory = 2 };
 
 struct WindowPosition {
     int32_t x = 0;
@@ -105,44 +94,6 @@ struct WindowLimits {
     WindowSize max_size;
     bool has_min_size = false;
     bool has_max_size = false;
-};
-
-struct WindowEventData {
-    WindowEventType type{};
-    WindowSize size{};
-    WindowPosition position{};
-    bool focused = false;
-    bool minimized = false;
-    bool maximized = false;
-    uint32_t touch_count = 0;
-    float velocity_x = 0.0F;
-    float velocity_y = 0.0F;
-    float scale = 1.0F;
-    float velocity = 0.0F;
-    EventAction action = EventAction::eBegan;
-    int orientation = 0;
-    float status_bar_height = 0.0F;
-};
-
-struct WindowProperties {
-    std::string title;
-    WindowSize size;
-    WindowPosition position;
-    WindowMode mode = WindowMode::eWindowed;
-    WindowState state = WindowState::eNormal;
-    WindowVisibility visibility = WindowVisibility::eVisible;
-    WindowFocus focus = WindowFocus::eFocused;
-    WindowResize resize = WindowResize::eResizable;
-    WindowDecoration decoration = WindowDecoration::eDecorated;
-    WindowTransparency transparency = WindowTransparency::eOpaque;
-    WindowCursor cursor = WindowCursor::eNormal;
-    WindowLimits limits;
-    bool vsync_enabled = true;
-    bool always_on_top = false;
-    bool resizable = true;
-    bool decorated = true;
-    bool visible = true;
-    bool focused = true;
 };
 
 }  // namespace vne::xwin

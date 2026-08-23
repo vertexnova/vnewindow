@@ -12,6 +12,7 @@
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_factory.h"
 
+#include <atomic>
 #include <memory>
 
 namespace vne::xwin {
@@ -36,6 +37,7 @@ class ManagedWindow final : public IWindow {
     void resize(uint32_t width, uint32_t height) override { window_->resize(width, height); }
     void close() override { window_->close(); }
     [[nodiscard]] bool isOpen() const noexcept override { return window_->isOpen(); }
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return window_->getId(); }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override { return window_->getNativeHandle(); }
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override { return window_->getWindowAPI(); }
     [[nodiscard]] int getWidth() const noexcept override { return window_->getWidth(); }
@@ -64,6 +66,13 @@ class ManagedWindow final : public IWindow {
 };
 
 }  // namespace
+
+vne::events::WindowId IWindow::nextId() noexcept {
+    // Starts at 1 so 0 stays vne::events::kInvalidWindowId. Never reused: a window recreated after
+    // a platform teardown is a different window, and stale ids must not silently resolve to it.
+    static std::atomic<vne::events::WindowId> s_next_window_id{1};
+    return s_next_window_id.fetch_add(1, std::memory_order_relaxed);
+}
 
 std::unique_ptr<IWindow> IWindow::create(const WindowDescriptor& descriptor) {
     auto manager = WindowFactory::createWindowManager();

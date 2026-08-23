@@ -11,7 +11,7 @@
 
 #include "android_window.h"
 
-#include "event_bridge.h"
+#include "event_emitter.h"
 
 namespace vne::xwin {
 
@@ -111,26 +111,38 @@ float AndroidWindow::getDpiScale() const noexcept {
     return 1.0F;
 }
 
-void AndroidWindow::injectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
-    eventBridgeTouch(this, desc_, event_bridge_callbacks_, touch_id, x, y, phase);
+void AndroidWindow::injectTouchEvent(uint32_t touch_id, double x, double y, TouchPhase phase, uint8_t modifiers) {
+    events_.touch(touch_id, x, y, phase, modifiers);
 }
 
 void AndroidWindow::injectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers, bool repeat) {
     if (down) {
-        eventBridgeKeyDown(this, desc_, event_bridge_callbacks_, key, modifiers, repeat);
+        events_.keyDown(key, modifiers, repeat);
     } else {
-        eventBridgeKeyUp(this, desc_, event_bridge_callbacks_, key, modifiers);
+        events_.keyUp(key, modifiers);
     }
+}
+
+void AndroidWindow::injectTextInput(const char* utf8_text) {
+    events_.textInput(utf8_text);
 }
 
 void AndroidWindow::injectResizeEvent(uint32_t width, uint32_t height) {
     desc_.size.width = width;
     desc_.size.height = height;
-    eventBridgeWindowResize(this, desc_, event_bridge_callbacks_, width, height);
+    events_.windowResize(width, height);
 }
 
-void AndroidWindow::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
+void AndroidWindow::injectFocusEvent(bool focused) {
+    events_.windowFocus(focused);
+}
+
+void AndroidWindow::injectDpiChanged(float scale) {
+    events_.windowDpiChanged(scale);
+}
+
+void AndroidWindow::injectSafeAreaChanged(float top, float left, float bottom, float right) {
+    events_.windowSafeAreaChanged(top, left, bottom, right);
 }
 
 }  // namespace vne::xwin

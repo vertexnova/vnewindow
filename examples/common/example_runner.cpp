@@ -32,7 +32,7 @@ constexpr std::array kForwardedEventTypes = {
     vne::events::EventType::eKeyPressed,
     vne::events::EventType::eKeyReleased,
     vne::events::EventType::eKeyRepeat,
-    vne::events::EventType::eKeyTyped,
+    vne::events::EventType::eTextInput,
     vne::events::EventType::eMouseButtonPressed,
     vne::events::EventType::eMouseButtonReleased,
     vne::events::EventType::eMouseButtonDoubleClicked,
@@ -41,6 +41,14 @@ constexpr std::array kForwardedEventTypes = {
     vne::events::EventType::eTouchPress,
     vne::events::EventType::eTouchRelease,
     vne::events::EventType::eTouchMove,
+    vne::events::EventType::eWindowMinimize,
+    vne::events::EventType::eWindowRestore,
+    vne::events::EventType::eWindowMove,
+    vne::events::EventType::eWindowDpiChanged,
+    vne::events::EventType::eWindowSafeAreaChanged,
+    vne::events::EventType::eApplicationPause,
+    vne::events::EventType::eApplicationResume,
+    vne::events::EventType::eApplicationLowMemory,
 };
 
 }  // namespace

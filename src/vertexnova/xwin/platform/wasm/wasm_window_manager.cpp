@@ -29,12 +29,6 @@ WasmWindowManager::~WasmWindowManager() {
     shutdown();
 }
 
-void WasmWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
-    if (callback_ && window) {
-        callback_(window, event);
-    }
-}
-
 bool WasmWindowManager::initialize() {
     initialized_ = true;
     return true;
@@ -133,14 +127,6 @@ void WasmWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 }
 
 void WasmWindowManager::processEvents() {}
-
-void WasmWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
-    callback_ = callback;
-}
-
-void WasmWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
-}
 
 bool WasmWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {

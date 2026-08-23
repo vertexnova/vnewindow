@@ -109,14 +109,6 @@ void NullWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 
 void NullWindowManager::processEvents() {}
 
-void NullWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
-    callback_ = callback;
-}
-
-void NullWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
-}
-
 bool NullWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {
         if (w && !w->isOpen()) {

@@ -37,6 +37,7 @@ class NullWindow final : public IWindow {
     void resize(uint32_t width, uint32_t height) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return id_; }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;
@@ -44,6 +45,7 @@ class NullWindow final : public IWindow {
     [[nodiscard]] float getDpiScale() const noexcept override;
 
    private:
+    const vne::events::WindowId id_ = IWindow::nextId();
     WindowDescriptor descriptor_{};
     bool open_ = false;
 };

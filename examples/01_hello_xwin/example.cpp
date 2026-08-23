@@ -45,8 +45,6 @@ const char* toString(vne::xwin::WindowAPI api) {
             return "eAndroidSurfaceWindow";
         case WindowAPI::eWasmWindow:
             return "eWasmWindow";
-        case WindowAPI::eWebgpuWindow:
-            return "eWebgpuWindow";
         default:
             return "Unknown";
     }

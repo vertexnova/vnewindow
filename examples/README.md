@@ -60,7 +60,7 @@ Executables land in `build/<lib_type>/bin/examples/`.
 | Example | Description |
 |---------|-------------|
 | `example_01_hello_xwin` | Open a native window; log build/version info. |
-| `example_02_xwin_events` | Wire `EventBridgeCallbacks`; log key/mouse/touch events. |
+| `example_02_xwin_events` | Log key/mouse/touch/window/lifecycle events from `vne::events`. |
 
 <!-- markdownlint-enable MD060 -->
 

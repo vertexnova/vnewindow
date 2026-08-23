@@ -13,7 +13,7 @@
 
 #include "wasm_map_key.h"
 #include "wasm_window_manager.h"
-#include "event_bridge.h"
+#include "event_emitter.h"
 
 #include <algorithm>
 
@@ -61,6 +61,7 @@ WasmWindow::~WasmWindow() {
     emscripten_set_touchmove_callback("#canvas", nullptr, 0, nullptr);
     emscripten_set_touchcancel_callback("#canvas", nullptr, 0, nullptr);
     emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, nullptr);
+    emscripten_set_visibilitychange_callback(nullptr, 0, nullptr);
     emscripten_set_focus_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, 0, nullptr);
     emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, 0, nullptr);
 #endif
@@ -68,10 +69,6 @@ WasmWindow::~WasmWindow() {
 
 void WasmWindow::setEventOwner(WasmWindowManager* owner) {
     owner_ = owner;
-}
-
-const EventBridgeCallbacks& WasmWindow::eventBridgeCallbacks() const noexcept {
-    return owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
 }
 
 void WasmWindow::initialize(const WindowDescriptor& descriptor) {
@@ -105,6 +102,7 @@ void WasmWindow::initialize(const WindowDescriptor& descriptor) {
                                              &WasmWindow::FullscreenChangeCallback);
 
     // Window / document: focus routing for WindowFocusEvent
+    emscripten_set_visibilitychange_callback(this, 1, &WasmWindow::VisibilityChangeCallback);
     emscripten_set_focus_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::FocusCallback);
     emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, &WasmWindow::BlurCallback);
 
@@ -163,13 +161,10 @@ void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_
     emscripten_set_element_css_size("#canvas", static_cast<double>(css_width), static_cast<double>(css_height));
     emscripten_set_canvas_element_size("#canvas", backing_w, backing_h);
 
-    eventBridgeWindowResize(this, desc_, eventBridgeCallbacks(), css_width, css_height);
-    if (owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eResize;
-        data.size = desc_.size;
-        owner_->notifyWindowEvent(this, data);
-    }
+    events_.windowResize(css_width, css_height);
+    // The browser reports CSS pixels; the backing store scale can change independently
+    // (zoom, moving between displays), so report it alongside.
+    events_.windowDpiChanged(dpr);
 }
 
 EM_BOOL WasmWindow::ResizeCallback(int /*event_type*/, const EmscriptenUiEvent* /*event*/, void* user_data) {
@@ -194,7 +189,7 @@ EM_BOOL WasmWindow::KeyDownCallback(int /*event_type*/, const EmscriptenKeyboard
     const vne::events::KeyCode kc = mapEmscriptenKey(ev->code);
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     const bool repeat = ev->repeat;
-    eventBridgeKeyDown(self, self->desc_, self->eventBridgeCallbacks(), kc, mods, repeat);
+    self->events_.keyDown(kc, mods, repeat);
     return EM_TRUE;
 }
 
@@ -205,7 +200,7 @@ EM_BOOL WasmWindow::KeyUpCallback(int /*event_type*/, const EmscriptenKeyboardEv
     }
     const vne::events::KeyCode kc = mapEmscriptenKey(ev->code);
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    eventBridgeKeyUp(self, self->desc_, self->eventBridgeCallbacks(), kc, mods);
+    self->events_.keyUp(kc, mods);
     return EM_TRUE;
 }
 
@@ -219,10 +214,7 @@ EM_BOOL WasmWindow::MouseDownCallback(int /*event_type*/, const EmscriptenMouseE
         return EM_FALSE;
     }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    eventBridgeMouseButton(self,
-                           self->desc_,
-                           self->eventBridgeCallbacks(),
-                           btn,
+    self->events_.mouseButton(btn,
                            true,
                            static_cast<double>(ev->targetX),
                            static_cast<double>(ev->targetY),
@@ -240,10 +232,7 @@ EM_BOOL WasmWindow::MouseUpCallback(int /*event_type*/, const EmscriptenMouseEve
         return EM_FALSE;
     }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    eventBridgeMouseButton(self,
-                           self->desc_,
-                           self->eventBridgeCallbacks(),
-                           btn,
+    self->events_.mouseButton(btn,
                            false,
                            static_cast<double>(ev->targetX),
                            static_cast<double>(ev->targetY),
@@ -257,10 +246,7 @@ EM_BOOL WasmWindow::MouseMoveCallback(int /*event_type*/, const EmscriptenMouseE
         return EM_FALSE;
     }
     const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
-    eventBridgeMouseMove(self,
-                         self->desc_,
-                         self->eventBridgeCallbacks(),
-                         static_cast<double>(ev->targetX),
+    self->events_.mouseMove(static_cast<double>(ev->targetX),
                          static_cast<double>(ev->targetY),
                          mods);
     return EM_TRUE;
@@ -272,11 +258,13 @@ EM_BOOL WasmWindow::WheelCallback(int /*event_type*/, const EmscriptenWheelEvent
         return EM_FALSE;
     }
     // deltaX/deltaY are in CSS pixels (deltaMode=0); normalise to scroll steps
-    eventBridgeMouseScroll(self,
-                           self->desc_,
-                           self->eventBridgeCallbacks(),
-                           static_cast<float>(-ev->deltaX / 100.0),
-                           static_cast<float>(-ev->deltaY / 100.0));
+    const uint8_t mods =
+        mapEmscriptenModifiers(ev->mouse.shiftKey, ev->mouse.ctrlKey, ev->mouse.altKey, ev->mouse.metaKey);
+    self->events_.mouseScroll(static_cast<float>(-ev->deltaX / 100.0),
+                              static_cast<float>(-ev->deltaY / 100.0),
+                              static_cast<double>(ev->mouse.targetX),
+                              static_cast<double>(ev->mouse.targetY),
+                              mods);
     return EM_TRUE;
 }
 
@@ -285,18 +273,17 @@ EM_BOOL WasmWindow::TouchStartCallback(int /*event_type*/, const EmscriptenTouch
     if (!self || !ev) {
         return EM_FALSE;
     }
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     for (int i = 0; i < ev->numTouches; ++i) {
         const EmscriptenTouchPoint& tp = ev->touches[i];
         if (!tp.isChanged) {
             continue;
         }
-        eventBridgeTouch(self,
-                         self->desc_,
-                         self->eventBridgeCallbacks(),
-                         static_cast<uint32_t>(tp.identifier),
-                         static_cast<double>(tp.targetX),
-                         static_cast<double>(tp.targetY),
-                         EventBridgeTouchPhase::eDown);
+        self->events_.touch(static_cast<uint32_t>(tp.identifier),
+                            static_cast<double>(tp.targetX),
+                            static_cast<double>(tp.targetY),
+                            TouchPhase::eDown,
+                            mods);
     }
     return EM_TRUE;
 }
@@ -306,18 +293,17 @@ EM_BOOL WasmWindow::TouchEndCallback(int /*event_type*/, const EmscriptenTouchEv
     if (!self || !ev) {
         return EM_FALSE;
     }
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     for (int i = 0; i < ev->numTouches; ++i) {
         const EmscriptenTouchPoint& tp = ev->touches[i];
         if (!tp.isChanged) {
             continue;
         }
-        eventBridgeTouch(self,
-                         self->desc_,
-                         self->eventBridgeCallbacks(),
-                         static_cast<uint32_t>(tp.identifier),
-                         static_cast<double>(tp.targetX),
-                         static_cast<double>(tp.targetY),
-                         EventBridgeTouchPhase::eUp);
+        self->events_.touch(static_cast<uint32_t>(tp.identifier),
+                            static_cast<double>(tp.targetX),
+                            static_cast<double>(tp.targetY),
+                            TouchPhase::eUp,
+                            mods);
     }
     return EM_TRUE;
 }
@@ -327,18 +313,17 @@ EM_BOOL WasmWindow::TouchMoveCallback(int /*event_type*/, const EmscriptenTouchE
     if (!self || !ev) {
         return EM_FALSE;
     }
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     for (int i = 0; i < ev->numTouches; ++i) {
         const EmscriptenTouchPoint& tp = ev->touches[i];
         if (!tp.isChanged) {
             continue;
         }
-        eventBridgeTouch(self,
-                         self->desc_,
-                         self->eventBridgeCallbacks(),
-                         static_cast<uint32_t>(tp.identifier),
-                         static_cast<double>(tp.targetX),
-                         static_cast<double>(tp.targetY),
-                         EventBridgeTouchPhase::eMove);
+        self->events_.touch(static_cast<uint32_t>(tp.identifier),
+                            static_cast<double>(tp.targetX),
+                            static_cast<double>(tp.targetY),
+                            TouchPhase::eMove,
+                            mods);
     }
     return EM_TRUE;
 }
@@ -348,19 +333,31 @@ EM_BOOL WasmWindow::TouchCancelCallback(int /*event_type*/, const EmscriptenTouc
     if (!self || !ev) {
         return EM_FALSE;
     }
+    const uint8_t mods = mapEmscriptenModifiers(ev->shiftKey, ev->ctrlKey, ev->altKey, ev->metaKey);
     for (int i = 0; i < ev->numTouches; ++i) {
         const EmscriptenTouchPoint& tp = ev->touches[i];
         if (!tp.isChanged) {
             continue;
         }
-        eventBridgeTouch(self,
-                         self->desc_,
-                         self->eventBridgeCallbacks(),
-                         static_cast<uint32_t>(tp.identifier),
-                         static_cast<double>(tp.targetX),
-                         static_cast<double>(tp.targetY),
-                         EventBridgeTouchPhase::eUp);
+        self->events_.touch(static_cast<uint32_t>(tp.identifier),
+                            static_cast<double>(tp.targetX),
+                            static_cast<double>(tp.targetY),
+                            TouchPhase::eUp,
+                            mods);
     }
+    return EM_TRUE;
+}
+
+EM_BOOL WasmWindow::VisibilityChangeCallback(int /*event_type*/,
+                                             const EmscriptenVisibilityChangeEvent* ev,
+                                             void* ud) {
+    auto* self = static_cast<WasmWindow*>(ud);
+    if (!self || !ev) {
+        return EM_FALSE;
+    }
+    // The browser equivalent of backgrounding: rAF stops firing while hidden, so renderers need
+    // the same pause/resume treatment they get on mobile.
+    emitApplicationLifecycle(ev->hidden ? ApplicationLifecycle::ePause : ApplicationLifecycle::eResume);
     return EM_TRUE;
 }
 
@@ -369,13 +366,7 @@ EM_BOOL WasmWindow::FocusCallback(int /*event_type*/, const EmscriptenFocusEvent
     if (!self) {
         return EM_FALSE;
     }
-    eventBridgeWindowFocus(self, self->desc_, self->eventBridgeCallbacks(), true);
-    if (self->owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eFocus;
-        data.focused = true;
-        self->owner_->notifyWindowEvent(self, data);
-    }
+    self->events_.windowFocus(true);
     return EM_TRUE;
 }
 
@@ -384,13 +375,7 @@ EM_BOOL WasmWindow::BlurCallback(int /*event_type*/, const EmscriptenFocusEvent*
     if (!self) {
         return EM_FALSE;
     }
-    eventBridgeWindowFocus(self, self->desc_, self->eventBridgeCallbacks(), false);
-    if (self->owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eFocus;
-        data.focused = false;
-        self->owner_->notifyWindowEvent(self, data);
-    }
+    self->events_.windowFocus(false);
     return EM_TRUE;
 }
 

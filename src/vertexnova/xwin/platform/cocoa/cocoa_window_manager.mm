@@ -27,12 +27,6 @@ CocoaWindowManager::~CocoaWindowManager() {
     shutdown();
 }
 
-void CocoaWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
-    if (callback_ && window) {
-        callback_(window, event);
-    }
-}
-
 bool CocoaWindowManager::initialize() {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -136,14 +130,6 @@ void CocoaWindowManager::processEvents() {
         }
         [NSApp sendEvent:ev];
     }
-}
-
-void CocoaWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
-    callback_ = callback;
-}
-
-void CocoaWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
 }
 
 bool CocoaWindowManager::shouldClose() const noexcept {

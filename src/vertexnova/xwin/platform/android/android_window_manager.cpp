@@ -25,12 +25,6 @@ AndroidWindowManager::~AndroidWindowManager() {
     shutdown();
 }
 
-void AndroidWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
-    if (callback_ && window) {
-        callback_(window, event);
-    }
-}
-
 bool AndroidWindowManager::initialize() {
     initialized_ = true;
     return true;
@@ -121,14 +115,6 @@ void AndroidWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 }
 
 void AndroidWindowManager::processEvents() {}
-
-void AndroidWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
-    callback_ = callback;
-}
-
-void AndroidWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
-}
 
 bool AndroidWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {

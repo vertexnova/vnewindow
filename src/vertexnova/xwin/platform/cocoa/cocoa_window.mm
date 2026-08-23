@@ -12,7 +12,7 @@
 #include "cocoa_window.h"
 
 #include "cocoa_window_manager.h"
-#include "event_bridge.h"
+#include "event_emitter.h"
 
 #include "vertexnova/xwin/input_mapping.h"
 #include "vertexnova/xwin/xwin_types.h"
@@ -267,7 +267,15 @@
     if (!xwin_) {
         return;
     }
-    xwin_->handleMouseScroll(static_cast<float>(ev.scrollingDeltaX), static_cast<float>(ev.scrollingDeltaY));
+    const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
+    const NSRect bounds = [self bounds];
+    xwin_->handleMouseScroll(static_cast<float>(ev.scrollingDeltaX),
+                             static_cast<float>(ev.scrollingDeltaY),
+                             static_cast<double>(p.x),
+                             static_cast<double>(bounds.size.height - p.y),  // flip to top-left origin
+                             vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                  static_cast<uint64_t>(ev.modifierFlags),
+                                                                  xwin_->inputMapping()));
 }
 
 // ---- Text / IME input ----
@@ -374,6 +382,39 @@
     (void)notification;
     if (xwin_) {
         xwin_->handleWindowFocus(false);
+    }
+}
+
+- (void)windowDidMiniaturize:(NSNotification*)notification {
+    (void)notification;
+    if (xwin_) {
+        xwin_->handleWindowMinimize();
+    }
+}
+
+- (void)windowDidDeminiaturize:(NSNotification*)notification {
+    (void)notification;
+    if (xwin_) {
+        xwin_->handleWindowRestore();
+    }
+}
+
+- (void)windowDidMove:(NSNotification*)notification {
+    if (!xwin_) {
+        return;
+    }
+    NSWindow* win = notification.object;
+    const NSRect frame = [win frame];
+    // AppKit's origin is bottom-left of the main screen; xwin reports top-left.
+    const NSRect screen = NSScreen.screens.firstObject ? NSScreen.screens.firstObject.frame : NSMakeRect(0, 0, 0, 0);
+    xwin_->handleWindowMove(static_cast<int32_t>(frame.origin.x),
+                            static_cast<int32_t>(screen.size.height - frame.origin.y - frame.size.height));
+}
+
+- (void)windowDidChangeBackingProperties:(NSNotification*)notification {
+    (void)notification;
+    if (xwin_) {
+        xwin_->handleWindowDpiChanged();
     }
 }
 
@@ -489,70 +530,57 @@ void CocoaWindow::swapBuffers() {}
 // ---- Event dispatch helpers (called from ObjC) ----
 
 void CocoaWindow::handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat) {
-    if (key == vne::events::KeyCode::eUnknown) {
-        return;
-    }
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeKeyDown(this, desc_, cb, key, mods, repeat);
+    events_.keyDown(key, mods, repeat);
 }
 
 void CocoaWindow::handleKeyUp(vne::events::KeyCode key, uint8_t mods) {
-    if (key == vne::events::KeyCode::eUnknown) {
-        return;
-    }
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeKeyUp(this, desc_, cb, key, mods);
+    events_.keyUp(key, mods);
 }
 
 void CocoaWindow::handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, mods);
+    events_.mouseButton(button, pressed, x, y, mods);
 }
 
 void CocoaWindow::handleMouseMove(double x, double y, uint8_t mods) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseMove(this, desc_, cb, x, y, mods);
+    events_.mouseMove(x, y, mods);
 }
 
-void CocoaWindow::handleMouseScroll(float dx, float dy) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseScroll(this, desc_, cb, dx, dy);
+void CocoaWindow::handleMouseScroll(float dx, float dy, double x, double y, uint8_t mods) {
+    events_.mouseScroll(dx, dy, x, y, mods);
 }
 
 void CocoaWindow::handleWindowClose() {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeWindowClose(this, desc_, cb);
+    events_.windowClose();
     open_ = false;
-    if (owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eClose;
-        owner_->notifyWindowEvent(this, data);
-    }
     destroyNative();
 }
 
 void CocoaWindow::handleWindowResize(uint32_t w, uint32_t h) {
     desc_.size.width = w;
     desc_.size.height = h;
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeWindowResize(this, desc_, cb, w, h);
-    if (owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eResize;
-        data.size = desc_.size;
-        owner_->notifyWindowEvent(this, data);
-    }
+    events_.windowResize(w, h);
 }
 
 void CocoaWindow::handleWindowFocus(bool focused) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeWindowFocus(this, desc_, cb, focused);
-    if (owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eFocus;
-        data.focused = focused;
-        owner_->notifyWindowEvent(this, data);
-    }
+    events_.windowFocus(focused);
+}
+
+void CocoaWindow::handleWindowMinimize() {
+    events_.windowMinimize();
+}
+
+void CocoaWindow::handleWindowRestore() {
+    events_.windowRestore();
+}
+
+void CocoaWindow::handleWindowMove(int32_t x, int32_t y) {
+    desc_.position.x = x;
+    desc_.position.y = y;
+    events_.windowMove(x, y);
+}
+
+void CocoaWindow::handleWindowDpiChanged() {
+    events_.windowDpiChanged(getDpiScale());
 }
 
 void CocoaWindow::setFullscreenState(bool fs) {
@@ -738,8 +766,7 @@ float CocoaWindow::getDpiScale() const noexcept {
 }
 
 void CocoaWindow::handleTextInput(const char* utf8_text) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeTextInput(this, desc_, cb, utf8_text);
+    events_.textInput(utf8_text);
 }
 
 std::string CocoaWindow::getClipboardText() const {

@@ -51,6 +51,7 @@ set(TEST_SOURCES
     window_factory_test.cpp
     null_window_test.cpp
     null_window_manager_test.cpp
+    event_emitter_test.cpp
 )
 
 #==============================================================================

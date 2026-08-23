@@ -73,12 +73,6 @@ X11WindowManager::~X11WindowManager() {
     shutdown();
 }
 
-void X11WindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
-    if (callback_ && window) {
-        callback_(window, event);
-    }
-}
-
 bool X11WindowManager::initialize() {
     static std::once_flag s_x11_threads_init_once;
     std::call_once(s_x11_threads_init_once, []() { (void)XInitThreads(); });
@@ -201,14 +195,6 @@ void X11WindowManager::processEvents() {
             w->pollEvents();
         }
     }
-}
-
-void X11WindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
-    callback_ = callback;
-}
-
-void X11WindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
 }
 
 bool X11WindowManager::shouldClose() const noexcept {

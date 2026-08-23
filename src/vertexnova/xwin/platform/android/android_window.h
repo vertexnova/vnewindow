@@ -11,7 +11,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
-#include "vertexnova/xwin/event_bridge_callbacks.h"
+#include "event_emitter.h"
 
 #include <vertexnova/events/types.h>
 
@@ -53,6 +53,7 @@ class AndroidWindow final : public IWindow {
     void setCursor(WindowCursor cursor) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return id_; }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;
@@ -63,7 +64,7 @@ class AndroidWindow final : public IWindow {
      * @brief Inject a touch event from the host AInputQueue / GameActivity loop.
      * Call once per finger per AInputEvent after reading AINPUT_EVENT_TYPE_MOTION.
      */
-    void injectTouchEvent(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
+    void injectTouchEvent(uint32_t touch_id, double x, double y, TouchPhase phase, uint8_t modifiers = 0);
 
     /**
      * @brief Inject a key event from the host AInputQueue / GameActivity loop.
@@ -72,17 +73,29 @@ class AndroidWindow final : public IWindow {
      */
     void injectKeyEvent(vne::events::KeyCode key, bool down, uint8_t modifiers, bool repeat = false);
 
+    /** @brief Inject committed UTF-8 text (call from the IME / InputConnection path). */
+    void injectTextInput(const char* utf8_text);
+
     /** @brief Inject a window resize notification (call when ANativeWindow resizes). */
     void injectResizeEvent(uint32_t width, uint32_t height);
 
-    /** @brief Provide optional granular callbacks (mirrors WindowManager::setEventBridgeCallbacks). */
-    void setEventBridgeCallbacks(EventBridgeCallbacks callbacks);
+    /** @brief Inject a focus change (call on APP_CMD_GAINED_FOCUS / LOST_FOCUS). */
+    void injectFocusEvent(bool focused);
+
+    /** @brief Inject a density change (call on APP_CMD_CONFIG_CHANGED). */
+    void injectDpiChanged(float scale);
+
+    /** @brief Inject safe-area insets, in logical pixels, from WindowInsets. */
+    void injectSafeAreaChanged(float top, float left, float bottom, float right);
 
    private:
+    const vne::events::WindowId id_ = IWindow::nextId();
     WindowDescriptor desc_{};
     bool open_ = false;
     void* native_ = nullptr;
-    EventBridgeCallbacks event_bridge_callbacks_{};
+
+    // Declared last: binds to desc_ by reference.
+    EventEmitter events_{this, desc_};
 };
 
 }  // namespace vne::xwin

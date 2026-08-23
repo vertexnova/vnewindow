@@ -16,16 +16,12 @@
 #include "vertexnova/xwin/window_descriptor.h"
 #include "vertexnova/xwin/monitor_info.h"
 #include "vertexnova/xwin/xwin_types.h"
-#include "vertexnova/xwin/event_bridge_callbacks.h"
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace vne::xwin {
-
-using WindowManagerEventCallbackT = std::function<void(IWindow*, const WindowEventData&)>;
 
 /**
  * @brief Owns and dispatches a set of IWindow instances and platform-wide events.
@@ -51,19 +47,34 @@ class IWindowManager {
     [[nodiscard]] virtual std::vector<std::shared_ptr<IWindow>> getWindows() const = 0;
     [[nodiscard]] virtual std::shared_ptr<IWindow> getPrimaryWindow() const noexcept = 0;
     [[nodiscard]] virtual std::shared_ptr<IWindow> getFocusedWindow() const noexcept = 0;
+    /**
+     * @brief Resolves the window an event came from, via IWindow::getId().
+     * @return The matching window, or nullptr if it has since been removed.
+     */
+    [[nodiscard]] virtual std::shared_ptr<IWindow> findWindow(vne::events::WindowId id) const;
     virtual void setPrimaryWindow(std::shared_ptr<IWindow> window) = 0;
     virtual void focusWindow(std::shared_ptr<IWindow> window) = 0;
 
-    virtual void processEvents() = 0;
-    virtual void setEventCallback(const WindowManagerEventCallbackT& callback) = 0;
     /**
-     * @brief Optional granular hooks after vne::events updates (see event_bridge_callbacks.h).
+     * @brief Pumps the platform event loop, emitting vne::events events for whatever arrived.
      *
-     * After each frame: call vne::events::EventManager::instance().processEvents() if you use the
-     * queued events, then vne::events::Input::nextFrame() once after your simulation step (see
-     * vneevents input documentation). xwin does not call nextFrame() inside processEvents().
+     * This only fills the queue. Each frame the application then calls
+     * vne::events::EventManager::instance().processEvents() to dispatch it, and
+     * vne::events::Input::nextFrame() once after its simulation step. xwin calls neither.
      */
-    virtual void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) = 0;
+    virtual void processEvents() = 0;
+
+    /**
+     * @brief Emits a process-scoped application lifecycle event.
+     *
+     * Called by the platform host, which is the only thing that sees these transitions: the iOS
+     * scene delegate on resign-active / enter-background, the Android host on APP_CMD_PAUSE and
+     * friends, the browser on visibilitychange. Not window-scoped, so the resulting event carries
+     * no window id.
+     *
+     * On eLowMemory, release what you can — mobile systems terminate apps that ignore it.
+     */
+    virtual void notifyApplicationLifecycle(ApplicationLifecycle transition);
     [[nodiscard]] virtual bool shouldClose() const noexcept = 0;
     [[nodiscard]] virtual bool shouldCloseAll() const noexcept = 0;
 
@@ -91,6 +102,18 @@ inline MonitorInfo IWindowManager::getMonitorInfo(uint32_t index) const {
 }
 inline uint32_t IWindowManager::getPrimaryMonitorIndex() const noexcept {
     return 0;
+}
+
+inline std::shared_ptr<IWindow> IWindowManager::findWindow(vne::events::WindowId id) const {
+    if (id == vne::events::kInvalidWindowId) {
+        return nullptr;
+    }
+    for (const auto& window : getWindows()) {
+        if (window && window->getId() == id) {
+            return window;
+        }
+    }
+    return nullptr;
 }
 
 }  // namespace vne::xwin

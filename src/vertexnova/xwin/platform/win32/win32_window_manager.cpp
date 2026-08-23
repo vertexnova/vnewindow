@@ -30,12 +30,6 @@ Win32WindowManager::~Win32WindowManager() {
     shutdown();
 }
 
-void Win32WindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
-    if (callback_ && window) {
-        callback_(window, event);
-    }
-}
-
 bool Win32WindowManager::initialize() {
     initialized_ = true;
     return true;
@@ -132,14 +126,6 @@ void Win32WindowManager::processEvents() {
             w->pollEvents();
         }
     }
-}
-
-void Win32WindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
-    callback_ = callback;
-}
-
-void Win32WindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
 }
 
 bool Win32WindowManager::shouldClose() const noexcept {

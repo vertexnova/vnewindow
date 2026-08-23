@@ -94,9 +94,10 @@ endif()
 set(XWIN_SOURCES
     xwin_version.cpp
     window.cpp
+    window_manager.cpp
     window_factory.cpp
     time_step.cpp
-    event_bridge.cpp
+    event_emitter.cpp
     input_mapping.cpp
     platform/null/null_window.cpp
     platform/null/null_window_manager.cpp

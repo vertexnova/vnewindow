@@ -13,19 +13,17 @@
 /** @file window.h Abstraction for platform windows (vne::xwin::IWindow). */
 
 #include "vertexnova/xwin/window_descriptor.h"
+#include "vertexnova/xwin/xwin_export.h"
 #include "vertexnova/xwin/native_window_handle.h"
 #include "vertexnova/xwin/xwin_types.h"
 
-#include <functional>
+#include <vertexnova/events/types.h>
+
 #include <memory>
 #include <span>
 #include <string>
 
 namespace vne::xwin {
-
-struct WindowEventData;
-
-using WindowEventCallbackT = std::function<void(const WindowEventData&)>;
 
 /**
  * @brief Platform window abstraction; rendering presents externally — swapBuffers may be a no-op when GL is external.
@@ -72,6 +70,16 @@ class IWindow {
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void close() = 0;
     [[nodiscard]] virtual bool isOpen() const noexcept = 0;
+    /**
+     * @brief Stable identifier for this window, unique within the process.
+     *
+     * Stamped on every vne::events event this window emits, so a listener can tell which window
+     * an event came from without holding a raw pointer. Ids are never reused; a window recreated
+     * after a platform teardown (e.g. Android surface loss) gets a new one.
+     *
+     * @see IWindowManager::findWindow
+     */
+    [[nodiscard]] virtual vne::events::WindowId getId() const noexcept = 0;
     [[nodiscard]] virtual NativeWindowHandle getNativeHandle() const noexcept = 0;
     [[nodiscard]] virtual WindowAPI getWindowAPI() const noexcept = 0;
     [[nodiscard]] virtual int getWidth() const noexcept = 0;
@@ -80,8 +88,11 @@ class IWindow {
     virtual void setClipboardText(const std::string& text);
     virtual void setWindowIcon(std::span<const uint8_t> rgba_pixels, uint32_t width, uint32_t height);
 
+    /** @brief Allocates the next process-unique window id. Backends call this once per window. */
+    [[nodiscard]] static VNE_XWIN_API vne::events::WindowId nextId() noexcept;
+
     /** @brief Constructs a default backend window and initializes it with descriptor. */
-    [[nodiscard]] static std::unique_ptr<IWindow> create(const WindowDescriptor& descriptor);
+    [[nodiscard]] static VNE_XWIN_API std::unique_ptr<IWindow> create(const WindowDescriptor& descriptor);
 };
 
 inline void IWindow::setWindowLimits(const WindowLimits& limits) {
