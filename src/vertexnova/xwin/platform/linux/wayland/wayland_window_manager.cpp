@@ -437,8 +437,9 @@ void WaylandWindowManager::onOutputScale(struct wl_output* output, int32_t facto
         return;
     }
     const int32_t previous_scale = output_scale_;
-    const auto it = std::find_if(outputs_.begin(), outputs_.end(),
-                                 [output](const auto& entry) { return entry.second.output == output; });
+    const auto it = std::find_if(outputs_.begin(), outputs_.end(), [output](const auto& entry) {
+        return entry.second.output == output;
+    });
     if (it == outputs_.end()) {
         return;
     }

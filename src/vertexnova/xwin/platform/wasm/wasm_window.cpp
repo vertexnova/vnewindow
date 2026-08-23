@@ -283,8 +283,7 @@ void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_
     const uint32_t height = css_height;
 
     const float dpr = static_cast<float>(emscripten_get_device_pixel_ratio());
-    const bool size_unchanged =
-        width == desc_.size.width && height == desc_.size.height && dpr == applied_dpr_;
+    const bool size_unchanged = width == desc_.size.width && height == desc_.size.height && dpr == applied_dpr_;
 
     // Explicit resize must reach the shell even when the panel already matches; shell layout
     // callbacks already carry the laid-out content box and must not re-request it.
