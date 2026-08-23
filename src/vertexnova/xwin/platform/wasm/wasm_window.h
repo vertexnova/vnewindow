@@ -30,6 +30,8 @@ class WasmWindow final : public IWindow {
 
     void setEventOwner(WasmWindowManager* owner);
 
+    void prepareInitialize(bool is_primary) noexcept { is_primary_ = is_primary; }
+
     void initialize(const WindowDescriptor& descriptor) override;
     void pollEvents() override;
     void swapBuffers() override;
@@ -57,10 +59,18 @@ class WasmWindow final : public IWindow {
     [[nodiscard]] uint32_t getFramebufferHeight() const noexcept override;
     [[nodiscard]] float getDpiScale() const noexcept override;
 
+    void dispatchKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat);
+    void dispatchKeyUp(vne::events::KeyCode key, uint8_t mods);
+    void emitWindowFocus(bool focused);
+    [[nodiscard]] bool isPrimary() const noexcept { return is_primary_; }
+    [[nodiscard]] bool usesVneShell() const noexcept { return uses_vne_shell_; }
+
 #ifdef __EMSCRIPTEN__
-    static EM_BOOL ResizeCallback(int event_type, const EmscriptenUiEvent* event, void* user_data);
-    static EM_BOOL KeyDownCallback(int event_type, const EmscriptenKeyboardEvent* ev, void* ud);
-    static EM_BOOL KeyUpCallback(int event_type, const EmscriptenKeyboardEvent* ev, void* ud);
+    void applyViewportSize(uint32_t css_width, uint32_t css_height);
+    [[nodiscard]] static bool queryBrowserViewport(int& out_width, int& out_height);
+    [[nodiscard]] static bool detectVneShell() noexcept;
+    [[nodiscard]] static bool detectLegacyCanvasShell() noexcept;
+
     static EM_BOOL MouseDownCallback(int event_type, const EmscriptenMouseEvent* ev, void* ud);
     static EM_BOOL MouseUpCallback(int event_type, const EmscriptenMouseEvent* ev, void* ud);
     static EM_BOOL MouseMoveCallback(int event_type, const EmscriptenMouseEvent* ev, void* ud);
@@ -70,15 +80,13 @@ class WasmWindow final : public IWindow {
     static EM_BOOL TouchMoveCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
     static EM_BOOL TouchCancelCallback(int event_type, const EmscriptenTouchEvent* ev, void* ud);
     static EM_BOOL FullscreenChangeCallback(int event_type, const EmscriptenFullscreenChangeEvent* ev, void* ud);
-    static EM_BOOL VisibilityChangeCallback(int event_type, const EmscriptenVisibilityChangeEvent* ev, void* user_data);
-    static EM_BOOL FocusCallback(int event_type, const EmscriptenFocusEvent* ev, void* ud);
-    static EM_BOOL BlurCallback(int event_type, const EmscriptenFocusEvent* ev, void* ud);
 #endif
 
    private:
 #ifdef __EMSCRIPTEN__
-    void applyViewportSize(uint32_t css_width, uint32_t css_height);
-    [[nodiscard]] static bool queryBrowserViewport(int& out_width, int& out_height);
+    [[nodiscard]] const char* canvasSelector() const noexcept { return canvas_selector_.c_str(); }
+    void registerCanvasCallbacks();
+    void unregisterCanvasCallbacks();
 #endif
 
     const vne::events::WindowId id_ = IWindow::nextId();
@@ -87,7 +95,9 @@ class WasmWindow final : public IWindow {
     bool initialized_ = false;
     bool should_close_ = false;
     bool fullscreen_ = false;
-    void* canvas_tag_ = nullptr;
+    bool is_primary_ = false;
+    bool uses_vne_shell_ = false;
+    std::string canvas_selector_;
 
     // Declared last: binds to desc_ by reference.
     EventEmitter events_{this, desc_};

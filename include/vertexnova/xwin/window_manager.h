@@ -53,6 +53,15 @@ class IWindowManager {
      * @return The matching window, or nullptr if it has since been removed.
      */
     [[nodiscard]] virtual std::shared_ptr<IWindow> findWindow(vne::events::WindowId id) const;
+
+    /**
+     * @brief Whether this backend can host more than one window at a time.
+     *
+     * False on platforms where the concept does not apply — UIKit drives one scene, Android one
+     * native surface, and the web only when a host shell provides extra canvases. Ask before
+     * offering multi-window UI rather than discovering it from a null openWindow().
+     */
+    [[nodiscard]] virtual bool supportsMultipleWindows() const noexcept;
     virtual void setPrimaryWindow(std::shared_ptr<IWindow> window) = 0;
     virtual void focusWindow(std::shared_ptr<IWindow> window) = 0;
 
@@ -107,6 +116,10 @@ inline MonitorInfo IWindowManager::getMonitorInfo(uint32_t index) const {
 }
 inline uint32_t IWindowManager::getPrimaryMonitorIndex() const noexcept {
     return 0;
+}
+
+inline bool IWindowManager::supportsMultipleWindows() const noexcept {
+    return true;
 }
 
 inline std::shared_ptr<IWindow> IWindowManager::findWindow(vne::events::WindowId id) const {

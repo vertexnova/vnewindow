@@ -78,6 +78,8 @@ Run on macOS, Win32, or Linux (desktop backends with multi-window support):
 
 On CI (null backend), the runner performs a smoke cycle and exits without opening windows.
 
+**Web (WASM):** run `./scripts/build_wasm.sh --serve` and open `example_03_multi_window.html`. Multiple windows appear as panels inside the page desktop (`#vne-desktop`); click a panel to focus it before typing.
+
 ## Adding a New Example
 
 1. Create `examples/04_my_example/example.cpp` implementing `ExampleBase`.

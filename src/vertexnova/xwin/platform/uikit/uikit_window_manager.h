@@ -42,6 +42,8 @@ class UIKitWindowManager final : public IWindowManager {
     void focusWindow(std::shared_ptr<IWindow> window) override;
 
     void processEvents() override;
+    /** One scene / one native surface: additional windows are not a platform concept here. */
+    [[nodiscard]] bool supportsMultipleWindows() const noexcept override { return false; }
     [[nodiscard]] bool shouldClose() const noexcept override;
     [[nodiscard]] bool shouldCloseAll() const noexcept override;
 

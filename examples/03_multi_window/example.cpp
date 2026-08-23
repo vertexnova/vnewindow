@@ -100,8 +100,14 @@ class MultiWindowExample final : public vne::xwin::examples::ExampleBase {
 
         if (mgr.getWindowAPI() == vne::xwin::WindowAPI::eIosUikitWindow) {
             VNE_LOG_INFO << "Note: UIKit is typically single-scene; child windows may not be supported.";
+        } else if (mgr.getWindowAPI() == vne::xwin::WindowAPI::eWasmWindow) {
+            VNE_LOG_INFO << "Web: multiple panels inside #vne-desktop (click a panel to focus, then type).";
+            openChild();
+            openChild();
+            if (main_) {
+                mgr.focusWindow(main_);
+            }
         } else {
-            // Open demo children immediately so multiple windows are visible without pressing N first.
             openChild();
             openChild();
             if (main_) {
@@ -253,11 +259,14 @@ class MultiWindowExample final : public vne::xwin::examples::ExampleBase {
             return;
         }
 
-        // Cascade from the main window so title bars stay visible (classic MDI offset).
+        // Cascade so title bars stay visible. On WASM the shell exits fill-mode and
+        // places the primary at (24,24); keep children offset from that origin.
         if (main_) {
             const auto p = main_->getPosition();
+            const int base_x = (p.x == 0 && p.y == 0) ? 24 : p.x;
+            const int base_y = (p.x == 0 && p.y == 0) ? 24 : p.y;
             const int offset = static_cast<int>(child_counter_) * 40;
-            child->setPosition(p.x + offset, p.y + offset);
+            child->setPosition(base_x + offset, base_y + offset);
         }
 
         titles_[child->getId()] = title;

@@ -16,7 +16,13 @@
 #include <string>
 #include <vector>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/html5.h>
+#endif
+
 namespace vne::xwin {
+
+class WasmWindow;
 
 class WasmWindowManager final : public IWindowManager {
    public:
@@ -42,6 +48,8 @@ class WasmWindowManager final : public IWindowManager {
     void focusWindow(std::shared_ptr<IWindow> window) override;
 
     void processEvents() override;
+    /** Only when a host shell (window.VneShell) provides additional canvases; one canvas otherwise. */
+    [[nodiscard]] bool supportsMultipleWindows() const noexcept override;
     [[nodiscard]] bool shouldClose() const noexcept override;
     [[nodiscard]] bool shouldCloseAll() const noexcept override;
 
@@ -55,11 +63,24 @@ class WasmWindowManager final : public IWindowManager {
     void sleep(uint32_t milliseconds) const noexcept override;
     [[nodiscard]] double getPlatformTime() const noexcept override;
 
+    void focusWindowFromCanvas(WasmWindow* window);
+
    private:
+    void registerGlobalCallbacks();
+    void unregisterGlobalCallbacks();
+
+#ifdef __EMSCRIPTEN__
+    static EM_BOOL GlobalKeyDownCallback(int event_type, const EmscriptenKeyboardEvent* ev, void* user_data);
+    static EM_BOOL GlobalKeyUpCallback(int event_type, const EmscriptenKeyboardEvent* ev, void* user_data);
+    static EM_BOOL GlobalVisibilityCallback(int event_type, const EmscriptenVisibilityChangeEvent* ev, void* user_data);
+    static EM_BOOL GlobalResizeCallback(int event_type, const EmscriptenUiEvent* event, void* user_data);
+#endif
+
     std::vector<std::shared_ptr<IWindow>> windows_;
     std::shared_ptr<IWindow> primary_;
     std::shared_ptr<IWindow> focused_;
     bool initialized_ = false;
+    bool global_callbacks_registered_ = false;
     std::string properties_;
 };
 
