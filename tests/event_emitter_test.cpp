@@ -12,7 +12,6 @@
 
 #include "vertexnova/xwin/event_emitter.h"
 #include "vertexnova/xwin/window.h"
-#include "vertexnova/xwin/window_factory.h"
 
 #include <vertexnova/events/events.h>
 
@@ -317,11 +316,10 @@ TEST_F(EventEmitterTest, EmitsEveryWindowStateTransition) {
 // ---------------------------------------------------------------------------
 
 TEST_F(EventEmitterTest, ApplicationLifecycleIsProcessScopedAndCarriesNoWindowId) {
-    auto manager = WindowFactory::createWindowManager(WindowAPI::eNullWindow);
-    ASSERT_NE(manager, nullptr);
-    manager->notifyApplicationLifecycle(ApplicationLifecycle::ePause);
-    manager->notifyApplicationLifecycle(ApplicationLifecycle::eResume);
-    manager->notifyApplicationLifecycle(ApplicationLifecycle::eLowMemory);
+    // Static: no window instance involved, which is the point of the scope distinction.
+    EventEmitter::applicationLifecycle(ApplicationLifecycle::ePause);
+    EventEmitter::applicationLifecycle(ApplicationLifecycle::eResume);
+    EventEmitter::applicationLifecycle(ApplicationLifecycle::eLowMemory);
     drain();
 
     const std::vector<ev::EventType> expected = {

@@ -208,7 +208,7 @@ void EventEmitter::windowSafeAreaChanged(float top, float left, float bottom, fl
 // Application lifecycle (process-scoped)
 // ---------------------------------------------------------------------------
 
-void emitApplicationLifecycle(ApplicationLifecycle transition) {
+void EventEmitter::applicationLifecycle(ApplicationLifecycle transition) {
     switch (transition) {
         case ApplicationLifecycle::ePause:
             push<vne::events::ApplicationPauseEvent>();

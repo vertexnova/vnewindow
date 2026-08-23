@@ -17,7 +17,7 @@ namespace vne::xwin {
 
 void IWindowManager::notifyApplicationLifecycle(ApplicationLifecycle transition) {
     // Process-scoped, so it needs no window and no backend override: every manager shares this.
-    emitApplicationLifecycle(transition);
+    EventEmitter::applicationLifecycle(transition);
 }
 
 }  // namespace vne::xwin

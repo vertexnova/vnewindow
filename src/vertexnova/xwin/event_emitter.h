@@ -66,6 +66,19 @@ class VNE_XWIN_API EventEmitter {
     // -- Touch --------------------------------------------------------------
     void touch(std::uint32_t touch_id, double x, double y, TouchPhase phase, std::uint8_t modifiers) const;
 
+    /**
+     * @brief Emits a process-scoped application lifecycle event.
+     *
+     * Static because lifecycle belongs to the process, not to any window: it carries no window id
+     * and fires once per transition however many windows are open. Requiring an instance would
+     * mean picking an arbitrary window just to announce that the application backgrounded.
+     *
+     * Unlike every other method here it consults no descriptor, so `enable_events` does not gate
+     * it — that flag opts a *window* out of its own events, and this is not a window's event.
+     * Window managers call this from IWindowManager::notifyApplicationLifecycle.
+     */
+    static void applicationLifecycle(ApplicationLifecycle transition);
+
     // -- Window state -------------------------------------------------------
     void windowResize(std::uint32_t width, std::uint32_t height) const;
     void windowClose() const;
@@ -82,14 +95,4 @@ class VNE_XWIN_API EventEmitter {
     const IWindow* window_;
     const WindowDescriptor* descriptor_;
 };
-
-/**
- * @brief Emits a process-scoped application lifecycle event.
- *
- * Not a member of EventEmitter: lifecycle is not window-scoped, so these carry no window id and
- * are emitted once per transition regardless of how many windows are open. Window managers call
- * this from IWindowManager::notifyApplicationLifecycle.
- */
-VNE_XWIN_API void emitApplicationLifecycle(ApplicationLifecycle transition);
-
 }  // namespace vne::xwin

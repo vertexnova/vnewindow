@@ -345,7 +345,7 @@ EM_BOOL WasmWindow::VisibilityChangeCallback(int /*event_type*/, const Emscripte
     }
     // The browser equivalent of backgrounding: rAF stops firing while hidden, so renderers need
     // the same pause/resume treatment they get on mobile.
-    emitApplicationLifecycle(ev->hidden ? ApplicationLifecycle::ePause : ApplicationLifecycle::eResume);
+    EventEmitter::applicationLifecycle(ev->hidden ? ApplicationLifecycle::ePause : ApplicationLifecycle::eResume);
     return EM_TRUE;
 }
 

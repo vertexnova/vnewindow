@@ -198,7 +198,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
                                       queue:NSOperationQueue.mainQueue
                                  usingBlock:^(NSNotification* note) {
                                    (void)note;
-                                   vne::xwin::emitApplicationLifecycle(transition);
+                                   vne::xwin::EventEmitter::applicationLifecycle(transition);
                                  }];
         };
         app_background_observer_ =
