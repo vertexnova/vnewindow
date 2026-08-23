@@ -293,13 +293,21 @@ void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_
             width = static_cast<uint32_t>(content_w);
             height = static_cast<uint32_t>(content_h);
         }
+    }
+
+    const float dpr = static_cast<float>(emscripten_get_device_pixel_ratio());
+    if (width == desc_.size.width && height == desc_.size.height && dpr == applied_dpr_) {
+        return;
+    }
+
+    if (uses_vne_shell_) {
         vne_xwin_shell_set_size(static_cast<int>(id_), static_cast<int>(width), static_cast<int>(height));
     }
 
     desc_.size.width = width;
     desc_.size.height = height;
+    applied_dpr_ = dpr;
 
-    const float dpr = emscripten_get_device_pixel_ratio();
     const int backing_w = static_cast<int>(static_cast<float>(width) * dpr);
     const int backing_h = static_cast<int>(static_cast<float>(height) * dpr);
 

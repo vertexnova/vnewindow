@@ -97,6 +97,7 @@ class WasmWindow final : public IWindow {
     bool fullscreen_ = false;
     bool is_primary_ = false;
     bool uses_vne_shell_ = false;
+    float applied_dpr_ = 0.0F;
     std::string canvas_selector_;
 
     // Declared last: binds to desc_ by reference.
