@@ -67,7 +67,10 @@ class ExampleRunner::RunnerListener : public vne::events::EventListener {
             return;
         }
         if (event.type() == vne::events::EventType::eWindowClose) {
-            runner_->onCloseRequest();
+            // Only exit when the runner's primary window closes; child windows may close independently.
+            if (runner_->window_ && event.windowId() == runner_->window_->getId()) {
+                runner_->onCloseRequest();
+            }
         }
         if (event.type() == vne::events::EventType::eKeyPressed) {
             const auto* ke = dynamic_cast<const vne::events::KeyPressedEvent*>(&event);
@@ -176,8 +179,9 @@ bool ExampleRunner::tick() {
     vne::events::EventManager::instance().processEvents();
 
     // Check close conditions
-    if (!is_running_ || (manager_ && manager_->shouldClose()) || (!window_ || !window_->isOpen())
-        || (manager_ && manager_->getWindowCount() == 0)) {
+    const bool any_open = manager_ && manager_->getWindowCount() > 0;
+    const bool primary_closed = window_ && !window_->isOpen();
+    if (!is_running_ || !any_open || primary_closed || (manager_ && manager_->shouldCloseAll())) {
         vne::events::Input::nextFrame();
         return false;
     }
@@ -223,6 +227,7 @@ void ExampleRunner::shutdown() {
 
     window_.reset();
     if (manager_) {
+        manager_->destroyAllWindows();
         manager_->shutdown();
         manager_.reset();
     }
@@ -248,9 +253,10 @@ int ExampleRunner::run() {
 
 void ExampleRunner::onCloseRequest() {
     is_running_ = false;
-    if (window_) {
-        window_->close();
+    if (manager_) {
+        manager_->destroyAllWindows();
     }
+    window_.reset();
 }
 
 }  // namespace vne::xwin::examples

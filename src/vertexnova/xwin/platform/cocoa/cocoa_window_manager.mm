@@ -117,6 +117,15 @@ void CocoaWindowManager::setPrimaryWindow(std::shared_ptr<IWindow> window) {
 
 void CocoaWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
+    if (!focused_) {
+        return;
+    }
+    const NativeWindowHandle handle = focused_->getNativeHandle();
+    if (handle.ns_window) {
+        NSWindow* win = (__bridge NSWindow*)handle.ns_window;
+        [win makeKeyAndOrderFront:nil];
+        [NSApp activateIgnoringOtherApps:YES];
+    }
 }
 
 void CocoaWindowManager::processEvents() {

@@ -40,3 +40,4 @@ endif()
 #------------------------------------------------------------------------------
 add_subdirectory(01_hello_xwin)
 add_subdirectory(02_xwin_events)
+add_subdirectory(03_multi_window)

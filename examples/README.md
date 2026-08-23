@@ -61,18 +61,32 @@ Executables land in `build/<lib_type>/bin/examples/`.
 |---------|-------------|
 | `example_01_hello_xwin` | Open a native window; log build/version info. |
 | `example_02_xwin_events` | Log key/mouse/touch/window/lifecycle events from `vne::events`. |
+| `example_03_multi_window` | Open/focus/close multiple windows; log events with per-window id routing. |
 
 <!-- markdownlint-enable MD060 -->
 
+### Manual test checklist — `example_03_multi_window`
+
+Run on macOS, Win32, or Linux (desktop backends with multi-window support):
+
+1. Build and run: `./build/shared/bin/examples/example_03_multi_window` (macOS `.app` path may differ).
+2. Press `N` twice — three windows should appear (main + two children).
+3. Click in each window — mouse events should show the matching `[win=<id> title="..."]`.
+4. Press `F` — focus should cycle; `[WINDOW] FOCUS` events should match the focused window.
+5. Press `C` while a child is focused — only that child closes; the app keeps running.
+6. Close the main window or press `ESC` — all windows close and the app exits cleanly.
+
+On CI (null backend), the runner performs a smoke cycle and exits without opening windows.
+
 ## Adding a New Example
 
-1. Create `examples/03_my_example/example.cpp` implementing `ExampleBase`.
-2. Add to `examples/03_my_example/CMakeLists.txt`:
+1. Create `examples/04_my_example/example.cpp` implementing `ExampleBase`.
+2. Add to `examples/04_my_example/CMakeLists.txt`:
 
    ```cmake
-   vne_add_example(example_03_my_example SOURCES example.cpp)
+   vne_add_example(example_04_my_example SOURCES example.cpp)
    ```
 
-3. Add `add_subdirectory(03_my_example)` to `examples/CMakeLists.txt`.
+3. Add `add_subdirectory(04_my_example)` to `examples/CMakeLists.txt`.
 
 No platform-specific code needed in `example.cpp`.

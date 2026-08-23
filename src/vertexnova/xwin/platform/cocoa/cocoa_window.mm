@@ -465,22 +465,26 @@ void CocoaWindow::initialize(const WindowDescriptor& descriptor) {
     destroyNative();
     desc_ = descriptor;
 
-    NSRect rect = NSMakeRect(desc_.position.x,
-                             desc_.position.y,
-                             static_cast<CGFloat>(desc_.size.width),
-                             static_cast<CGFloat>(desc_.size.height));
+    NSRect content_rect =
+        NSMakeRect(0.0, 0.0, static_cast<CGFloat>(desc_.size.width), static_cast<CGFloat>(desc_.size.height));
     NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
                        | NSWindowStyleMaskResizable;
     if (!desc_.decorated) {
         style = NSWindowStyleMaskBorderless;
     }
 
-    NSWindow* win = [[NSWindow alloc] initWithContentRect:rect styleMask:style backing:NSBackingStoreBuffered defer:NO];
+    NSWindow* win = [[NSWindow alloc] initWithContentRect:content_rect
+                                                styleMask:style
+                                                  backing:NSBackingStoreBuffered
+                                                    defer:NO];
+    // Match setPosition(): descriptor coordinates are the window's top-left on screen.
+    [win setFrameTopLeftPoint:NSMakePoint(static_cast<CGFloat>(desc_.position.x),
+                                          static_cast<CGFloat>(desc_.position.y))];
     [win setTitle:[NSString stringWithUTF8String:desc_.title.c_str()]];
     [win setCollectionBehavior:[win collectionBehavior] | NSWindowCollectionBehaviorFullScreenPrimary];
 
     // Custom content view
-    VneXWinView* view = [[VneXWinView alloc] initWithFrame:rect xwin:this];
+    VneXWinView* view = [[VneXWinView alloc] initWithFrame:content_rect xwin:this];
     [win setContentView:view];
     [win makeFirstResponder:view];
 
@@ -679,8 +683,8 @@ void CocoaWindow::setPosition(int x, int y) {
 
 WindowPosition CocoaWindow::getPosition() const {
     if (ns_window_) {
-        NSRect r = ((__bridge NSWindow*)ns_window_).frame;
-        return WindowPosition{static_cast<int32_t>(r.origin.x), static_cast<int32_t>(r.origin.y)};
+        NSRect frame = ((__bridge NSWindow*)ns_window_).frame;
+        return WindowPosition{static_cast<int32_t>(frame.origin.x), static_cast<int32_t>(NSMaxY(frame))};
     }
     return desc_.position;
 }
