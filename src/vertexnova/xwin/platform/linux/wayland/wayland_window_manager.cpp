@@ -373,10 +373,7 @@ void WaylandWindowManager::onKey(uint32_t linux_key, uint32_t state, uint32_t /*
     const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWaylandWindow,
                                                          packXkbNativeKey(static_cast<std::uint32_t>(sym)),
                                                          desc.input_mapping.get());
-    const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    const uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWaylandWindow,
-                                                    static_cast<uint64_t>(base_mods),
-                                                    desc.input_mapping.get());
+    const uint8_t mods = seatModifiers(win);
     const bool pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
     if (pressed) {
         win->events().keyDown(kc, mods, false);
@@ -402,12 +399,7 @@ void WaylandWindowManager::onPointerMotion(double x, double y) {
     if (!win) {
         return;
     }
-    const WindowDescriptor& desc = win->descriptor();
-    const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    const uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWaylandWindow,
-                                                    static_cast<uint64_t>(base_mods),
-                                                    desc.input_mapping.get());
-    win->events().mouseMove(x, y, mods);
+    win->events().mouseMove(x, y, seatModifiers(win));
 }
 
 uint8_t WaylandWindowManager::seatModifiers(const WaylandWindow* win) const {
@@ -429,11 +421,7 @@ void WaylandWindowManager::onPointerButton(uint32_t button, uint32_t state, doub
     const vne::events::MouseButton mb =
         mapNativeMouseToEvents(WindowAPI::eWaylandWindow, packWaylandNativeMouse(button), desc.input_mapping.get());
     const bool pressed = (state == WL_POINTER_BUTTON_STATE_PRESSED);
-    const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    const uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWaylandWindow,
-                                                    static_cast<uint64_t>(base_mods),
-                                                    desc.input_mapping.get());
-    win->events().mouseButton(mb, pressed, px, py, mods);
+    win->events().mouseButton(mb, pressed, px, py, seatModifiers(win));
 }
 
 void WaylandWindowManager::onPointerAxis(double x_off, double y_off) {

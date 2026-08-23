@@ -117,6 +117,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 - (void)emitScroll:(UIPanGestureRecognizer*)recognizer discrete:(BOOL)discrete;
 - (void)onDiscreteScroll:(UIPanGestureRecognizer*)recognizer;
 - (void)onContinuousScroll:(UIPanGestureRecognizer*)recognizer;
+- (void)handleDisplayScaleTraitChangeFrom:(UITraitCollection*)previous;
 #if !defined(VNE_PLATFORM_VISIONOS)
 - (void)onHover:(UIHoverGestureRecognizer*)recognizer;
 #endif
@@ -207,6 +208,15 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
             observe(UIApplicationWillEnterForegroundNotification, vne::xwin::ApplicationLifecycle::eResume);
         app_memory_observer_ =
             observe(UIApplicationDidReceiveMemoryWarningNotification, vne::xwin::ApplicationLifecycle::eLowMemory);
+
+        if (@available(iOS 17.0, tvOS 17.0, visionOS 1.0, *)) {
+            [self registerForTraitChanges:@[ UITraitDisplayScale.class ]
+                                withHandler:^(__kindof id<UITraitEnvironment> traitEnvironment,
+                                                UITraitCollection* previousTraitCollection) {
+                                  VneXWinUIView* view = (VneXWinUIView*)traitEnvironment;
+                                  [view handleDisplayScaleTraitChangeFrom:previousTraitCollection];
+                                }];
+        }
     }
     return self;
 }
@@ -238,8 +248,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
                                        static_cast<float>(i.right));
 }
 
-- (void)traitCollectionDidChange:(UITraitCollection*)previous {
-    [super traitCollectionDidChange:previous];
+- (void)handleDisplayScaleTraitChangeFrom:(UITraitCollection*)previous {
     if (xwin_ == nullptr) {
         return;
     }
@@ -248,6 +257,20 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
         xwin_->handleWindowDpiChanged(static_cast<float>(scale));
     }
 }
+
+#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && (__IPHONE_OS_VERSION_MIN_REQUIRED < 170000)
+- (void)traitCollectionDidChange:(UITraitCollection*)previous {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    [super traitCollectionDidChange:previous];
+#pragma clang diagnostic pop
+    if (@available(iOS 17.0, tvOS 17.0, visionOS 1.0, *)) {
+        return;
+    }
+    [self handleDisplayScaleTraitChangeFrom:previous];
+}
+#endif
 
 - (void)didMoveToWindow {
     [super didMoveToWindow];
