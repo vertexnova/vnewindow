@@ -12,7 +12,7 @@
 #include "x11_window.h"
 
 #include "x11_window_manager.h"
-#include "event_bridge.h"
+#include "event_emitter.h"
 
 #include <vertexnova/xwin/input_mapping.h>
 
@@ -250,9 +250,6 @@ void X11Window::pollEvents() {
     if (!display_ || !window_) {
         return;
     }
-    const EventBridgeCallbacks empty_callbacks{};
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks;
-
     XEvent ev{};
     while (XPending(display_) > 0) {
         XNextEvent(display_, &ev);
@@ -266,14 +263,9 @@ void X11Window::pollEvents() {
         }
         if (ev.type == ClientMessage) {
             if (static_cast<Atom>(ev.xclient.data.l[0]) == wm_delete_) {
-                eventBridgeWindowClose(this, desc_, cb);
+                events_.windowClose();
                 open_ = false;
                 destroyNativeWindow();
-                if (owner_) {
-                    WindowEventData data{};
-                    data.type = WindowEventType::eClose;
-                    owner_->notifyWindowEvent(this, data);
-                }
             }
         } else if (ev.type == ConfigureNotify) {
             const auto new_width = static_cast<uint32_t>(ev.xconfigure.width);
@@ -290,20 +282,11 @@ void X11Window::pollEvents() {
             desc_.position.y = new_y;
 
             if (size_changed) {
-                eventBridgeWindowResize(this, desc_, cb, desc_.size.width, desc_.size.height);
-                if (owner_) {
-                    WindowEventData data{};
-                    data.type = WindowEventType::eResize;
-                    data.size = desc_.size;
-                    owner_->notifyWindowEvent(this, data);
-                }
+                events_.windowResize(desc_.size.width, desc_.size.height);
             }
 
-            if (position_changed && owner_) {
-                WindowEventData data{};
-                data.type = WindowEventType::eMove;
-                data.position = desc_.position;
-                owner_->notifyWindowEvent(this, data);
+            if (position_changed) {
+                events_.windowMove(desc_.position.x, desc_.position.y);
             }
         } else if (ev.type == KeyPress) {
             const auto kc = static_cast<unsigned int>(ev.xkey.keycode);
@@ -317,15 +300,15 @@ void X11Window::pollEvents() {
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                      static_cast<std::uint64_t>(ev.xkey.state),
                                                                      desc_.input_mapping.get());
-                eventBridgeKeyDown(this, desc_, cb, mapped, mods, repeat);
+                events_.keyDown(mapped, mods, repeat);
             }
             // Text input: decode printable characters via XLookupString
-            if (desc_.enable_events || cb.on_text_input) {
+            {
                 char buf[kTextInputBufferSize] = {};
                 const int n = XLookupString(&ev.xkey, buf, static_cast<int>(sizeof(buf) - 1), nullptr, nullptr);
                 if (n > 0 && static_cast<unsigned char>(buf[0]) >= kAsciiSpace) {
                     buf[n] = '\0';
-                    eventBridgeTextInput(this, desc_, cb, buf);
+                    events_.textInput(buf);
                 }
             }
         } else if (ev.type == KeyRelease) {
@@ -341,28 +324,28 @@ void X11Window::pollEvents() {
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                      static_cast<std::uint64_t>(ev.xkey.state),
                                                                      desc_.input_mapping.get());
-                eventBridgeKeyUp(this, desc_, cb, mapped, mods);
+                events_.keyUp(mapped, mods);
             }
         } else if (ev.type == ButtonPress) {
             const auto b = static_cast<unsigned int>(ev.xbutton.button);
             if (b == kScrollUpButton || b == kScrollDownButton || b == kScrollLeftButton || b == kScrollRightButton) {
                 const float y = (b == kScrollUpButton) ? 1.0F : (b == kScrollDownButton) ? -1.0F : 0.0F;
                 const float x = (b == kScrollLeftButton) ? 1.0F : (b == kScrollRightButton) ? -1.0F : 0.0F;
-                eventBridgeMouseScroll(this, desc_, cb, x, y);
+                const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
+                                                                     static_cast<std::uint64_t>(ev.xbutton.state),
+                                                                     desc_.input_mapping.get());
+                events_.mouseScroll(x, y, static_cast<double>(ev.xbutton.x), static_cast<double>(ev.xbutton.y), mods);
             } else {
                 const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                      static_cast<std::uint64_t>(ev.xbutton.state),
                                                                      desc_.input_mapping.get());
                 const vne::events::MouseButton mb =
                     mapNativeMouseToEvents(WindowAPI::eX11Window, packX11NativeMouse(b), desc_.input_mapping.get());
-                eventBridgeMouseButton(this,
-                                       desc_,
-                                       cb,
-                                       mb,
-                                       true,
-                                       static_cast<double>(ev.xbutton.x),
-                                       static_cast<double>(ev.xbutton.y),
-                                       mods);
+                events_.mouseButton(mb,
+                                    true,
+                                    static_cast<double>(ev.xbutton.x),
+                                    static_cast<double>(ev.xbutton.y),
+                                    mods);
             }
         } else if (ev.type == ButtonRelease) {
             const auto b = static_cast<unsigned int>(ev.xbutton.button);
@@ -374,59 +357,26 @@ void X11Window::pollEvents() {
                                                                  desc_.input_mapping.get());
             const vne::events::MouseButton mb =
                 mapNativeMouseToEvents(WindowAPI::eX11Window, packX11NativeMouse(b), desc_.input_mapping.get());
-            eventBridgeMouseButton(this,
-                                   desc_,
-                                   cb,
-                                   mb,
-                                   false,
-                                   static_cast<double>(ev.xbutton.x),
-                                   static_cast<double>(ev.xbutton.y),
-                                   mods);
+            events_.mouseButton(mb, false, static_cast<double>(ev.xbutton.x), static_cast<double>(ev.xbutton.y), mods);
         } else if (ev.type == MotionNotify) {
             const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eX11Window,
                                                                  static_cast<std::uint64_t>(ev.xmotion.state),
                                                                  desc_.input_mapping.get());
-            eventBridgeMouseMove(this,
-                                 desc_,
-                                 cb,
-                                 static_cast<double>(ev.xmotion.x),
-                                 static_cast<double>(ev.xmotion.y),
-                                 mods);
+            events_.mouseMove(static_cast<double>(ev.xmotion.x), static_cast<double>(ev.xmotion.y), mods);
         } else if (ev.type == FocusIn) {
-            eventBridgeWindowFocus(this, desc_, cb, true);
-            if (owner_) {
-                WindowEventData data{};
-                data.type = WindowEventType::eFocus;
-                data.focused = true;
-                owner_->notifyWindowEvent(this, data);
-            }
+            events_.windowFocus(true);
         } else if (ev.type == FocusOut) {
-            eventBridgeWindowFocus(this, desc_, cb, false);
-            if (owner_) {
-                WindowEventData data{};
-                data.type = WindowEventType::eFocus;
-                data.focused = false;
-                owner_->notifyWindowEvent(this, data);
-            }
+            events_.windowFocus(false);
         } else if (ev.type == UnmapNotify) {
             const bool iconified = isIconified();
             if (iconified && !minimized_) {
                 minimized_ = true;
-                if (owner_) {
-                    WindowEventData data{};
-                    data.type = WindowEventType::eMinimize;
-                    data.minimized = true;
-                    owner_->notifyWindowEvent(this, data);
-                }
+                events_.windowMinimize();
             }
         } else if (ev.type == MapNotify) {
             if (minimized_ && !isIconified()) {
                 minimized_ = false;
-                if (owner_) {
-                    WindowEventData data{};
-                    data.type = WindowEventType::eRestore;
-                    owner_->notifyWindowEvent(this, data);
-                }
+                events_.windowRestore();
             }
         }
     }

@@ -13,7 +13,7 @@
 
 #include "uikit_main_sync.h"
 #include "uikit_window_manager.h"
-#include "event_bridge.h"
+#include "event_emitter.h"
 #include "platform/cocoa/cocoa_map_key.h"
 
 #import <UIKit/UIKit.h>
@@ -106,13 +106,18 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     UIPanGestureRecognizer* discrete_scroll_recognizer_;
     UIPanGestureRecognizer* continuous_scroll_recognizer_;
     id app_active_observer_;
+    id app_background_observer_;
+    id app_foreground_observer_;
+    id app_memory_observer_;
 }
 - (instancetype)initWithFrame:(CGRect)frame xwin:(vne::xwin::UIKitWindow*)xwin;
 - (void)clearXwin;
 - (void)activateInputRouting;
+- (void)notifyFocus:(BOOL)focused;
 - (void)emitScroll:(UIPanGestureRecognizer*)recognizer discrete:(BOOL)discrete;
 - (void)onDiscreteScroll:(UIPanGestureRecognizer*)recognizer;
 - (void)onContinuousScroll:(UIPanGestureRecognizer*)recognizer;
+- (void)handleDisplayScaleTraitChangeFrom:(UITraitCollection*)previous;
 #if !defined(VNE_PLATFORM_VISIONOS)
 - (void)onHover:(UIHoverGestureRecognizer*)recognizer;
 #endif
@@ -177,14 +182,41 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
         // framework and become a scroll there. A recognizer would double the zoom.
 
         __weak VneXWinUIView* weak_self = self;
-        app_active_observer_ =
-            [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationDidBecomeActiveNotification
-                                                            object:nil
-                                                             queue:NSOperationQueue.mainQueue
-                                                        usingBlock:^(NSNotification* note) {
-                                                          (void)note;
-                                                          [weak_self activateInputRouting];
-                                                        }];
+        NSNotificationCenter* center = NSNotificationCenter.defaultCenter;
+        app_active_observer_ = [center addObserverForName:UIApplicationDidBecomeActiveNotification
+                                                   object:nil
+                                                    queue:NSOperationQueue.mainQueue
+                                               usingBlock:^(NSNotification* note) {
+                                                 (void)note;
+                                                 [weak_self activateInputRouting];
+                                               }];
+
+        // Lifecycle is process-scoped, so it goes out once regardless of window count. The
+        // renderer needs eResume in particular: the drawable is invalid across a background.
+        const auto observe = ^(NSNotificationName name, vne::xwin::ApplicationLifecycle transition) {
+          return [center addObserverForName:name
+                                     object:nil
+                                      queue:NSOperationQueue.mainQueue
+                                 usingBlock:^(NSNotification* note) {
+                                   (void)note;
+                                   vne::xwin::EventEmitter::applicationLifecycle(transition);
+                                 }];
+        };
+        app_background_observer_ =
+            observe(UIApplicationDidEnterBackgroundNotification, vne::xwin::ApplicationLifecycle::ePause);
+        app_foreground_observer_ =
+            observe(UIApplicationWillEnterForegroundNotification, vne::xwin::ApplicationLifecycle::eResume);
+        app_memory_observer_ =
+            observe(UIApplicationDidReceiveMemoryWarningNotification, vne::xwin::ApplicationLifecycle::eLowMemory);
+
+        if (@available(iOS 17.0, tvOS 17.0, visionOS 1.0, *)) {
+            [self registerForTraitChanges:@[ UITraitDisplayScale.class ]
+                              withHandler:^(__kindof id<UITraitEnvironment> traitEnvironment,
+                                            UITraitCollection* previousTraitCollection) {
+                                VneXWinUIView* view = (VneXWinUIView*)traitEnvironment;
+                                [view handleDisplayScaleTraitChangeFrom:previousTraitCollection];
+                              }];
+        }
     }
     return self;
 }
@@ -192,6 +224,53 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 - (BOOL)canBecomeFirstResponder {
     return YES;
 }
+
+// Rotation, iPad split view / Stage Manager, and keyboard-driven resizes all land here and
+// nowhere else. Without this the renderer never learns the drawable changed size.
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    if (xwin_ == nullptr) {
+        return;
+    }
+    const CGRect b = self.bounds;
+    xwin_->handleWindowResize(static_cast<uint32_t>(b.size.width), static_cast<uint32_t>(b.size.height));
+}
+
+- (void)safeAreaInsetsDidChange {
+    [super safeAreaInsetsDidChange];
+    if (xwin_ == nullptr) {
+        return;
+    }
+    const UIEdgeInsets i = self.safeAreaInsets;
+    xwin_->handleWindowSafeAreaChanged(static_cast<float>(i.top),
+                                       static_cast<float>(i.left),
+                                       static_cast<float>(i.bottom),
+                                       static_cast<float>(i.right));
+}
+
+- (void)handleDisplayScaleTraitChangeFrom:(UITraitCollection*)previous {
+    if (xwin_ == nullptr) {
+        return;
+    }
+    const CGFloat scale = self.traitCollection.displayScale;
+    if (scale > 0.0 && (previous == nil || previous.displayScale != scale)) {
+        xwin_->handleWindowDpiChanged(static_cast<float>(scale));
+    }
+}
+
+#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && (__IPHONE_OS_VERSION_MIN_REQUIRED < 170000)
+- (void)traitCollectionDidChange:(UITraitCollection*)previous {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    [super traitCollectionDidChange:previous];
+#pragma clang diagnostic pop
+    if (@available(iOS 17.0, tvOS 17.0, visionOS 1.0, *)) {
+        return;
+    }
+    [self handleDisplayScaleTraitChangeFrom:previous];
+}
+#endif
 
 - (void)didMoveToWindow {
     [super didMoveToWindow];
@@ -202,6 +281,12 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 
 - (void)activateInputRouting {
     [self becomeFirstResponder];
+}
+
+- (void)notifyFocus:(BOOL)focused {
+    if (xwin_ != nullptr) {
+        xwin_->handleWindowFocus(focused == YES);
+    }
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer*)a
@@ -224,10 +309,20 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 - (void)clearXwin {
     xwin_ = nullptr;
     NSNotificationCenter* center = NSNotificationCenter.defaultCenter;
-    if (app_active_observer_ != nil) {
-        [center removeObserver:app_active_observer_];
-        app_active_observer_ = nil;
+    for (id observer : @[
+             app_active_observer_ ?: NSNull.null,
+             app_background_observer_ ?: NSNull.null,
+             app_foreground_observer_ ?: NSNull.null,
+             app_memory_observer_ ?: NSNull.null
+         ]) {
+        if (observer != NSNull.null) {
+            [center removeObserver:observer];
+        }
     }
+    app_active_observer_ = nil;
+    app_background_observer_ = nil;
+    app_foreground_observer_ = nil;
+    app_memory_observer_ = nil;
 }
 
 // UIEventButtonMaskForButtonNumber(n) expands to (1 << (n - 1)), so button 2 is the
@@ -248,23 +343,23 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     return button;
 }
 
-- (void)deliverPointer:(CGPoint)p phase:(vne::xwin::EventBridgeTouchPhase)phase event:(UIEvent*)event {
+- (void)deliverPointer:(CGPoint)p phase:(vne::xwin::TouchPhase)phase event:(UIEvent*)event {
     const double x = static_cast<double>(p.x);
     const double y = static_cast<double>(p.y);
     const vne::events::MouseButton button = [self buttonFromEvent:event];
     const uint8_t modifiers = modifiersFromEvent(event);
 
     switch (phase) {
-        case vne::xwin::EventBridgeTouchPhase::eDown:
+        case vne::xwin::TouchPhase::eDown:
             pointer_button_ = button;
             pointer_down_ = YES;
             xwin_->handleMouseMove(x, y, modifiers);
             xwin_->handleMouseButton(button, true, x, y, modifiers);
             break;
-        case vne::xwin::EventBridgeTouchPhase::eMove:
+        case vne::xwin::TouchPhase::eMove:
             xwin_->handleMouseMove(x, y, modifiers);
             break;
-        case vne::xwin::EventBridgeTouchPhase::eUp:
+        case vne::xwin::TouchPhase::eUp:
             xwin_->handleMouseMove(x, y, modifiers);
             if (pointer_down_) {
                 xwin_->handleMouseButton(pointer_button_, false, x, y, modifiers);
@@ -274,7 +369,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     }
 }
 
-- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::EventBridgeTouchPhase)phase event:(UIEvent*)event {
+- (void)deliverTouches:(NSSet<UITouch*>*)touches phase:(vne::xwin::TouchPhase)phase event:(UIEvent*)event {
     if (!xwin_) {
         return;
     }
@@ -305,7 +400,11 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
         // first: bitmasking an Objective-C pointer directly is diagnosed.
         const auto touch_key = reinterpret_cast<uintptr_t>((__bridge const void*)touch);
         const uint32_t touch_id = static_cast<uint32_t>(touch_key & 0xFFFFFFFFu);
-        xwin_->handleTouch(touch_id, static_cast<double>(p.x), static_cast<double>(p.y), phase);
+        xwin_->handleTouch(touch_id,
+                           static_cast<double>(p.x),
+                           static_cast<double>(p.y),
+                           phase,
+                           modifiersFromEvent(event));
     }
 }
 
@@ -332,7 +431,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
     // mapping is monotonic in |t| and does not promote small chunks to a notch.
     const double dx = discrete ? discreteScrollUnit(t.x) : continuousScrollUnit(t.x);
     const double dy = discrete ? discreteScrollUnit(-t.y) : continuousScrollUnit(-t.y);
-    xwin_->handleMouseScroll(dx, dy);
+    xwin_->handleMouseScroll(dx, dy, static_cast<double>(loc.x), static_cast<double>(loc.y), 0);
 }
 
 - (void)onDiscreteScroll:(UIPanGestureRecognizer*)recognizer {
@@ -344,16 +443,16 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 }
 
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eDown event:event];
+    [self deliverTouches:touches phase:vne::xwin::TouchPhase::eDown event:event];
 }
 - (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eMove event:event];
+    [self deliverTouches:touches phase:vne::xwin::TouchPhase::eMove event:event];
 }
 - (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp event:event];
+    [self deliverTouches:touches phase:vne::xwin::TouchPhase::eUp event:event];
 }
 - (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-    [self deliverTouches:touches phase:vne::xwin::EventBridgeTouchPhase::eUp event:event];
+    [self deliverTouches:touches phase:vne::xwin::TouchPhase::eUp event:event];
 }
 
 @end
@@ -362,7 +461,16 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 - (void)becomeKeyWindow {
     [super becomeKeyWindow];
     if ([self.rootViewController.view isKindOfClass:[VneXWinUIView class]]) {
-        [static_cast<VneXWinUIView*>(self.rootViewController.view) activateInputRouting];
+        VneXWinUIView* v = static_cast<VneXWinUIView*>(self.rootViewController.view);
+        [v activateInputRouting];
+        [v notifyFocus:YES];
+    }
+}
+
+- (void)resignKeyWindow {
+    [super resignKeyWindow];
+    if ([self.rootViewController.view isKindOfClass:[VneXWinUIView class]]) {
+        [static_cast<VneXWinUIView*>(self.rootViewController.view) notifyFocus:NO];
     }
 }
 
@@ -470,25 +578,42 @@ void UIKitWindow::initialize(const WindowDescriptor& descriptor) {
     });
 }
 
-void UIKitWindow::handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeTouch(this, desc_, cb, touch_id, x, y, phase);
+void UIKitWindow::handleTouch(uint32_t touch_id, double x, double y, TouchPhase phase, uint8_t modifiers) {
+    events_.touch(touch_id, x, y, phase, modifiers);
 }
 
 void UIKitWindow::handleMouseButton(
     vne::events::MouseButton button, bool pressed, double x, double y, uint8_t modifiers) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, modifiers);
+    events_.mouseButton(button, pressed, x, y, modifiers);
 }
 
 void UIKitWindow::handleMouseMove(double x, double y, uint8_t modifiers) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseMove(this, desc_, cb, x, y, modifiers);
+    events_.mouseMove(x, y, modifiers);
 }
 
-void UIKitWindow::handleMouseScroll(double x_offset, double y_offset) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseScroll(this, desc_, cb, static_cast<float>(x_offset), static_cast<float>(y_offset));
+void UIKitWindow::handleMouseScroll(double x_offset, double y_offset, double x, double y, uint8_t modifiers) {
+    events_.mouseScroll(static_cast<float>(x_offset), static_cast<float>(y_offset), x, y, modifiers);
+}
+
+void UIKitWindow::handleWindowResize(uint32_t width, uint32_t height) {
+    if (desc_.size.width == width && desc_.size.height == height) {
+        return;
+    }
+    desc_.size.width = width;
+    desc_.size.height = height;
+    events_.windowResize(width, height);
+}
+
+void UIKitWindow::handleWindowFocus(bool focused) {
+    events_.windowFocus(focused);
+}
+
+void UIKitWindow::handleWindowDpiChanged(float scale) {
+    events_.windowDpiChanged(scale);
+}
+
+void UIKitWindow::handleWindowSafeAreaChanged(float top, float left, float bottom, float right) {
+    events_.windowSafeAreaChanged(top, left, bottom, right);
 }
 
 void UIKitWindow::pollEvents() {

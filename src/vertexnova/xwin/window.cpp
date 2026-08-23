@@ -12,6 +12,9 @@
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_factory.h"
 
+#include <atomic>
+#include <exception>
+#include <limits>
 #include <memory>
 
 namespace vne::xwin {
@@ -36,6 +39,7 @@ class ManagedWindow final : public IWindow {
     void resize(uint32_t width, uint32_t height) override { window_->resize(width, height); }
     void close() override { window_->close(); }
     [[nodiscard]] bool isOpen() const noexcept override { return window_->isOpen(); }
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return window_->getId(); }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override { return window_->getNativeHandle(); }
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override { return window_->getWindowAPI(); }
     [[nodiscard]] int getWidth() const noexcept override { return window_->getWidth(); }
@@ -64,6 +68,24 @@ class ManagedWindow final : public IWindow {
 };
 
 }  // namespace
+
+vne::events::WindowId IWindow::nextId() noexcept {
+    // Starts at 1 so 0 stays vne::events::kInvalidWindowId. Never reused: a window recreated after
+    // a platform teardown is a different window, and stale ids must not silently resolve to it.
+    static std::atomic<vne::events::WindowId> s_next_window_id{1};
+    constexpr vne::events::WindowId kMaxId = std::numeric_limits<vne::events::WindowId>::max();
+
+    for (;;) {
+        vne::events::WindowId id = s_next_window_id.load(std::memory_order_relaxed);
+        // At max, the next increment would wrap to kInvalidWindowId (0) and eventually reuse IDs.
+        if (id == kMaxId || id == vne::events::kInvalidWindowId) {
+            std::terminate();
+        }
+        if (s_next_window_id.compare_exchange_weak(id, id + 1, std::memory_order_relaxed, std::memory_order_relaxed)) {
+            return id;
+        }
+    }
+}
 
 std::unique_ptr<IWindow> IWindow::create(const WindowDescriptor& descriptor) {
     auto manager = WindowFactory::createWindowManager();

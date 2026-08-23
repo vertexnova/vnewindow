@@ -11,6 +11,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
+#include "event_emitter.h"
 
 #include <string>
 
@@ -48,6 +49,14 @@ class WaylandWindow final : public IWindow {
     void resize(uint32_t width, uint32_t height) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return id_; }
+    /**
+     * @brief The window's event bridge.
+     *
+     * Wayland is the one backend whose input listeners live on the manager (it owns the single
+     * wl_seat), so the manager emits on behalf of the window it has resolved as focused.
+     */
+    [[nodiscard]] const EventEmitter& events() const noexcept { return events_; }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;
@@ -56,7 +65,9 @@ class WaylandWindow final : public IWindow {
 
     /** Called from Wayland listener thunks (xdg_toplevel_listener). */
     void applyToplevelConfigure(uint32_t width, uint32_t height);
+    void applyToplevelState(bool activated, bool suspended, bool unmapped);
     void applyToplevelClose();
+    [[nodiscard]] bool hasBeenConfigured() const noexcept { return configured_; }
 
     /** Same pointer registered with the compositor (keyboard/pointer focus mapping). */
     [[nodiscard]] wl_surface* nativeSurface() const noexcept { return surface_; }
@@ -64,6 +75,10 @@ class WaylandWindow final : public IWindow {
    private:
     void destroySurfaces();
 
+    const vne::events::WindowId id_ = IWindow::nextId();
+    bool minimized_ = false;
+    bool activated_ = false;
+    bool configured_ = false;
     WaylandWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
@@ -71,6 +86,9 @@ class WaylandWindow final : public IWindow {
     wl_surface* surface_ = nullptr;
     xdg_surface* xdg_surface_ = nullptr;
     xdg_toplevel* toplevel_ = nullptr;
+
+    // Declared last: binds to desc_ by reference.
+    EventEmitter events_{this, desc_};
 };
 
 }  // namespace vne::xwin

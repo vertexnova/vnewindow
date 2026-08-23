@@ -15,17 +15,14 @@
 #include "vertexnova/xwin/window.h"
 #include "vertexnova/xwin/window_descriptor.h"
 #include "vertexnova/xwin/monitor_info.h"
+#include "vertexnova/xwin/xwin_export.h"
 #include "vertexnova/xwin/xwin_types.h"
-#include "vertexnova/xwin/event_bridge_callbacks.h"
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace vne::xwin {
-
-using WindowManagerEventCallbackT = std::function<void(IWindow*, const WindowEventData&)>;
 
 /**
  * @brief Owns and dispatches a set of IWindow instances and platform-wide events.
@@ -51,19 +48,47 @@ class IWindowManager {
     [[nodiscard]] virtual std::vector<std::shared_ptr<IWindow>> getWindows() const = 0;
     [[nodiscard]] virtual std::shared_ptr<IWindow> getPrimaryWindow() const noexcept = 0;
     [[nodiscard]] virtual std::shared_ptr<IWindow> getFocusedWindow() const noexcept = 0;
+    /**
+     * @brief Resolves the window an event came from, via IWindow::getId().
+     * @return The matching window, or nullptr if it has since been removed.
+     */
+    [[nodiscard]] virtual std::shared_ptr<IWindow> findWindow(vne::events::WindowId id) const;
+
+    /**
+     * @brief Whether this backend can host more than one window at a time.
+     *
+     * False on platforms where the concept does not apply — UIKit drives one scene, Android one
+     * native surface, and the web only when a host shell provides extra canvases. Ask before
+     * offering multi-window UI rather than discovering it from a null openWindow().
+     */
+    [[nodiscard]] virtual bool supportsMultipleWindows() const noexcept;
     virtual void setPrimaryWindow(std::shared_ptr<IWindow> window) = 0;
     virtual void focusWindow(std::shared_ptr<IWindow> window) = 0;
 
-    virtual void processEvents() = 0;
-    virtual void setEventCallback(const WindowManagerEventCallbackT& callback) = 0;
     /**
-     * @brief Optional granular hooks after vne::events updates (see event_bridge_callbacks.h).
+     * @brief Pumps the platform event loop, emitting vne::events events for whatever arrived.
      *
-     * After each frame: call vne::events::EventManager::instance().processEvents() if you use the
-     * queued events, then vne::events::Input::nextFrame() once after your simulation step (see
-     * vneevents input documentation). xwin does not call nextFrame() inside processEvents().
+     * This only fills the queue. Each frame the application then calls
+     * vne::events::EventManager::instance().processEvents() to dispatch it, and
+     * vne::events::Input::nextFrame() once after its simulation step. xwin calls neither.
      */
-    virtual void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) = 0;
+    virtual void processEvents() = 0;
+
+    /**
+     * @brief Emits a process-scoped application lifecycle event.
+     *
+     * Called by the platform host, which is the only thing that sees these transitions: the iOS
+     * scene delegate on resign-active / enter-background, the Android host on APP_CMD_PAUSE and
+     * friends, the browser on visibilitychange. Not window-scoped, so the resulting event carries
+     * no window id.
+     *
+     * Static because the transition belongs to the process, not to any window or manager: it
+     * carries no window id and fires once however many windows exist. No backend overrides it —
+     * a backend needing to react should subscribe to the events like any other consumer.
+     *
+     * On eLowMemory, release what you can — mobile systems terminate apps that ignore it.
+     */
+    static VNE_XWIN_API void notifyApplicationLifecycle(ApplicationLifecycle transition);
     [[nodiscard]] virtual bool shouldClose() const noexcept = 0;
     [[nodiscard]] virtual bool shouldCloseAll() const noexcept = 0;
 
@@ -91,6 +116,22 @@ inline MonitorInfo IWindowManager::getMonitorInfo(uint32_t index) const {
 }
 inline uint32_t IWindowManager::getPrimaryMonitorIndex() const noexcept {
     return 0;
+}
+
+inline bool IWindowManager::supportsMultipleWindows() const noexcept {
+    return true;
+}
+
+inline std::shared_ptr<IWindow> IWindowManager::findWindow(vne::events::WindowId id) const {
+    if (id == vne::events::kInvalidWindowId) {
+        return nullptr;
+    }
+    for (const auto& window : getWindows()) {
+        if (window && window->getId() == id) {
+            return window;
+        }
+    }
+    return nullptr;
 }
 
 }  // namespace vne::xwin

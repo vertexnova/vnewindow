@@ -1,5 +1,5 @@
 #==============================================================================
-# 02_xwin_events — vne::xwin + vne::events integration
+# 03_multi_window — multi-window management and per-window event routing
 #==============================================================================
 
-vne_add_example(example_02_xwin_events SOURCES example.cpp)
+vne_add_example(example_03_multi_window SOURCES example.cpp)

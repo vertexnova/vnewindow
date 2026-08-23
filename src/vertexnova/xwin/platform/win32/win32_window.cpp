@@ -13,7 +13,7 @@
 
 #include "win32_window_manager.h"
 #include "win32_map_key.h"
-#include "event_bridge.h"
+#include "event_emitter.h"
 
 #include <vertexnova/xwin/input_mapping.h>
 
@@ -127,70 +127,78 @@ LRESULT CALLBACK Win32Window::staticWndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 }
 
 LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    const EventBridgeCallbacks empty_callbacks{};
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks;
-
     switch (msg) {
         case WM_CLOSE:
-            eventBridgeWindowClose(this, desc_, cb);
+            events_.windowClose();
             open_ = false;
-            if (owner_) {
-                WindowEventData ev{};
-                ev.type = WindowEventType::eClose;
-                owner_->notifyWindowEvent(this, ev);
-            }
             ::DestroyWindow(hwnd);
             return 0;
         case WM_SIZE: {
-            if (wParam != SIZE_MINIMIZED) {
-                desc_.size.width = static_cast<uint32_t>(LOWORD(lParam));
-                desc_.size.height = static_cast<uint32_t>(HIWORD(lParam));
-                eventBridgeWindowResize(this, desc_, cb, desc_.size.width, desc_.size.height);
-                if (owner_) {
-                    WindowEventData ev{};
-                    ev.type = WindowEventType::eResize;
-                    ev.size = desc_.size;
-                    owner_->notifyWindowEvent(this, ev);
-                }
+            if (wParam == SIZE_MINIMIZED) {
+                // Previously swallowed entirely, so pause-on-minimize never worked on Windows.
+                minimized_ = true;
+                events_.windowMinimize();
+                return 0;
             }
+            if (minimized_) {
+                minimized_ = false;
+                events_.windowRestore();
+            }
+            desc_.size.width = static_cast<uint32_t>(LOWORD(lParam));
+            desc_.size.height = static_cast<uint32_t>(HIWORD(lParam));
+            events_.windowResize(desc_.size.width, desc_.size.height);
             return 0;
         }
+        case WM_MOVE: {
+            // TODO(xwin): Investigate windowMove vs getPosition()/setPosition() origin consistency.
+            // WM_MOVE lParam is the client-area origin; getPosition() returns GetWindowRect frame
+            // origin. Aligning these may matter for listeners that compare the event with
+            // getPosition(). Verify against vnerhi/vnegfx multi-backend samples before changing.
+            desc_.position.x = static_cast<int32_t>(GET_X_LPARAM(lParam));
+            desc_.position.y = static_cast<int32_t>(GET_Y_LPARAM(lParam));
+            events_.windowMove(desc_.position.x, desc_.position.y);
+            return 0;
+        }
+#if defined(WM_DPICHANGED)
+        case WM_DPICHANGED: {
+            // Fires when the window moves between monitors of different scale. lParam is the
+            // suggested new frame; honouring it keeps the window the same physical size.
+            const auto dpi = static_cast<uint32_t>(HIWORD(wParam));
+            const auto* suggested = reinterpret_cast<const RECT*>(lParam);
+            if (suggested != nullptr) {
+                ::SetWindowPos(hwnd,
+                               nullptr,
+                               suggested->left,
+                               suggested->top,
+                               suggested->right - suggested->left,
+                               suggested->bottom - suggested->top,
+                               SWP_NOZORDER | SWP_NOACTIVATE);
+            }
+            events_.windowDpiChanged(static_cast<float>(dpi) / 96.0F);
+            return 0;
+        }
+#endif
         case WM_DESTROY:
             open_ = false;
             return 0;
         case WM_SETFOCUS:
-            eventBridgeWindowFocus(this, desc_, cb, true);
-            if (owner_) {
-                WindowEventData ev{};
-                ev.type = WindowEventType::eFocus;
-                ev.focused = true;
-                owner_->notifyWindowEvent(this, ev);
-            }
+            events_.windowFocus(true);
             return 0;
         case WM_KILLFOCUS:
-            eventBridgeWindowFocus(this, desc_, cb, false);
-            if (owner_) {
-                WindowEventData ev{};
-                ev.type = WindowEventType::eFocus;
-                ev.focused = false;
-                owner_->notifyWindowEvent(this, ev);
-            }
+            events_.windowFocus(false);
             return 0;
         case WM_KEYDOWN:
         case WM_SYSKEYDOWN: {
-            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.on_key_down);
-            if (want_vne) {
-                const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWin32Window,
-                                                                     packWin32NativeKey(wParam, lParam),
-                                                                     desc_.input_mapping.get());
-                if (kc != vne::events::KeyCode::eUnknown) {
-                    const std::uint8_t mods =
-                        mapNativeModifiersToEvents(WindowAPI::eWin32Window,
-                                                   static_cast<std::uint64_t>(mapWin32ModifierFlags()),
-                                                   desc_.input_mapping.get());
-                    const bool repeat = (lParam & (1 << 30)) != 0;
-                    eventBridgeKeyDown(this, desc_, cb, kc, mods, repeat);
-                }
+            const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWin32Window,
+                                                                 packWin32NativeKey(wParam, lParam),
+                                                                 desc_.input_mapping.get());
+            if (kc != vne::events::KeyCode::eUnknown) {
+                const std::uint8_t mods =
+                    mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                               static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                               desc_.input_mapping.get());
+                const bool repeat = (lParam & (1 << 30)) != 0;
+                events_.keyDown(kc, mods, repeat);
             }
             if (msg == WM_SYSKEYDOWN) {
                 return DefWindowProcW(hwnd, msg, wParam, lParam);
@@ -199,18 +207,15 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         }
         case WM_KEYUP:
         case WM_SYSKEYUP: {
-            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.on_key_up);
-            if (want_vne) {
-                const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWin32Window,
-                                                                     packWin32NativeKey(wParam, lParam),
-                                                                     desc_.input_mapping.get());
-                if (kc != vne::events::KeyCode::eUnknown) {
-                    const std::uint8_t mods =
-                        mapNativeModifiersToEvents(WindowAPI::eWin32Window,
-                                                   static_cast<std::uint64_t>(mapWin32ModifierFlags()),
-                                                   desc_.input_mapping.get());
-                    eventBridgeKeyUp(this, desc_, cb, kc, mods);
-                }
+            const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWin32Window,
+                                                                 packWin32NativeKey(wParam, lParam),
+                                                                 desc_.input_mapping.get());
+            if (kc != vne::events::KeyCode::eUnknown) {
+                const std::uint8_t mods =
+                    mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                               static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                               desc_.input_mapping.get());
+                events_.keyUp(kc, mods);
             }
             if (msg == WM_SYSKEYUP) {
                 return DefWindowProcW(hwnd, msg, wParam, lParam);
@@ -225,88 +230,72 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         case WM_MBUTTONUP:
         case WM_XBUTTONDOWN:
         case WM_XBUTTONUP: {
-            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.on_mouse_button);
-            if (want_vne) {
-                const int x = GET_X_LPARAM(lParam);
-                const int y = GET_Y_LPARAM(lParam);
-                const std::uint8_t mods =
-                    mapNativeModifiersToEvents(WindowAPI::eWin32Window,
-                                               static_cast<std::uint64_t>(mapWin32ModifierFlags()),
-                                               desc_.input_mapping.get());
-                const vne::events::MouseButton btn = mapNativeMouseToEvents(WindowAPI::eWin32Window,
-                                                                            packWin32Mouse(msg, wParam),
-                                                                            desc_.input_mapping.get());
-                const bool down =
-                    (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
-                eventBridgeMouseButton(this,
-                                       desc_,
-                                       cb,
-                                       btn,
-                                       down,
-                                       static_cast<double>(x),
-                                       static_cast<double>(y),
-                                       mods);
-            }
+            const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                                                 static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                                                 desc_.input_mapping.get());
+            const vne::events::MouseButton btn =
+                mapNativeMouseToEvents(WindowAPI::eWin32Window, packWin32Mouse(msg, wParam), desc_.input_mapping.get());
+            const bool down =
+                (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_XBUTTONDOWN);
+            events_.mouseButton(btn,
+                                down,
+                                static_cast<double>(GET_X_LPARAM(lParam)),
+                                static_cast<double>(GET_Y_LPARAM(lParam)),
+                                mods);
             return 0;
         }
         case WM_MOUSEMOVE: {
-            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.on_mouse_move);
-            if (want_vne) {
-                const int x = GET_X_LPARAM(lParam);
-                const int y = GET_Y_LPARAM(lParam);
-                const std::uint8_t mods =
-                    mapNativeModifiersToEvents(WindowAPI::eWin32Window,
-                                               static_cast<std::uint64_t>(mapWin32ModifierFlags()),
-                                               desc_.input_mapping.get());
-                eventBridgeMouseMove(this, desc_, cb, static_cast<double>(x), static_cast<double>(y), mods);
-            }
+            const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                                                 static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                                                 desc_.input_mapping.get());
+            events_.mouseMove(static_cast<double>(GET_X_LPARAM(lParam)),
+                              static_cast<double>(GET_Y_LPARAM(lParam)),
+                              mods);
             return 0;
         }
-        case WM_MOUSEWHEEL: {
-            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.on_mouse_scroll);
-            if (want_vne) {
-                const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
-                const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-                eventBridgeMouseScroll(this, desc_, cb, 0.0F, step);
-            }
-            return 0;
-        }
+        case WM_MOUSEWHEEL:
         case WM_MOUSEHWHEEL: {
-            const bool want_vne = desc_.enable_input || desc_.enable_events || static_cast<bool>(cb.on_mouse_scroll);
-            if (want_vne) {
-                const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
-                const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-                eventBridgeMouseScroll(this, desc_, cb, step, 0.0F);
+            const short delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            const float step = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
+            // Wheel messages report screen coordinates, unlike every other mouse message here.
+            POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            ::ScreenToClient(hwnd, &pt);
+            const std::uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWin32Window,
+                                                                 static_cast<std::uint64_t>(mapWin32ModifierFlags()),
+                                                                 desc_.input_mapping.get());
+            const double cx = static_cast<double>(pt.x);
+            const double cy = static_cast<double>(pt.y);
+            if (msg == WM_MOUSEWHEEL) {
+                events_.mouseScroll(0.0F, step, cx, cy, mods);
+            } else {
+                events_.mouseScroll(step, 0.0F, cx, cy, mods);
             }
             return 0;
         }
         case WM_CHAR: {
-            const bool want_text = desc_.enable_events || static_cast<bool>(cb.on_text_input);
-            if (want_text) {
-                // wParam is a UTF-16 code unit; handle surrogate pairs
-                const wchar_t ch = static_cast<wchar_t>(wParam);
-                if (ch >= 0xD800 && ch <= 0xDBFF) {
-                    pending_high_surrogate_ = ch;
-                    return 0;
-                }
-                wchar_t wide[3] = {};
-                int wide_len = 0;
-                if (pending_high_surrogate_ != 0 && ch >= 0xDC00 && ch <= 0xDFFF) {
-                    wide[0] = pending_high_surrogate_;
-                    wide[1] = ch;
-                    wide_len = 2;
-                } else {
-                    wide[0] = ch;
-                    wide_len = 1;
-                }
-                pending_high_surrogate_ = 0;
-                if (ch >= 0x20 || ch == '\t') {  // skip control chars except tab
-                    char utf8[5] = {};
-                    const int n = WideCharToMultiByte(CP_UTF8, 0, wide, wide_len, utf8, 4, nullptr, nullptr);
-                    if (n > 0) {
-                        utf8[n] = '\0';
-                        eventBridgeTextInput(this, desc_, cb, utf8);
-                    }
+            // wParam is a UTF-16 code unit; reassemble surrogate pairs before emitting UTF-8.
+            const wchar_t ch = static_cast<wchar_t>(wParam);
+            if (ch >= 0xD800 && ch <= 0xDBFF) {
+                pending_high_surrogate_ = ch;
+                return 0;
+            }
+            wchar_t wide[3] = {};
+            int wide_len = 0;
+            if (pending_high_surrogate_ != 0 && ch >= 0xDC00 && ch <= 0xDFFF) {
+                wide[0] = pending_high_surrogate_;
+                wide[1] = ch;
+                wide_len = 2;
+            } else {
+                wide[0] = ch;
+                wide_len = 1;
+            }
+            pending_high_surrogate_ = 0;
+            if (ch >= 0x20 || ch == '\t') {  // skip control chars except tab
+                char utf8[5] = {};
+                const int n = WideCharToMultiByte(CP_UTF8, 0, wide, wide_len, utf8, 4, nullptr, nullptr);
+                if (n > 0) {
+                    utf8[n] = '\0';
+                    events_.textInput(utf8);
                 }
             }
             return 0;

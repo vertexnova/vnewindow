@@ -14,7 +14,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
-#include "vertexnova/xwin/event_bridge_callbacks.h"
+#include "event_emitter.h"
 
 #include <vertexnova/events/types.h>
 
@@ -49,6 +49,7 @@ class CocoaWindow final : public IWindow {
     void setCursor(WindowCursor cursor) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return id_; }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;
@@ -60,12 +61,18 @@ class CocoaWindow final : public IWindow {
     void handleKeyUp(vne::events::KeyCode key, uint8_t mods);
     void handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods);
     void handleMouseMove(double x, double y, uint8_t mods);
-    void handleMouseScroll(float dx, float dy);
+    void handleMouseScroll(float dx, float dy, double x, double y, uint8_t mods);
     void handleTextInput(const char* utf8_text);
     void handleWindowClose();
     void handleWindowResize(uint32_t w, uint32_t h);
     void handleWindowFocus(bool focused);
+    void handleWindowMinimize();
+    void handleWindowRestore();
+    void handleWindowMove(int32_t x, int32_t y);
+    void handleWindowDpiChanged();
     void setFullscreenState(bool fs);
+    /** Re-points the window's first responder at our view after AppKit rebuilds or reparents it. */
+    void reassertInputRouting();
 
     [[nodiscard]] const WindowInputMapping* inputMapping() const noexcept { return desc_.input_mapping.get(); }
 
@@ -75,6 +82,7 @@ class CocoaWindow final : public IWindow {
    private:
     void destroyNative();
 
+    const vne::events::WindowId id_ = IWindow::nextId();
     CocoaWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
@@ -83,7 +91,8 @@ class CocoaWindow final : public IWindow {
     void* ns_view_ = nullptr;
     void* ns_delegate_ = nullptr;
 
-    EventBridgeCallbacks empty_callbacks_{};
+    // Declared last: binds to desc_ by reference, so desc_ must already be a live member.
+    EventEmitter events_{this, desc_};
 };
 
 }  // namespace vne::xwin

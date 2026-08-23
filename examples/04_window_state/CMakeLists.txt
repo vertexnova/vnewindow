@@ -1,5 +1,5 @@
 #==============================================================================
-# 02_xwin_events — vne::xwin + vne::events integration
+# 04_window_state — window state setters paired with the events they emit
 #==============================================================================
 
-vne_add_example(example_02_xwin_events SOURCES example.cpp)
+vne_add_example(example_04_window_state SOURCES example.cpp)

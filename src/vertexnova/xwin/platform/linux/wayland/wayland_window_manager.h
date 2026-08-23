@@ -37,9 +37,6 @@ class WaylandWindow;
 
 class WaylandWindowManager final : public IWindowManager {
    public:
-    void notifyWindowEvent(IWindow* window, const WindowEventData& event);
-    [[nodiscard]] const EventBridgeCallbacks& eventBridgeCallbacks() const noexcept { return event_bridge_callbacks_; }
-
     /** @brief Bound from wl_registry global callback (xdg-shell + compositor + seat). */
     void onRegistryGlobal(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version);
     void onRegistryGlobalRemove(uint32_t name);
@@ -90,8 +87,6 @@ class WaylandWindowManager final : public IWindowManager {
     void focusWindow(std::shared_ptr<IWindow> window) override;
 
     void processEvents() override;
-    void setEventCallback(const WindowManagerEventCallbackT& callback) override;
-    void setEventBridgeCallbacks(EventBridgeCallbacks callbacks) override;
     [[nodiscard]] bool shouldClose() const noexcept override;
     [[nodiscard]] bool shouldCloseAll() const noexcept override;
 
@@ -106,6 +101,9 @@ class WaylandWindowManager final : public IWindowManager {
     [[nodiscard]] double getPlatformTime() const noexcept override;
 
    private:
+    /** @brief Current seat modifier state, mapped through the window's optional input mapping. */
+    [[nodiscard]] uint8_t seatModifiers(const WaylandWindow* win) const;
+
     void bindCompositor(struct wl_registry* registry, uint32_t name, uint32_t version);
     void bindXdgWmBase(struct wl_registry* registry, uint32_t name, uint32_t version);
     void bindSeat(struct wl_registry* registry, uint32_t name, uint32_t version);
@@ -152,8 +150,6 @@ class WaylandWindowManager final : public IWindowManager {
     std::vector<std::shared_ptr<IWindow>> windows_;
     std::shared_ptr<IWindow> primary_;
     std::shared_ptr<IWindow> focused_;
-    WindowManagerEventCallbackT callback_{};
-    EventBridgeCallbacks event_bridge_callbacks_{};
     bool initialized_ = false;
     std::string properties_;
 };

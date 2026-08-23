@@ -41,7 +41,7 @@ namespace {
 [[maybe_unused]] constexpr std::uint64_t kLow32Mask = 0xFFFFFFFFu;
 [[maybe_unused]] constexpr std::uint8_t kMouseButtonMask = 7U;
 
-/* Native → MouseButton for X11/Wayland: unmapped values use kUnmappedMouseButtonSentinel (input_mapping.h;
+/* Native → MouseButton for X11/Wayland: unmapped values use vne::events::MouseButton::eUnknown (input_mapping.h;
  * TODO(vneevents): replace with MouseButton::eUnknown). */
 
 #if VNE_XWIN_HAS_X11
@@ -54,12 +54,12 @@ MouseButton mapX11NativeButtonToMouse(unsigned int b) {
         case 3U:
             return MouseButton::eRight;
         default:
-            return kUnmappedMouseButtonSentinel;
+            return vne::events::MouseButton::eUnknown;
     }
 }
 
 unsigned int mapMouseButtonToX11Button(MouseButton button) {
-    if (button == kUnmappedMouseButtonSentinel) {
+    if (button == vne::events::MouseButton::eUnknown) {
         return 0U;
     }
     switch (button) {
@@ -85,12 +85,12 @@ MouseButton mapLinuxEvdevButtonToMouse(std::uint32_t btn) {
         case BTN_MIDDLE:
             return MouseButton::eMiddle;
         default:
-            return kUnmappedMouseButtonSentinel;
+            return vne::events::MouseButton::eUnknown;
     }
 }
 
 std::uint32_t mapMouseButtonToLinuxEvdev(MouseButton button) {
-    if (button == kUnmappedMouseButtonSentinel) {
+    if (button == vne::events::MouseButton::eUnknown) {
         return 0U;
     }
     switch (button) {
@@ -127,7 +127,6 @@ KeyCode mapNativeKeyToEventsDefault(WindowAPI api, uint64_t native_key_packed) n
 #endif
 #if VNE_XWIN_HAS_UIKIT
         case WindowAPI::eIosUikitWindow:
-        case WindowAPI::eTvosUikitWindow:
             return mapCocoaKeyCode(static_cast<std::uint16_t>(native_key_packed & kLow16Mask));
 #endif
 #if VNE_XWIN_HAS_X11
@@ -155,7 +154,7 @@ uint64_t mapEventsKeyToNativePackedDefault(WindowAPI api, KeyCode key) noexcept 
     }
 #endif
 #if VNE_XWIN_HAS_UIKIT
-    if (api == WindowAPI::eIosUikitWindow || api == WindowAPI::eTvosUikitWindow) {
+    if (api == WindowAPI::eIosUikitWindow) {
         return mapEventsKeyCodeToCocoaPacked(key);
     }
 #endif
@@ -193,7 +192,7 @@ MouseButton mapNativeMouseToEventsDefault(WindowAPI api, uint64_t native_mouse_p
     }
 #endif
 #if VNE_XWIN_HAS_UIKIT
-    if (api == WindowAPI::eIosUikitWindow || api == WindowAPI::eTvosUikitWindow) {
+    if (api == WindowAPI::eIosUikitWindow) {
         const auto bn = static_cast<std::uint32_t>(native_mouse_packed & kLowByteMask);
         if (bn <= kMouseButtonMask) {
             return static_cast<MouseButton>(bn);
@@ -213,7 +212,7 @@ MouseButton mapNativeMouseToEventsDefault(WindowAPI api, uint64_t native_mouse_p
 #endif
     (void)native_mouse_packed;
     (void)api;
-    return kUnmappedMouseButtonSentinel;
+    return vne::events::MouseButton::eUnknown;
 }
 
 uint64_t mapEventsMouseToNativePackedDefault(WindowAPI api, MouseButton button) noexcept {
@@ -224,15 +223,15 @@ uint64_t mapEventsMouseToNativePackedDefault(WindowAPI api, MouseButton button) 
 #endif
 #if VNE_XWIN_HAS_COCOA
     if (api == WindowAPI::eCocoaWindow) {
-        if (button == kUnmappedMouseButtonSentinel) {
+        if (button == vne::events::MouseButton::eUnknown) {
             return 0;
         }
         return static_cast<uint64_t>(static_cast<std::uint8_t>(button) & kMouseButtonMask);
     }
 #endif
 #if VNE_XWIN_HAS_UIKIT
-    if (api == WindowAPI::eIosUikitWindow || api == WindowAPI::eTvosUikitWindow) {
-        if (button == kUnmappedMouseButtonSentinel) {
+    if (api == WindowAPI::eIosUikitWindow) {
+        if (button == vne::events::MouseButton::eUnknown) {
             return 0;
         }
         return static_cast<uint64_t>(static_cast<std::uint8_t>(button) & kMouseButtonMask);
@@ -265,7 +264,7 @@ std::uint8_t mapNativeModifiersToEventsDefault(WindowAPI api, std::uint64_t nati
     }
 #endif
 #if VNE_XWIN_HAS_UIKIT
-    if (api == WindowAPI::eIosUikitWindow || api == WindowAPI::eTvosUikitWindow) {
+    if (api == WindowAPI::eIosUikitWindow) {
         return mapCocoaModifiers(static_cast<unsigned long>(native_modifiers_packed));
     }
 #endif
@@ -297,7 +296,7 @@ std::uint64_t mapEventsModifiersToNativePackedDefault(WindowAPI api, std::uint8_
     }
 #endif
 #if VNE_XWIN_HAS_UIKIT
-    if (api == WindowAPI::eIosUikitWindow || api == WindowAPI::eTvosUikitWindow) {
+    if (api == WindowAPI::eIosUikitWindow) {
         return static_cast<std::uint64_t>(mapEventsModifiersToCocoaFlags(events_modifiers));
     }
 #endif
@@ -352,7 +351,7 @@ uint64_t mapEventsKeyToNativePacked(WindowAPI api, KeyCode key, const WindowInpu
 MouseButton mapNativeMouseToEvents(WindowAPI api, uint64_t native_mouse_packed, const WindowInputMapping* mapping) {
     if (mapping && mapping->native_mouse_to_events) {
         const MouseButton b = mapping->native_mouse_to_events(api, native_mouse_packed);
-        if (b != kUnmappedMouseButtonSentinel) {
+        if (b != vne::events::MouseButton::eUnknown) {
             return b;
         }
     }

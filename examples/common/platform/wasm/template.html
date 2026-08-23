@@ -10,32 +10,35 @@
             --bg:          #0d0d0d;
             --surface:     #161616;
             --border:      #2a2a2a;
-            --border-focus: #22c55e;   /* green — canvas is capturing input */
-            --border-blur:  #ef4444;   /* red   — canvas is not capturing input */
+            --border-focus: #22c55e;
+            --border-blur:  #525252;
             --accent:      #3b82f6;
             --text-dim:    #6b7280;
             --text-faint:  #374151;
-            --radius:      10px;
-            --shadow:      0 20px 60px rgba(0, 0, 0, 0.7);
-            --transition:  border-color 0.2s ease, box-shadow 0.2s ease;
+            --titlebar-h:  28px;
+            --radius:      8px;
+            --shadow:      0 12px 40px rgba(0, 0, 0, 0.55);
+            --transition:  border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background: var(--bg);
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 16px;
+            justify-content: flex-start;
+            gap: 12px;
+            padding: 20px 12px 28px;
             font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
             color: var(--text-dim);
             -webkit-font-smoothing: antialiased;
+            overflow: hidden;
         }
 
-        /* ── Title bar ────────────────────────────────────────────────────── */
         #titlebar {
             display: flex;
             align-items: center;
@@ -45,6 +48,7 @@
             text-transform: uppercase;
             color: var(--text-dim);
             user-select: none;
+            flex-shrink: 0;
         }
 
         #titlebar .dot {
@@ -55,39 +59,98 @@
             opacity: 0.5;
         }
 
-        /* ── Canvas wrapper ───────────────────────────────────────────────── */
-        #canvas-wrap {
+        #vne-desktop {
             position: relative;
+            /* Fills remaining column space below titlebar and above statusbar. */
+            width: 100%;
+            flex: 1 1 auto;
+            min-height: 320px;
+            min-width: 0;
+            border: 1px solid var(--border);
             border-radius: var(--radius);
-            border: 2px solid var(--border-blur);   /* red while not focused */
+            background:
+                radial-gradient(circle at 1px 1px, #1f1f1f 1px, transparent 0) 0 0 / 16px 16px,
+                #121212;
+            overflow: hidden;
+        }
+
+        .vne-window {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid var(--border-blur);
+            border-radius: var(--radius);
+            background: var(--surface);
             box-shadow: var(--shadow);
             overflow: hidden;
-            background: var(--surface);
             transition: var(--transition);
         }
 
-        #canvas-wrap.focused {
-            border-color: var(--border-focus);
-            box-shadow: var(--shadow), 0 0 0 4px rgba(34, 197, 94, 0.12);
+        /* Set by the tiler; a single window resolves to the whole desktop. */
+        .vne-window.fills {
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: calc(var(--radius) - 1px);
+            box-shadow: none;
         }
 
-        #canvas {
+        .vne-window.focused {
+            border-color: var(--border-focus);
+            box-shadow: var(--shadow), 0 0 0 3px rgba(34, 197, 94, 0.12);
+            z-index: 1000;
+        }
+
+        .vne-window.fills.focused {
+            box-shadow: none;
+        }
+
+        .vne-titlebar {
+            flex: 0 0 var(--titlebar-h);
+            height: var(--titlebar-h);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            background: #1c1c1c;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            color: #d1d5db;
+            user-select: none;
+            cursor: default;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .vne-canvas-wrap {
+            flex: 1 1 auto;
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+            background: #0f0f0f;
+        }
+
+        .vne-canvas-wrap canvas {
             display: block;
+            /* Defeat Emscripten px style writes so the drawable follows the panel. */
+            width: 100% !important;
+            height: 100% !important;
             outline: none;
             cursor: default;
         }
 
-        /* ── Overlay (loading / error) ────────────────────────────────────── */
         #overlay {
-            position: absolute;
+            position: fixed;
             inset: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 14px;
-            background: var(--surface);
-            z-index: 10;
+            background: rgba(13, 13, 13, 0.92);
+            z-index: 10000;
             transition: opacity 0.35s ease;
         }
 
@@ -114,34 +177,26 @@
             color: var(--text-dim);
         }
 
-        /* ── Error state ──────────────────────────────────────────────────── */
         #error-overlay {
             display: none;
-            position: absolute;
+            position: fixed;
             inset: 0;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            background: var(--surface);
-            z-index: 20;
+            background: rgba(13, 13, 13, 0.95);
+            z-index: 10001;
             padding: 32px;
             text-align: center;
         }
 
         #error-overlay.visible { display: flex; }
 
-        #error-icon {
-            font-size: 28px;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-
         #error-title {
             font-size: 13px;
             font-weight: bold;
             color: #ef4444;
-            letter-spacing: 0.04em;
         }
 
         #error-msg {
@@ -151,22 +206,14 @@
             line-height: 1.6;
         }
 
-        /* ── Status bar ───────────────────────────────────────────────────── */
         #statusbar {
             display: flex;
             align-items: center;
             gap: 20px;
             font-size: 11px;
-            letter-spacing: 0.04em;
             color: var(--text-faint);
             user-select: none;
-        }
-
-        #focus-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: color 0.2s ease;
+            flex-shrink: 0;
         }
 
         #focus-indicator.focused { color: #22c55e; }
@@ -177,11 +224,8 @@
             height: 6px;
             border-radius: 50%;
             background: currentColor;
-            transition: background 0.2s ease;
-        }
-
-        #hint {
-            color: var(--text-faint);
+            display: inline-block;
+            margin-right: 6px;
         }
     </style>
 </head>
@@ -193,58 +237,282 @@
         <span>VneWindow &mdash; WebAssembly</span>
     </div>
 
-    <div id="canvas-wrap">
-        <canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+    <div id="vne-desktop"></div>
 
-        <div id="overlay">
-            <div class="spinner"></div>
-            <div id="loading-text">Initializing&hellip;</div>
-        </div>
+    <div id="overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">Initializing&hellip;</div>
+    </div>
 
-        <div id="error-overlay">
-            <div id="error-icon">&#9888;</div>
-            <div id="error-title">Initialization failed</div>
-            <div id="error-msg"></div>
-        </div>
+    <div id="error-overlay">
+        <div id="error-title">Initialization failed</div>
+        <div id="error-msg"></div>
     </div>
 
     <div id="statusbar">
         <div id="focus-indicator" class="blurred">
-            <div id="focus-dot"></div>
-            <span id="focus-label">Click canvas to capture input</span>
+            <span id="focus-dot"></span><span id="focus-label">Waiting&hellip;</span>
         </div>
-        <span id="hint">ESC to quit</span>
+        <span id="hint">Click a window, then type. ESC to quit.</span>
     </div>
 
     <script>
-        const canvas      = document.getElementById('canvas');
-        const canvasWrap  = document.getElementById('canvas-wrap');
-        const overlay     = document.getElementById('overlay');
-        const errorBox    = document.getElementById('error-overlay');
-        const errorMsg    = document.getElementById('error-msg');
-        const focusInd    = document.getElementById('focus-indicator');
-        const focusLabel  = document.getElementById('focus-label');
+        const overlay    = document.getElementById('overlay');
+        const errorBox   = document.getElementById('error-overlay');
+        const errorMsg   = document.getElementById('error-msg');
+        const focusInd   = document.getElementById('focus-indicator');
+        const focusLabel = document.getElementById('focus-label');
+        const desktop    = document.getElementById('vne-desktop');
 
-        /* ── Focus / blur visuals ── */
-        function onFocus() {
-            canvasWrap.classList.add('focused');
-            focusInd.classList.remove('blurred');
-            focusInd.classList.add('focused');
-            focusLabel.textContent = 'Input captured';
+        let focusedId = null;
+        let zCounter = 10;
+        const TITLEBAR_H = 28;
+
+        function canvasIdFor(id, isPrimary) {
+            return isPrimary ? 'canvas' : ('canvas-' + id);
         }
 
-        function onBlur() {
-            canvasWrap.classList.remove('focused');
-            focusInd.classList.remove('focused');
-            focusInd.classList.add('blurred');
-            focusLabel.textContent = 'Click canvas to capture input';
+        function panelFor(id) {
+            return document.getElementById('vne-win-' + id);
         }
 
-        canvas.addEventListener('focus', onFocus);
-        canvas.addEventListener('blur',  onBlur);
-        canvas.addEventListener('click', () => canvas.focus());
+        function canvasFor(id, isPrimary) {
+            return document.getElementById(canvasIdFor(id, isPrimary));
+        }
 
-        /* ── Error display ── */
+        function windowCount() {
+            return desktop.querySelectorAll('.vne-window').length;
+        }
+
+        function updateStatus() {
+            if (focusedId == null) {
+                focusInd.className = 'blurred';
+                focusLabel.textContent = 'Click a window to focus';
+                return;
+            }
+            focusInd.className = 'focused';
+            const panel = panelFor(focusedId);
+            const title = panel ? panel.querySelector('.vne-titlebar').textContent : ('win ' + focusedId);
+            focusLabel.textContent = 'Focused: ' + title + ' (id=' + focusedId + ')';
+        }
+
+        window.VneShell = {
+            prepareDesktop() {
+                desktop.innerHTML = '';
+            },
+
+            createWindow(id, title, width, height, x, y, isPrimary) {
+                if (panelFor(id)) {
+                    this.configureWindow(id, title, width, height, x, y, isPrimary);
+                    return canvasFor(id, isPrimary);
+                }
+
+                const panel = document.createElement('div');
+                panel.id = 'vne-win-' + id;
+                panel.className = 'vne-window';
+                panel.dataset.contentW = String(width);
+                panel.dataset.contentH = String(height);
+                panel.style.zIndex = String(++zCounter);
+
+                // Geometry is assigned by _retile() once the panel is in the DOM.
+                panel.dataset.contentW = String(width);
+                panel.dataset.contentH = String(height);
+
+                const bar = document.createElement('div');
+                bar.className = 'vne-titlebar';
+                bar.textContent = title;
+
+                const wrap = document.createElement('div');
+                wrap.className = 'vne-canvas-wrap';
+
+                const canvas = document.createElement('canvas');
+                canvas.id = canvasIdFor(id, isPrimary);
+                canvas.tabIndex = 0;
+                canvas.oncontextmenu = (e) => e.preventDefault();
+
+                canvas.addEventListener('mousedown', () => this.focusWindow(id));
+                canvas.addEventListener('focus', () => {
+                    focusedId = id;
+                    this._applyFocusVisuals(id);
+                    updateStatus();
+                });
+                canvas.addEventListener('blur', () => updateStatus());
+
+                wrap.appendChild(canvas);
+                panel.appendChild(bar);
+                panel.appendChild(wrap);
+                bar.addEventListener('mousedown', () => this.focusWindow(id));
+                desktop.appendChild(panel);
+
+                if (isPrimary && typeof Module !== 'undefined') {
+                    Module.canvas = canvas;
+                }
+
+                // Opening a window shrinks every other cell, so the whole grid is recomputed.
+                this._retile();
+                updateStatus();
+
+                return canvas;
+            },
+
+            configureWindow(id, title, width, height, x, y, isPrimary) {
+                const panel = panelFor(id);
+                if (!panel) {
+                    return this.createWindow(id, title, width, height, x, y, isPrimary);
+                }
+                panel.querySelector('.vne-titlebar').textContent = title;
+                panel.dataset.contentW = String(width);
+                panel.dataset.contentH = String(height);
+                if (!panel.classList.contains('fills')) {
+                    panel.style.left = x + 'px';
+                    panel.style.top = y + 'px';
+                    panel.style.width = width + 'px';
+                    panel.style.height = (height + TITLEBAR_H) + 'px';
+                }
+                return canvasFor(id, isPrimary);
+            },
+
+            closeWindow(id) {
+                const panel = panelFor(id);
+                if (panel) {
+                    panel.remove();
+                }
+                if (focusedId === id) {
+                    focusedId = null;
+                    updateStatus();
+                }
+                // Closing frees its cell; the survivors divide the desktop again.
+                this._retile();
+            },
+
+            focusWindow(id) {
+                const panel = panelFor(id);
+                if (!panel) {
+                    return;
+                }
+                panel.style.zIndex = String(++zCounter);
+                focusedId = id;
+                this._applyFocusVisuals(id);
+                const canvas = panel.querySelector('canvas');
+                if (canvas) {
+                    canvas.focus();
+                }
+                updateStatus();
+            },
+
+            setTitle(id, title) {
+                const panel = panelFor(id);
+                if (panel) {
+                    panel.querySelector('.vne-titlebar').textContent = title;
+                    updateStatus();
+                }
+            },
+
+            setPosition(id, x, y) {
+                const panel = panelFor(id);
+                if (!panel || panel.classList.contains('fills')) {
+                    return;
+                }
+                panel.style.left = x + 'px';
+                panel.style.top = y + 'px';
+            },
+
+            setSize(id, width, height) {
+                const panel = panelFor(id);
+                if (!panel) {
+                    return;
+                }
+                // Fill mode follows the desktop. Keep the original logical size so exiting
+                // fill (multi-window) does not create a desktop-sized floating panel.
+                if (panel.classList.contains('fills')) {
+                    return;
+                }
+                panel.dataset.contentW = String(width);
+                panel.dataset.contentH = String(height);
+                panel.style.width = width + 'px';
+                panel.style.height = (height + TITLEBAR_H) + 'px';
+            },
+
+            /** Content (canvas) CSS size for a panel — used by C++ for backing-store sync. */
+            getContentSize(id) {
+                const panel = panelFor(id);
+                if (!panel) {
+                    return { width: 0, height: 0 };
+                }
+                const wrap = panel.querySelector('.vne-canvas-wrap');
+                if (wrap && wrap.clientWidth > 0 && wrap.clientHeight > 0) {
+                    return { width: wrap.clientWidth | 0, height: wrap.clientHeight | 0 };
+                }
+                if (panel.classList.contains('fills')) {
+                    return {
+                        width: desktop.clientWidth | 0,
+                        height: Math.max(0, (desktop.clientHeight | 0) - TITLEBAR_H),
+                    };
+                }
+                return {
+                    width: parseInt(panel.dataset.contentW || '0', 10) || 0,
+                    height: parseInt(panel.dataset.contentH || '0', 10) || 0,
+                };
+            },
+
+            /**
+             * Lays every panel out as a grid cell sized by window count: 1 fills, 2 side by side,
+             * 3-4 as 2x2, and so on. Replaces the old cascade, where panels offset by 40px each
+             * overlapped almost entirely and read as a single window.
+             *
+             * The shell owns geometry, so after moving a panel it tells the C++ side its new
+             * content size; that is what resizes the canvas backing store and emits a resize event.
+             */
+            _retile() {
+                const panels = Array.from(desktop.querySelectorAll('.vne-window'));
+                const n = panels.length;
+                if (n === 0) {
+                    return;
+                }
+
+                const cols = Math.ceil(Math.sqrt(n));
+                const rows = Math.ceil(n / cols);
+                const cellW = Math.floor(desktop.clientWidth / cols);
+                const cellH = Math.floor(desktop.clientHeight / rows);
+
+                panels.forEach((panel, i) => {
+                    const col = i % cols;
+                    const row = Math.floor(i / cols);
+
+                    // One window gets the whole desktop via CSS; the rest are placed explicitly.
+                    panel.classList.toggle('fills', n === 1);
+                    if (n > 1) {
+                        panel.style.left = (col * cellW) + 'px';
+                        panel.style.top = (row * cellH) + 'px';
+                        panel.style.width = cellW + 'px';
+                        panel.style.height = cellH + 'px';
+                    }
+
+                    const contentW = (n === 1) ? desktop.clientWidth : cellW;
+                    const contentH = ((n === 1) ? desktop.clientHeight : cellH) - TITLEBAR_H;
+                    panel.dataset.contentW = String(contentW);
+                    panel.dataset.contentH = String(Math.max(contentH, 1));
+
+                    const id = parseInt(panel.id.replace('vne-win-', ''), 10);
+                    if (Number.isFinite(id) && typeof Module !== 'undefined' && Module._vne_xwin_on_shell_resize) {
+                        // Unknown ids are ignored on the C++ side, so a window still initializing
+                        // is harmless here.
+                        Module._vne_xwin_on_shell_resize(id, contentW, Math.max(contentH, 1));
+                    }
+                });
+            },
+
+            _applyFocusVisuals(id) {
+                desktop.querySelectorAll('.vne-window').forEach((el) => {
+                    el.classList.toggle('focused', el.id === 'vne-win-' + id);
+                });
+            }
+        };
+
+        VneShell.prepareDesktop();
+        // Cells are sized in pixels, so a viewport change has to recompute them.
+        window.addEventListener('resize', () => VneShell._retile());
+
         function showError(msg) {
             overlay.classList.add('hidden');
             errorMsg.textContent = msg;
@@ -255,28 +523,17 @@
             showError(e.error ? e.error.message : e.message);
         });
 
-        /* ── Canvas sizing — Emscripten will resize to ExampleConfig dims ── */
-        (function applyInitialSize() {
-            canvas.width  = 800;
-            canvas.height = 600;
-            canvasWrap.style.width  = canvas.width  + 'px';
-            canvasWrap.style.height = canvas.height + 'px';
-        })();
-
-        /* ── Emscripten Module ── */
         var Module = {
-            canvas: canvas,
-
             onRuntimeInitialized: function () {
                 overlay.classList.add('hidden');
-                canvas.focus();
+                if (focusedId != null) {
+                    VneShell.focusWindow(focusedId);
+                }
             },
-
             setStatus: function (text) {
                 const el = document.getElementById('loading-text');
                 if (el && text) { el.textContent = text; }
             },
-
             print:    (t) => console.log('[vnewindow]', t),
             printErr: (t) => console.error('[vnewindow]', t),
             onAbort:  (w) => showError('Fatal: ' + w),

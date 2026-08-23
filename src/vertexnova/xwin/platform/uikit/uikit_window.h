@@ -15,7 +15,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
-#include "vertexnova/xwin/event_bridge_callbacks.h"
+#include "event_emitter.h"
 
 #include <vertexnova/events/types.h>
 
@@ -53,6 +53,7 @@ class UIKitWindow final : public IWindow {
     void resize(uint32_t width, uint32_t height) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return id_; }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;
@@ -60,25 +61,31 @@ class UIKitWindow final : public IWindow {
     [[nodiscard]] float getDpiScale() const noexcept override;
 
     // Called from VneXWinUIView
-    void handleTouch(uint32_t touch_id, double x, double y, EventBridgeTouchPhase phase);
+    void handleTouch(uint32_t touch_id, double x, double y, TouchPhase phase, uint8_t modifiers);
     // Indirect pointer (mouse / trackpad) and scroll wheel, so a mouse drives the desktop
     // camera bindings (left = orbit, right = pan, scroll = zoom) on iOS / iPadOS.
     void handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t modifiers);
     void handleMouseMove(double x, double y, uint8_t modifiers);
-    void handleMouseScroll(double x_offset, double y_offset);
+    void handleMouseScroll(double x_offset, double y_offset, double x, double y, uint8_t modifiers);
+    void handleWindowResize(uint32_t width, uint32_t height);
+    void handleWindowFocus(bool focused);
+    void handleWindowDpiChanged(float scale);
+    void handleWindowSafeAreaChanged(float top, float left, float bottom, float right);
 
     [[nodiscard]] const WindowInputMapping* inputMapping() const noexcept { return desc_.input_mapping.get(); }
 
    private:
     void destroyNative();
 
+    const vne::events::WindowId id_ = IWindow::nextId();
     UIKitWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
     void* ui_view_ = nullptr;
     void* ui_window_ = nullptr;
 
-    EventBridgeCallbacks empty_callbacks_{};
+    // Declared last: binds to desc_ by reference.
+    EventEmitter events_{this, desc_};
 };
 
 }  // namespace vne::xwin

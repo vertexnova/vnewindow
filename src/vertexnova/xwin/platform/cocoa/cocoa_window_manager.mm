@@ -27,12 +27,6 @@ CocoaWindowManager::~CocoaWindowManager() {
     shutdown();
 }
 
-void CocoaWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
-    if (callback_ && window) {
-        callback_(window, event);
-    }
-}
-
 bool CocoaWindowManager::initialize() {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -123,6 +117,15 @@ void CocoaWindowManager::setPrimaryWindow(std::shared_ptr<IWindow> window) {
 
 void CocoaWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
     focused_ = std::move(window);
+    if (!focused_) {
+        return;
+    }
+    const NativeWindowHandle handle = focused_->getNativeHandle();
+    if (handle.ns_window) {
+        NSWindow* win = (__bridge NSWindow*)handle.ns_window;
+        [win makeKeyAndOrderFront:nil];
+        [NSApp activateIgnoringOtherApps:YES];
+    }
 }
 
 void CocoaWindowManager::processEvents() {
@@ -136,14 +139,6 @@ void CocoaWindowManager::processEvents() {
         }
         [NSApp sendEvent:ev];
     }
-}
-
-void CocoaWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
-    callback_ = callback;
-}
-
-void CocoaWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
 }
 
 bool CocoaWindowManager::shouldClose() const noexcept {

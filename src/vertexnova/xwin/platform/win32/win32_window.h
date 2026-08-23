@@ -11,6 +11,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
+#include "event_emitter.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -46,6 +47,7 @@ class Win32Window final : public IWindow {
     void resize(uint32_t width, uint32_t height) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return id_; }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;
@@ -55,7 +57,7 @@ class Win32Window final : public IWindow {
     void setClipboardText(const std::string& text) override;
     void setWindowIcon(std::span<const uint8_t> rgba_pixels, uint32_t width, uint32_t height) override;
 
-    /** @brief Used by Win32WindowManager to deliver manager-level callbacks. */
+    /** @brief Associates this window with its manager. */
     void setEventOwner(Win32WindowManager* owner);
 
     LRESULT handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -65,10 +67,13 @@ class Win32Window final : public IWindow {
     void createWindow(const WindowDescriptor& descriptor);
     void destroyWindow();
 
+    const vne::events::WindowId id_ = IWindow::nextId();
     HWND hwnd_ = nullptr;
     Win32WindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
+    /** Tracks WM_SIZE minimize state, so the next non-minimized WM_SIZE can emit a restore. */
+    bool minimized_ = false;
     bool fullscreen_ = false;
     WindowMode mode_ = WindowMode::eWindowed;
     WindowMode windowed_mode_before_fullscreen_ = WindowMode::eWindowed;
@@ -77,6 +82,9 @@ class Win32Window final : public IWindow {
     DWORD saved_style_ = 0;
     RECT saved_rect_ = {};
     wchar_t pending_high_surrogate_ = 0;
+
+    // Declared last: binds to desc_ by reference.
+    EventEmitter events_{this, desc_};
 };
 
 }  // namespace vne::xwin

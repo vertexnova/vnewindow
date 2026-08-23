@@ -28,12 +28,6 @@ UIKitWindowManager::~UIKitWindowManager() {
     shutdown();
 }
 
-void UIKitWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
-    if (callback_ && window) {
-        callback_(window, event);
-    }
-}
-
 bool UIKitWindowManager::initialize() {
     initialized_ = true;
     return true;
@@ -134,14 +128,6 @@ void UIKitWindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 }
 
 void UIKitWindowManager::processEvents() {}
-
-void UIKitWindowManager::setEventCallback(const WindowManagerEventCallbackT& callback) {
-    callback_ = callback;
-}
-
-void UIKitWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks callbacks) {
-    event_bridge_callbacks_ = std::move(callbacks);
-}
 
 bool UIKitWindowManager::shouldClose() const noexcept {
     for (const auto& w : windows_) {

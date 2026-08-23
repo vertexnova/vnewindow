@@ -14,11 +14,13 @@
 
 #include <gtest/gtest.h>
 
-#include "vertexnova/xwin/event_bridge_callbacks.h"
 #include "vertexnova/xwin/window_factory.h"
 #include "vertexnova/xwin/xwin_types.h"
 
-using vne::xwin::EventBridgeCallbacks;
+#include <vertexnova/events/events.h>
+
+#include <set>
+
 using vne::xwin::WindowAPI;
 using vne::xwin::WindowFactory;
 
@@ -49,22 +51,69 @@ TEST_F(NullWindowManagerTest, MonitorQueriesUseBaseDefaults) {
     mgr->shutdown();
 }
 
-TEST_F(NullWindowManagerTest, EventBridgeCallbacksDoNotCrashOnProcessEvents) {
+TEST_F(NullWindowManagerTest, ProcessEventsOnNullBackendEmitsNothing) {
     auto mgr = MakeInitializedNullManager();
     ASSERT_NE(mgr, nullptr);
 
-    bool called = false;
-    EventBridgeCallbacks cb{};
-    cb.on_window_focus = [&called](vne::xwin::IWindow*, bool) { called = true; };
-
-    mgr->setEventBridgeCallbacks(std::move(cb));
-    mgr->processEvents();
+    auto& events = vne::events::EventManager::instance();
+    events.clearPendingEvents();
 
     auto w = mgr->openWindow("eb", 16, 16);
     ASSERT_NE(w, nullptr);
     mgr->processEvents();
-    EXPECT_FALSE(called);
+
+    // The null backend has no native event source; it must stay silent rather than synthesizing.
+    EXPECT_EQ(events.pendingEventCount(), 0U);
 
     w->close();
+    mgr->shutdown();
+}
+
+TEST_F(NullWindowManagerTest, WindowIdsAreNonZeroAndUnique) {
+    auto mgr = MakeInitializedNullManager();
+    ASSERT_NE(mgr, nullptr);
+
+    auto a = mgr->openWindow("a", 16, 16);
+    auto b = mgr->openWindow("b", 16, 16);
+    ASSERT_NE(a, nullptr);
+    ASSERT_NE(b, nullptr);
+
+    // Zero is kInvalidWindowId, which must never be handed out as a real id.
+    EXPECT_NE(a->getId(), vne::events::kInvalidWindowId);
+    EXPECT_NE(b->getId(), vne::events::kInvalidWindowId);
+    EXPECT_NE(a->getId(), b->getId());
+
+    mgr->shutdown();
+}
+
+TEST_F(NullWindowManagerTest, FindWindowResolvesById) {
+    auto mgr = MakeInitializedNullManager();
+    ASSERT_NE(mgr, nullptr);
+
+    auto w = mgr->openWindow("findme", 16, 16);
+    ASSERT_NE(w, nullptr);
+
+    // This is how a listener gets from an event back to the window that produced it.
+    EXPECT_EQ(mgr->findWindow(w->getId()), w);
+    EXPECT_EQ(mgr->findWindow(vne::events::kInvalidWindowId), nullptr);
+    EXPECT_EQ(mgr->findWindow(w->getId() + 100000U), nullptr);
+
+    mgr->shutdown();
+}
+
+TEST_F(NullWindowManagerTest, ApplicationLifecycleIsEmittedWithoutAnyWindow) {
+    auto mgr = MakeInitializedNullManager();
+    ASSERT_NE(mgr, nullptr);
+
+    auto& events = vne::events::EventManager::instance();
+    events.clearPendingEvents();
+
+    // Lifecycle is process-scoped: it must fire even on a backend that owns no window.
+    mgr->notifyApplicationLifecycle(vne::xwin::ApplicationLifecycle::ePause);
+    mgr->notifyApplicationLifecycle(vne::xwin::ApplicationLifecycle::eResume);
+    mgr->notifyApplicationLifecycle(vne::xwin::ApplicationLifecycle::eLowMemory);
+
+    EXPECT_EQ(events.pendingEventCount(), 3U);
+    events.clearPendingEvents();
     mgr->shutdown();
 }

@@ -13,7 +13,7 @@
 /** @file input_mapping.h Native input tokens ↔ vne::events types, with optional per-window overrides.
  *
  * Built-in tables cover Win32, Cocoa, X11, and Wayland. UIKit exposes the same Cocoa-style defaults for
- * eIosUikitWindow / eTvosUikitWindow when you map native tokens yourself; VneXWinUIView delivers finger
+ * eIosUikitWindow when you map native tokens yourself; VneXWinUIView delivers finger
  * input as touch only (not UITouch-based mouse). Android remains touch-first with no default KM tables.
  */
 
@@ -35,14 +35,8 @@ inline constexpr std::uint64_t kWin32MsgMask = 0xFFFFFFFFULL;
 inline constexpr std::uint32_t kWin32WParamShift = 32U;
 
 /**
- * TODO(vneevents): Add vne::events::MouseButton::eUnknown upstream and replace this 0xFF sentinel
- * (and all compares against it) with that enumerator.
- */
-inline constexpr vne::events::MouseButton kUnmappedMouseButtonSentinel = static_cast<vne::events::MouseButton>(0xFFU);
-
-/**
  * Optional per-window translation hooks. If a slot is empty, or returns KeyCode::eUnknown /
- * kUnmappedMouseButtonSentinel / zero where documented, the library falls back to built-in platform
+ * vne::events::MouseButton::eUnknown / zero where documented, the library falls back to built-in platform
  * tables (Win32 VK, Cocoa CGKeyCode,
  * X11/Wayland keysym, etc.). Android has no default tables; UIKit can use these hooks for custom
  * native translation (the stock view path only emits touch events).

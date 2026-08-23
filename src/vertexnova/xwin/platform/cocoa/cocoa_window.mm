@@ -12,7 +12,7 @@
 #include "cocoa_window.h"
 
 #include "cocoa_window_manager.h"
-#include "event_bridge.h"
+#include "event_emitter.h"
 
 #include "vertexnova/xwin/input_mapping.h"
 #include "vertexnova/xwin/xwin_types.h"
@@ -267,7 +267,15 @@
     if (!xwin_) {
         return;
     }
-    xwin_->handleMouseScroll(static_cast<float>(ev.scrollingDeltaX), static_cast<float>(ev.scrollingDeltaY));
+    // isFlipped=YES: convertPoint: already yields top-left-origin Y (same as mouseDown:/mouseMoved:).
+    const NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
+    xwin_->handleMouseScroll(static_cast<float>(ev.scrollingDeltaX),
+                             static_cast<float>(ev.scrollingDeltaY),
+                             static_cast<double>(p.x),
+                             static_cast<double>(p.y),
+                             vne::xwin::mapNativeModifiersToEvents(vne::xwin::WindowAPI::eCocoaWindow,
+                                                                   static_cast<uint64_t>(ev.modifierFlags),
+                                                                   xwin_->inputMapping()));
 }
 
 // ---- Text / IME input ----
@@ -328,6 +336,23 @@
 @end
 
 // ---------------------------------------------------------------------------
+// VneXWinWindow — NSWindow that can still take key focus without a title bar.
+// AppKit refuses key status to NSWindowStyleMaskBorderless windows by default, which would make
+// borderless mode a dead end: no keyboard events, and no way to press the key that leaves it.
+// ---------------------------------------------------------------------------
+@interface VneXWinWindow : NSWindow
+@end
+
+@implementation VneXWinWindow
+- (BOOL)canBecomeKeyWindow {
+    return YES;
+}
+- (BOOL)canBecomeMainWindow {
+    return YES;
+}
+@end
+
+// ---------------------------------------------------------------------------
 // VneXWinWindowDelegate — NSWindowDelegate for window-level events
 // ---------------------------------------------------------------------------
 @interface VneXWinWindowDelegate : NSObject <NSWindowDelegate> {
@@ -367,6 +392,7 @@
     (void)notification;
     if (xwin_) {
         xwin_->handleWindowFocus(true);
+        xwin_->reassertInputRouting();
     }
 }
 
@@ -377,10 +403,49 @@
     }
 }
 
+- (void)windowDidMiniaturize:(NSNotification*)notification {
+    (void)notification;
+    if (xwin_) {
+        xwin_->handleWindowMinimize();
+    }
+}
+
+- (void)windowDidDeminiaturize:(NSNotification*)notification {
+    (void)notification;
+    if (xwin_) {
+        xwin_->handleWindowRestore();
+    }
+}
+
+- (void)windowDidMove:(NSNotification*)notification {
+    if (!xwin_) {
+        return;
+    }
+    NSWindow* win = notification.object;
+    const NSRect frame = [win frame];
+    // TODO(xwin): Investigate windowMove vs getPosition()/setPosition() origin consistency.
+    // windowDidMove currently converts to top-of-screen Y; getPosition() returns NSMaxY in
+    // AppKit bottom-left screen space (matching setFrameTopLeftPoint). Aligning these may
+    // affect cascade placement and any listener comparing the event payload with getPosition().
+    // Verify against vnerhi/vnegfx multi-backend samples before changing.
+    const NSRect screen = NSScreen.screens.firstObject ? NSScreen.screens.firstObject.frame : NSMakeRect(0, 0, 0, 0);
+    xwin_->handleWindowMove(static_cast<int32_t>(frame.origin.x),
+                            static_cast<int32_t>(screen.size.height - frame.origin.y - frame.size.height));
+}
+
+- (void)windowDidChangeBackingProperties:(NSNotification*)notification {
+    (void)notification;
+    if (xwin_) {
+        xwin_->handleWindowDpiChanged();
+    }
+}
+
 - (void)windowDidEnterFullScreen:(NSNotification*)notification {
     (void)notification;
     if (xwin_) {
         xwin_->setFullscreenState(true);
+        // The content view moved to a different window; without this key events stop arriving.
+        xwin_->reassertInputRouting();
     }
 }
 
@@ -388,6 +453,8 @@
     (void)notification;
     if (xwin_) {
         xwin_->setFullscreenState(false);
+        // The content view moved to a different window; without this key events stop arriving.
+        xwin_->reassertInputRouting();
     }
 }
 
@@ -424,22 +491,26 @@ void CocoaWindow::initialize(const WindowDescriptor& descriptor) {
     destroyNative();
     desc_ = descriptor;
 
-    NSRect rect = NSMakeRect(desc_.position.x,
-                             desc_.position.y,
-                             static_cast<CGFloat>(desc_.size.width),
-                             static_cast<CGFloat>(desc_.size.height));
+    NSRect content_rect =
+        NSMakeRect(0.0, 0.0, static_cast<CGFloat>(desc_.size.width), static_cast<CGFloat>(desc_.size.height));
     NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
                        | NSWindowStyleMaskResizable;
     if (!desc_.decorated) {
         style = NSWindowStyleMaskBorderless;
     }
 
-    NSWindow* win = [[NSWindow alloc] initWithContentRect:rect styleMask:style backing:NSBackingStoreBuffered defer:NO];
+    NSWindow* win = [[VneXWinWindow alloc] initWithContentRect:content_rect
+                                                     styleMask:style
+                                                       backing:NSBackingStoreBuffered
+                                                         defer:NO];
+    // Match setPosition(): descriptor coordinates are the window's top-left on screen.
+    [win setFrameTopLeftPoint:NSMakePoint(static_cast<CGFloat>(desc_.position.x),
+                                          static_cast<CGFloat>(desc_.position.y))];
     [win setTitle:[NSString stringWithUTF8String:desc_.title.c_str()]];
     [win setCollectionBehavior:[win collectionBehavior] | NSWindowCollectionBehaviorFullScreenPrimary];
 
     // Custom content view
-    VneXWinView* view = [[VneXWinView alloc] initWithFrame:rect xwin:this];
+    VneXWinView* view = [[VneXWinView alloc] initWithFrame:content_rect xwin:this];
     [win setContentView:view];
     [win makeFirstResponder:view];
 
@@ -489,69 +560,67 @@ void CocoaWindow::swapBuffers() {}
 // ---- Event dispatch helpers (called from ObjC) ----
 
 void CocoaWindow::handleKeyDown(vne::events::KeyCode key, uint8_t mods, bool repeat) {
-    if (key == vne::events::KeyCode::eUnknown) {
-        return;
-    }
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeKeyDown(this, desc_, cb, key, mods, repeat);
+    events_.keyDown(key, mods, repeat);
 }
 
 void CocoaWindow::handleKeyUp(vne::events::KeyCode key, uint8_t mods) {
-    if (key == vne::events::KeyCode::eUnknown) {
-        return;
-    }
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeKeyUp(this, desc_, cb, key, mods);
+    events_.keyUp(key, mods);
 }
 
 void CocoaWindow::handleMouseButton(vne::events::MouseButton button, bool pressed, double x, double y, uint8_t mods) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseButton(this, desc_, cb, button, pressed, x, y, mods);
+    events_.mouseButton(button, pressed, x, y, mods);
 }
 
 void CocoaWindow::handleMouseMove(double x, double y, uint8_t mods) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseMove(this, desc_, cb, x, y, mods);
+    events_.mouseMove(x, y, mods);
 }
 
-void CocoaWindow::handleMouseScroll(float dx, float dy) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeMouseScroll(this, desc_, cb, dx, dy);
+void CocoaWindow::handleMouseScroll(float dx, float dy, double x, double y, uint8_t mods) {
+    events_.mouseScroll(dx, dy, x, y, mods);
 }
 
 void CocoaWindow::handleWindowClose() {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeWindowClose(this, desc_, cb);
+    events_.windowClose();
     open_ = false;
-    if (owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eClose;
-        owner_->notifyWindowEvent(this, data);
-    }
     destroyNative();
 }
 
 void CocoaWindow::handleWindowResize(uint32_t w, uint32_t h) {
     desc_.size.width = w;
     desc_.size.height = h;
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeWindowResize(this, desc_, cb, w, h);
-    if (owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eResize;
-        data.size = desc_.size;
-        owner_->notifyWindowEvent(this, data);
-    }
+    events_.windowResize(w, h);
 }
 
 void CocoaWindow::handleWindowFocus(bool focused) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeWindowFocus(this, desc_, cb, focused);
-    if (owner_) {
-        WindowEventData data{};
-        data.type = WindowEventType::eFocus;
-        data.focused = focused;
-        owner_->notifyWindowEvent(this, data);
+    events_.windowFocus(focused);
+}
+
+void CocoaWindow::handleWindowMinimize() {
+    events_.windowMinimize();
+}
+
+void CocoaWindow::handleWindowRestore() {
+    events_.windowRestore();
+}
+
+void CocoaWindow::handleWindowMove(int32_t x, int32_t y) {
+    desc_.position.x = x;
+    desc_.position.y = y;
+    events_.windowMove(x, y);
+}
+
+void CocoaWindow::handleWindowDpiChanged() {
+    events_.windowDpiChanged(getDpiScale());
+}
+
+void CocoaWindow::reassertInputRouting() {
+    if (!ns_window_ || !ns_view_) {
+        return;
+    }
+    NSWindow* win = (__bridge NSWindow*)ns_window_;
+    NSView* view = (__bridge NSView*)ns_view_;
+    if ([win firstResponder] != view) {
+        [win makeFirstResponder:view];
     }
 }
 
@@ -588,10 +657,14 @@ void CocoaWindow::setWindowMode(WindowMode mode) {
         if (screen) {
             [win setFrame:screen.frame display:YES];
         }
+        [win makeKeyAndOrderFront:nil];
+        reassertInputRouting();
         return;
     }
     [win setStyleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
                        | NSWindowStyleMaskResizable)];
+    [win makeKeyAndOrderFront:nil];
+    reassertInputRouting();
 }
 
 WindowMode CocoaWindow::getWindowMode() const noexcept {
@@ -630,13 +703,20 @@ void CocoaWindow::maximize() {
 }
 
 void CocoaWindow::restore() {
-    if (ns_window_) {
-        NSWindow* win = (__bridge NSWindow*)ns_window_;
-        if (win.isMiniaturized) {
-            [win deminiaturize:nil];
-        } else if (win.isZoomed) {
-            [win zoom:nil];
-        }
+    if (!ns_window_) {
+        return;
+    }
+    NSWindow* win = (__bridge NSWindow*)ns_window_;
+    // Fullscreen first: such a window is neither miniaturized nor zoomed, so without this
+    // restore() silently did nothing and fullscreen could only be left via the green button.
+    if (fullscreen_) {
+        setFullscreen(false);
+        return;
+    }
+    if (win.isMiniaturized) {
+        [win deminiaturize:nil];
+    } else if (win.isZoomed) {
+        [win zoom:nil];
     }
 }
 
@@ -651,8 +731,8 @@ void CocoaWindow::setPosition(int x, int y) {
 
 WindowPosition CocoaWindow::getPosition() const {
     if (ns_window_) {
-        NSRect r = ((__bridge NSWindow*)ns_window_).frame;
-        return WindowPosition{static_cast<int32_t>(r.origin.x), static_cast<int32_t>(r.origin.y)};
+        NSRect frame = ((__bridge NSWindow*)ns_window_).frame;
+        return WindowPosition{static_cast<int32_t>(frame.origin.x), static_cast<int32_t>(NSMaxY(frame))};
     }
     return desc_.position;
 }
@@ -738,8 +818,7 @@ float CocoaWindow::getDpiScale() const noexcept {
 }
 
 void CocoaWindow::handleTextInput(const char* utf8_text) {
-    const EventBridgeCallbacks& cb = owner_ ? owner_->eventBridgeCallbacks() : empty_callbacks_;
-    eventBridgeTextInput(this, desc_, cb, utf8_text);
+    events_.textInput(utf8_text);
 }
 
 std::string CocoaWindow::getClipboardText() const {

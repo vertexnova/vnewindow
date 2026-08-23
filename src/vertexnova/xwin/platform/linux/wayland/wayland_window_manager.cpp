@@ -13,7 +13,7 @@
 
 #include "wayland_map_key.h"
 #include "wayland_window.h"
-#include "event_bridge.h"
+#include "event_emitter.h"
 
 #include <vertexnova/xwin/input_mapping.h>
 
@@ -305,11 +305,7 @@ void WaylandWindowManager::notifyWindowFocus(WaylandWindow* win, bool focused) {
     if (!win) {
         return;
     }
-    eventBridgeWindowFocus(win, win->descriptor(), event_bridge_callbacks_, focused);
-    WindowEventData ev{};
-    ev.type = WindowEventType::eFocus;
-    ev.focused = focused;
-    notifyWindowEvent(win, ev);
+    win->events().windowFocus(focused);
 }
 
 void WaylandWindowManager::onKeyboardKeymap(uint32_t format, int32_t fd, uint32_t size) {
@@ -377,15 +373,12 @@ void WaylandWindowManager::onKey(uint32_t linux_key, uint32_t state, uint32_t /*
     const vne::events::KeyCode kc = mapNativeKeyToEvents(WindowAPI::eWaylandWindow,
                                                          packXkbNativeKey(static_cast<std::uint32_t>(sym)),
                                                          desc.input_mapping.get());
-    const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    const uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWaylandWindow,
-                                                    static_cast<uint64_t>(base_mods),
-                                                    desc.input_mapping.get());
+    const uint8_t mods = seatModifiers(win);
     const bool pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
     if (pressed) {
-        eventBridgeKeyDown(win, desc, event_bridge_callbacks_, kc, mods, false);
+        win->events().keyDown(kc, mods, false);
     } else {
-        eventBridgeKeyUp(win, desc, event_bridge_callbacks_, kc, mods);
+        win->events().keyUp(kc, mods);
     }
 }
 
@@ -406,12 +399,14 @@ void WaylandWindowManager::onPointerMotion(double x, double y) {
     if (!win) {
         return;
     }
-    const WindowDescriptor& desc = win->descriptor();
+    win->events().mouseMove(x, y, seatModifiers(win));
+}
+
+uint8_t WaylandWindowManager::seatModifiers(const WaylandWindow* win) const {
     const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    const uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWaylandWindow,
-                                                    static_cast<uint64_t>(base_mods),
-                                                    desc.input_mapping.get());
-    eventBridgeMouseMove(win, desc, event_bridge_callbacks_, x, y, mods);
+    return mapNativeModifiersToEvents(WindowAPI::eWaylandWindow,
+                                      static_cast<uint64_t>(base_mods),
+                                      win ? win->descriptor().input_mapping.get() : nullptr);
 }
 
 void WaylandWindowManager::onPointerButton(uint32_t button, uint32_t state, double x, double y) {
@@ -426,11 +421,7 @@ void WaylandWindowManager::onPointerButton(uint32_t button, uint32_t state, doub
     const vne::events::MouseButton mb =
         mapNativeMouseToEvents(WindowAPI::eWaylandWindow, packWaylandNativeMouse(button), desc.input_mapping.get());
     const bool pressed = (state == WL_POINTER_BUTTON_STATE_PRESSED);
-    const uint8_t base_mods = mapWaylandModifiers(mod_depressed_, mod_latched_, mod_locked_);
-    const uint8_t mods = mapNativeModifiersToEvents(WindowAPI::eWaylandWindow,
-                                                    static_cast<uint64_t>(base_mods),
-                                                    desc.input_mapping.get());
-    eventBridgeMouseButton(win, desc, event_bridge_callbacks_, mb, pressed, px, py, mods);
+    win->events().mouseButton(mb, pressed, px, py, seatModifiers(win));
 }
 
 void WaylandWindowManager::onPointerAxis(double x_off, double y_off) {
@@ -438,22 +429,28 @@ void WaylandWindowManager::onPointerAxis(double x_off, double y_off) {
     if (!win) {
         return;
     }
-    eventBridgeMouseScroll(win,
-                           win->descriptor(),
-                           event_bridge_callbacks_,
-                           static_cast<float>(x_off),
-                           static_cast<float>(y_off));
+    win->events().mouseScroll(static_cast<float>(x_off), static_cast<float>(y_off), ptr_x_, ptr_y_, seatModifiers(win));
 }
 
 void WaylandWindowManager::onOutputScale(struct wl_output* output, int32_t factor) {
     if (!output || factor <= 0) {
         return;
     }
-    for (auto& [_, info] : outputs_) {
-        if (info.output == output) {
-            info.scale = factor;
-            recomputeOutputScale();
-            return;
+    const int32_t previous_scale = output_scale_;
+    const auto it = std::find_if(outputs_.begin(), outputs_.end(), [output](const auto& entry) {
+        return entry.second.output == output;
+    });
+    if (it == outputs_.end()) {
+        return;
+    }
+    it->second.scale = factor;
+    recomputeOutputScale();
+    if (output_scale_ == previous_scale) {
+        return;
+    }
+    for (const auto& w : windows_) {
+        if (auto* wl_win = dynamic_cast<WaylandWindow*>(w.get())) {
+            wl_win->events().windowDpiChanged(static_cast<float>(output_scale_));
         }
     }
 }
@@ -463,7 +460,7 @@ void WaylandWindowManager::onTouchDown(uint32_t id, double x, double y) {
     if (!win) {
         return;
     }
-    eventBridgeTouch(win, win->descriptor(), event_bridge_callbacks_, id, x, y, EventBridgeTouchPhase::eDown);
+    win->events().touch(id, x, y, TouchPhase::eDown, seatModifiers(win));
 }
 
 void WaylandWindowManager::onTouchUp(uint32_t id, double x, double y) {
@@ -471,7 +468,7 @@ void WaylandWindowManager::onTouchUp(uint32_t id, double x, double y) {
     if (!win) {
         return;
     }
-    eventBridgeTouch(win, win->descriptor(), event_bridge_callbacks_, id, x, y, EventBridgeTouchPhase::eUp);
+    win->events().touch(id, x, y, TouchPhase::eUp, seatModifiers(win));
 }
 
 void WaylandWindowManager::onTouchMotion(uint32_t id, double x, double y) {
@@ -479,7 +476,7 @@ void WaylandWindowManager::onTouchMotion(uint32_t id, double x, double y) {
     if (!win) {
         return;
     }
-    eventBridgeTouch(win, win->descriptor(), event_bridge_callbacks_, id, x, y, EventBridgeTouchPhase::eMove);
+    win->events().touch(id, x, y, TouchPhase::eMove, seatModifiers(win));
 }
 
 void WaylandWindowManager::onSeatCapabilities(struct wl_seat* seat, uint32_t caps) {
@@ -592,12 +589,6 @@ WaylandWindowManager::WaylandWindowManager() = default;
 
 WaylandWindowManager::~WaylandWindowManager() {
     shutdown();
-}
-
-void WaylandWindowManager::notifyWindowEvent(IWindow* window, const WindowEventData& event) {
-    if (callback_ && window) {
-        callback_(window, event);
-    }
 }
 
 bool WaylandWindowManager::initialize() {
@@ -777,13 +768,6 @@ void WaylandWindowManager::processEvents() {
     if (display_) {
         wl_display_dispatch(display_);
     }
-}
-
-void WaylandWindowManager::setEventCallback(const WindowManagerEventCallbackT& cb) {
-    callback_ = cb;
-}
-void WaylandWindowManager::setEventBridgeCallbacks(EventBridgeCallbacks cbs) {
-    event_bridge_callbacks_ = std::move(cbs);
 }
 
 bool WaylandWindowManager::shouldClose() const noexcept {

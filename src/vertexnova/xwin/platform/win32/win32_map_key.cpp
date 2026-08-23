@@ -239,7 +239,7 @@ uint64_t mapEventsKeyCodeToWin32Packed(KeyCode target) {
 }
 
 uint64_t mapEventsMouseButtonToWin32Packed(MouseButton b) {
-    if (b == kUnmappedMouseButtonSentinel) {
+    if (b == vne::events::MouseButton::eUnknown) {
         return 0;
     }
     switch (b) {

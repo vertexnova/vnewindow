@@ -12,7 +12,7 @@
 #include "wayland_window.h"
 
 #include "wayland_window_manager.h"
-#include "event_bridge.h"
+#include "event_emitter.h"
 
 #include <cstring>
 
@@ -31,11 +31,35 @@ void xdgSurfaceConfigureThunk(void* data, struct xdg_surface* xdg_surface, uint3
     xdg_surface_ack_configure(xdg_surface, serial);
 }
 
-void xdgToplevelConfigureThunk(void* data, struct xdg_toplevel*, int32_t width, int32_t height, struct wl_array*) {
+void xdgToplevelConfigureThunk(
+    void* data, struct xdg_toplevel*, int32_t width, int32_t height, struct wl_array* states) {
     auto* self = static_cast<WaylandWindow*>(data);
     if (width > 0 && height > 0) {
         self->applyToplevelConfigure(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     }
+    // Zero size is xdg-shell's initial "pick your own size" request, not a hidden surface.
+    // Only treat a zero-size configure as unmapped after a non-zero configure has arrived.
+    bool activated = false;
+    bool suspended = false;
+    if (states != nullptr) {
+        const auto* first = static_cast<const uint32_t*>(states->data);
+        const size_t count = states->size / sizeof(uint32_t);
+        for (size_t i = 0; i < count; ++i) {
+            switch (first[i]) {
+                case XDG_TOPLEVEL_STATE_ACTIVATED:
+                    activated = true;
+                    break;
+#if defined(XDG_TOPLEVEL_STATE_SUSPENDED_SINCE_VERSION)
+                case XDG_TOPLEVEL_STATE_SUSPENDED:
+                    suspended = true;
+                    break;
+#endif
+                default:
+                    break;
+            }
+        }
+    }
+    self->applyToplevelState(activated, suspended, self->hasBeenConfigured() && (width <= 0 || height <= 0));
 }
 
 void xdgToplevelCloseThunk(void* data, struct xdg_toplevel*) {
@@ -93,28 +117,39 @@ void WaylandWindow::destroySurfaces() {
         surface_ = nullptr;
     }
     open_ = false;
+    configured_ = false;
+    minimized_ = false;
+    activated_ = false;
 }
 
 void WaylandWindow::applyToplevelConfigure(uint32_t width, uint32_t height) {
+    configured_ = true;
     desc_.size.width = width;
     desc_.size.height = height;
-    if (owner_) {
-        const EventBridgeCallbacks& cb = owner_->eventBridgeCallbacks();
-        eventBridgeWindowResize(this, desc_, cb, width, height);
-        WindowEventData ev{};
-        ev.type = WindowEventType::eResize;
-        ev.size = desc_.size;
-        owner_->notifyWindowEvent(this, ev);
+    events_.windowResize(width, height);
+}
+
+void WaylandWindow::applyToplevelState(bool activated, bool suspended, bool unmapped) {
+    // Wayland has no explicit "minimized": a suspended or unmapped toplevel is the equivalent,
+    // meaning the compositor is not showing the surface and frames need not be produced.
+    const bool minimized = suspended || unmapped;
+    if (minimized != minimized_) {
+        minimized_ = minimized;
+        if (minimized) {
+            events_.windowMinimize();
+        } else {
+            events_.windowRestore();
+        }
+    }
+    if (activated != activated_) {
+        activated_ = activated;
+        events_.windowFocus(activated);
     }
 }
 
 void WaylandWindow::applyToplevelClose() {
     open_ = false;
-    if (owner_) {
-        WindowEventData ev{};
-        ev.type = WindowEventType::eClose;
-        owner_->notifyWindowEvent(this, ev);
-    }
+    events_.windowClose();
 }
 
 void WaylandWindow::initialize(const WindowDescriptor& descriptor) {

@@ -51,6 +51,7 @@ set(TEST_SOURCES
     window_factory_test.cpp
     null_window_test.cpp
     null_window_manager_test.cpp
+    event_emitter_test.cpp
 )
 
 #==============================================================================
@@ -87,5 +88,43 @@ target_link_libraries(vnexwin_tests
         ${GTEST_LIBRARIES}
         vne::xwin
 )
+
+# Tests call vne::events APIs directly; link the same vneevents module vnexwin uses so
+# EventManager / Input singletons are not duplicated inside the test exe on Windows DLL builds.
+if(TARGET vne::events)
+    target_link_libraries(vnexwin_tests PRIVATE vne::events)
+endif()
+
+if(VNE_XWIN_LIB_TYPE STREQUAL "shared")
+    if(WIN32)
+        if(TARGET vneevents)
+            add_custom_command(TARGET vnexwin_tests POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    $<TARGET_FILE:vneevents>
+                    $<TARGET_FILE_DIR:vnexwin_tests>
+                VERBATIM)
+        endif()
+        if(TARGET vnexwin)
+            add_custom_command(TARGET vnexwin_tests POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    $<TARGET_FILE:vnexwin>
+                    $<TARGET_FILE_DIR:vnexwin_tests>
+                VERBATIM)
+        endif()
+    else()
+        set(_vnexwin_tests_rpaths "")
+        if(TARGET vneevents)
+            list(APPEND _vnexwin_tests_rpaths "$<TARGET_FILE_DIR:vneevents>")
+        endif()
+        if(TARGET vnexwin)
+            list(APPEND _vnexwin_tests_rpaths "$<TARGET_FILE_DIR:vnexwin>")
+        endif()
+        if(_vnexwin_tests_rpaths)
+            set_target_properties(vnexwin_tests PROPERTIES
+                BUILD_RPATH "${_vnexwin_tests_rpaths}"
+            )
+        endif()
+    endif()
+endif()
 
 add_test(NAME vnexwin_tests COMMAND vnexwin_tests)

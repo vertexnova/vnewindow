@@ -11,6 +11,7 @@
  */
 
 #include "vertexnova/xwin/window.h"
+#include "event_emitter.h"
 
 #include <X11/Xlib.h>
 
@@ -48,6 +49,7 @@ class X11Window final : public IWindow {
     void resize(uint32_t width, uint32_t height) override;
     void close() override;
     [[nodiscard]] bool isOpen() const noexcept override;
+    [[nodiscard]] vne::events::WindowId getId() const noexcept override { return id_; }
     [[nodiscard]] NativeWindowHandle getNativeHandle() const noexcept override;
     [[nodiscard]] WindowAPI getWindowAPI() const noexcept override;
     [[nodiscard]] int getWidth() const noexcept override;
@@ -70,6 +72,7 @@ class X11Window final : public IWindow {
     ::Window root_ = 0;
     ::Window window_ = 0;
     void* xcb_connection_ = nullptr;
+    const vne::events::WindowId id_ = IWindow::nextId();
     X11WindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;
@@ -82,6 +85,9 @@ class X11Window final : public IWindow {
     mutable std::string clipboard_text_;  ///< text we own as selection owner
     /** Physical keycodes currently held (for KeyPress repeat detection). */
     std::array<bool, kMaxX11Keycodes> keycode_down_{};
+
+    // Declared last: binds to desc_ by reference.
+    EventEmitter events_{this, desc_};
 };
 
 }  // namespace vne::xwin
