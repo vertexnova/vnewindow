@@ -62,6 +62,8 @@ Executables land in `build/<lib_type>/bin/examples/`.
 | `example_01_hello_xwin` | Open a native window; log build/version info. |
 | `example_02_xwin_events` | Log key/mouse/touch/window/lifecycle events from `vne::events`. |
 | `example_03_multi_window` | Open/focus/close multiple windows; log events with per-window id routing. |
+| `example_04_window_state` | Drive every window-state setter; log the events each one emits. |
+| `example_05_native_handle` | Inspect the NativeWindowHandle, DPI/framebuffer geometry and capabilities an RHI consumes. |
 
 <!-- markdownlint-enable MD060 -->
 

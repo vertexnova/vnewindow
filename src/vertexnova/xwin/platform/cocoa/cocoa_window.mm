@@ -336,6 +336,23 @@
 @end
 
 // ---------------------------------------------------------------------------
+// VneXWinWindow — NSWindow that can still take key focus without a title bar.
+// AppKit refuses key status to NSWindowStyleMaskBorderless windows by default, which would make
+// borderless mode a dead end: no keyboard events, and no way to press the key that leaves it.
+// ---------------------------------------------------------------------------
+@interface VneXWinWindow : NSWindow
+@end
+
+@implementation VneXWinWindow
+- (BOOL)canBecomeKeyWindow {
+    return YES;
+}
+- (BOOL)canBecomeMainWindow {
+    return YES;
+}
+@end
+
+// ---------------------------------------------------------------------------
 // VneXWinWindowDelegate — NSWindowDelegate for window-level events
 // ---------------------------------------------------------------------------
 @interface VneXWinWindowDelegate : NSObject <NSWindowDelegate> {
@@ -375,6 +392,7 @@
     (void)notification;
     if (xwin_) {
         xwin_->handleWindowFocus(true);
+        xwin_->reassertInputRouting();
     }
 }
 
@@ -426,6 +444,8 @@
     (void)notification;
     if (xwin_) {
         xwin_->setFullscreenState(true);
+        // The content view moved to a different window; without this key events stop arriving.
+        xwin_->reassertInputRouting();
     }
 }
 
@@ -433,6 +453,8 @@
     (void)notification;
     if (xwin_) {
         xwin_->setFullscreenState(false);
+        // The content view moved to a different window; without this key events stop arriving.
+        xwin_->reassertInputRouting();
     }
 }
 
@@ -477,7 +499,7 @@ void CocoaWindow::initialize(const WindowDescriptor& descriptor) {
         style = NSWindowStyleMaskBorderless;
     }
 
-    NSWindow* win = [[NSWindow alloc] initWithContentRect:content_rect
+    NSWindow* win = [[VneXWinWindow alloc] initWithContentRect:content_rect
                                                 styleMask:style
                                                   backing:NSBackingStoreBuffered
                                                     defer:NO];
@@ -591,6 +613,17 @@ void CocoaWindow::handleWindowDpiChanged() {
     events_.windowDpiChanged(getDpiScale());
 }
 
+void CocoaWindow::reassertInputRouting() {
+    if (!ns_window_ || !ns_view_) {
+        return;
+    }
+    NSWindow* win = (__bridge NSWindow*)ns_window_;
+    NSView* view = (__bridge NSView*)ns_view_;
+    if ([win firstResponder] != view) {
+        [win makeFirstResponder:view];
+    }
+}
+
 void CocoaWindow::setFullscreenState(bool fs) {
     fullscreen_ = fs;
 }
@@ -624,10 +657,14 @@ void CocoaWindow::setWindowMode(WindowMode mode) {
         if (screen) {
             [win setFrame:screen.frame display:YES];
         }
+        [win makeKeyAndOrderFront:nil];
+        reassertInputRouting();
         return;
     }
     [win setStyleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
                        | NSWindowStyleMaskResizable)];
+    [win makeKeyAndOrderFront:nil];
+    reassertInputRouting();
 }
 
 WindowMode CocoaWindow::getWindowMode() const noexcept {
@@ -666,13 +703,20 @@ void CocoaWindow::maximize() {
 }
 
 void CocoaWindow::restore() {
-    if (ns_window_) {
-        NSWindow* win = (__bridge NSWindow*)ns_window_;
-        if (win.isMiniaturized) {
-            [win deminiaturize:nil];
-        } else if (win.isZoomed) {
-            [win zoom:nil];
-        }
+    if (!ns_window_) {
+        return;
+    }
+    NSWindow* win = (__bridge NSWindow*)ns_window_;
+    // Fullscreen first: such a window is neither miniaturized nor zoomed, so without this
+    // restore() silently did nothing and fullscreen could only be left via the green button.
+    if (fullscreen_) {
+        setFullscreen(false);
+        return;
+    }
+    if (win.isMiniaturized) {
+        [win deminiaturize:nil];
+    } else if (win.isZoomed) {
+        [win zoom:nil];
     }
 }
 

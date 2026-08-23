@@ -71,6 +71,8 @@ class CocoaWindow final : public IWindow {
     void handleWindowMove(int32_t x, int32_t y);
     void handleWindowDpiChanged();
     void setFullscreenState(bool fs);
+    /** Re-points the window's first responder at our view after AppKit rebuilds or reparents it. */
+    void reassertInputRouting();
 
     [[nodiscard]] const WindowInputMapping* inputMapping() const noexcept { return desc_.input_mapping.get(); }
 
