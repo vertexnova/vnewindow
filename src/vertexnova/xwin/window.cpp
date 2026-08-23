@@ -13,6 +13,8 @@
 #include "vertexnova/xwin/window_factory.h"
 
 #include <atomic>
+#include <exception>
+#include <limits>
 #include <memory>
 
 namespace vne::xwin {
@@ -71,7 +73,19 @@ vne::events::WindowId IWindow::nextId() noexcept {
     // Starts at 1 so 0 stays vne::events::kInvalidWindowId. Never reused: a window recreated after
     // a platform teardown is a different window, and stale ids must not silently resolve to it.
     static std::atomic<vne::events::WindowId> s_next_window_id{1};
-    return s_next_window_id.fetch_add(1, std::memory_order_relaxed);
+    constexpr vne::events::WindowId kMaxId = std::numeric_limits<vne::events::WindowId>::max();
+
+    for (;;) {
+        vne::events::WindowId id = s_next_window_id.load(std::memory_order_relaxed);
+        // At max, the next increment would wrap to kInvalidWindowId (0) and eventually reuse IDs.
+        if (id == kMaxId || id == vne::events::kInvalidWindowId) {
+            std::terminate();
+        }
+        if (s_next_window_id.compare_exchange_weak(
+                id, id + 1, std::memory_order_relaxed, std::memory_order_relaxed)) {
+            return id;
+        }
+    }
 }
 
 std::unique_ptr<IWindow> IWindow::create(const WindowDescriptor& descriptor) {
