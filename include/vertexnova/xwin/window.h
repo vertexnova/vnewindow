@@ -77,10 +77,11 @@ class IWindow {
      * an event came from without holding a raw pointer. Ids are never reused; a window recreated
      * after a platform teardown (e.g. Android surface loss) gets a new one.
      *
-     * The default returns vne::events::kInvalidWindowId so prebuilt or legacy backends that
-     * predate window ids remain link-compatible. Concrete backends should override and assign
-     * one id per window via IWindow::nextId(). Making this pure virtual is reserved for a
-     * future major-version API break.
+     * Adding this virtual slot changes @c IWindow's vtable layout. Prebuilt backend subclasses
+     * compiled against an older @c IWindow must be rebuilt against the matching @c vnexwin
+     * headers and library; linking mismatched ABI can misdispatch virtual calls. The default
+     * implementation returns @c vne::events::kInvalidWindowId; every shipping backend should
+     * override and assign one id per window via @c IWindow::nextId().
      *
      * @see IWindowManager::findWindow
      */

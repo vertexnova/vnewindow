@@ -66,7 +66,7 @@ class WasmWindow final : public IWindow {
     [[nodiscard]] bool usesVneShell() const noexcept { return uses_vne_shell_; }
 
 #ifdef __EMSCRIPTEN__
-    void applyViewportSize(uint32_t css_width, uint32_t css_height);
+    void applyViewportSize(uint32_t css_width, uint32_t css_height, bool from_shell_layout = false);
     [[nodiscard]] static bool queryBrowserViewport(int& out_width, int& out_height);
     [[nodiscard]] static bool detectVneShell() noexcept;
     [[nodiscard]] static bool detectLegacyCanvasShell() noexcept;

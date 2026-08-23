@@ -103,7 +103,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void vne_xwin_on_shell_resize(int id, int width,
     if (it == g_shell_windows.end() || it->second == nullptr || width <= 0 || height <= 0) {
         return;  // Unknown id: a window still initializing, or already gone. Both are benign.
     }
-    it->second->applyViewportSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    it->second->applyViewportSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height), true);
 }
 #endif
 
@@ -274,31 +274,26 @@ bool WasmWindow::queryBrowserViewport(int& out_width, int& out_height) {
     return out_width > 0 && out_height > 0;
 }
 
-void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_height) {
+void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_height, const bool from_shell_layout) {
     if (css_width == 0 || css_height == 0 || canvas_selector_.empty()) {
         return;
     }
 
-    uint32_t width = css_width;
-    uint32_t height = css_height;
-    // In VneShell fill mode the panel owns CSS layout; sync backing store to the
-    // real content box so the canvas is not stretched from a 640x480 buffer.
-    if (uses_vne_shell_) {
-        const int content_w = vne_xwin_shell_content_width(static_cast<int>(id_));
-        const int content_h = vne_xwin_shell_content_height(static_cast<int>(id_));
-        if (content_w > 0 && content_h > 0) {
-            width = static_cast<uint32_t>(content_w);
-            height = static_cast<uint32_t>(content_h);
-        }
-    }
+    const uint32_t width = css_width;
+    const uint32_t height = css_height;
 
     const float dpr = static_cast<float>(emscripten_get_device_pixel_ratio());
-    if (width == desc_.size.width && height == desc_.size.height && dpr == applied_dpr_) {
-        return;
+    const bool size_unchanged =
+        width == desc_.size.width && height == desc_.size.height && dpr == applied_dpr_;
+
+    // Explicit resize must reach the shell even when the panel already matches; shell layout
+    // callbacks already carry the laid-out content box and must not re-request it.
+    if (uses_vne_shell_ && !from_shell_layout) {
+        vne_xwin_shell_set_size(static_cast<int>(id_), static_cast<int>(width), static_cast<int>(height));
     }
 
-    if (uses_vne_shell_) {
-        vne_xwin_shell_set_size(static_cast<int>(id_), static_cast<int>(width), static_cast<int>(height));
+    if (size_unchanged) {
+        return;
     }
 
     desc_.size.width = width;
