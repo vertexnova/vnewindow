@@ -67,6 +67,7 @@ class WaylandWindow final : public IWindow {
     void applyToplevelConfigure(uint32_t width, uint32_t height);
     void applyToplevelState(bool activated, bool suspended, bool unmapped);
     void applyToplevelClose();
+    [[nodiscard]] bool hasBeenConfigured() const noexcept { return configured_; }
 
     /** Same pointer registered with the compositor (keyboard/pointer focus mapping). */
     [[nodiscard]] wl_surface* nativeSurface() const noexcept { return surface_; }
@@ -77,6 +78,7 @@ class WaylandWindow final : public IWindow {
     const vne::events::WindowId id_ = IWindow::nextId();
     bool minimized_ = false;
     bool activated_ = false;
+    bool configured_ = false;
     WaylandWindowManager* owner_ = nullptr;
     WindowDescriptor desc_{};
     bool open_ = false;

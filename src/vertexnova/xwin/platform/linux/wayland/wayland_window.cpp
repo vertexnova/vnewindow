@@ -37,9 +37,8 @@ void xdgToplevelConfigureThunk(
     if (width > 0 && height > 0) {
         self->applyToplevelConfigure(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     }
-    // The states array was previously discarded, which is why Wayland surfaced no minimize or
-    // restore at all. A toplevel with neither activated nor a size is what a compositor sends
-    // when the surface is not being shown.
+    // Zero size is xdg-shell's initial "pick your own size" request, not a hidden surface.
+    // Only treat a zero-size configure as unmapped after a non-zero configure has arrived.
     bool activated = false;
     bool suspended = false;
     if (states != nullptr) {
@@ -60,7 +59,7 @@ void xdgToplevelConfigureThunk(
             }
         }
     }
-    self->applyToplevelState(activated, suspended, width <= 0 || height <= 0);
+    self->applyToplevelState(activated, suspended, self->hasBeenConfigured() && (width <= 0 || height <= 0));
 }
 
 void xdgToplevelCloseThunk(void* data, struct xdg_toplevel*) {
@@ -118,9 +117,13 @@ void WaylandWindow::destroySurfaces() {
         surface_ = nullptr;
     }
     open_ = false;
+    configured_ = false;
+    minimized_ = false;
+    activated_ = false;
 }
 
 void WaylandWindow::applyToplevelConfigure(uint32_t width, uint32_t height) {
+    configured_ = true;
     desc_.size.width = width;
     desc_.size.height = height;
     events_.windowResize(width, height);
