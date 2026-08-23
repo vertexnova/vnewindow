@@ -31,7 +31,6 @@
 #include <string_view>
 #include <vector>
 
-
 namespace {
 
 std::string keyName(vne::events::KeyCode key) {
