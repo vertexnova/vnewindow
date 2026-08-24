@@ -8,4 +8,6 @@
 # Autodoc:   yes
 #==============================================================================
 
+# xwin library (see vertexnova/xwin/CMakeLists.txt)
+
 add_subdirectory(vertexnova/xwin)
