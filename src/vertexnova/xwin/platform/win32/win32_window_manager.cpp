@@ -122,8 +122,9 @@ void Win32WindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 
 void Win32WindowManager::processEvents() {
     for (auto& w : windows_) {
-        if (w) {
-            w->pollEvents();
+        auto* win32 = dynamic_cast<Win32Window*>(w.get());
+        if (win32) {
+            win32->pollEvents();
         }
     }
 }
