@@ -10,7 +10,7 @@
  */
 
 /**
- * 05_native_handle — Inspect what vne::xwin hands to a renderer.
+ * 05_native_handle - Inspect what vne::xwin hands to a renderer.
  *
  * A graphics backend consumes NativeWindowHandle plus the DPI/framebuffer geometry, and nothing
  * else. This example prints exactly that, so the handoff can be verified on a device without

@@ -183,6 +183,34 @@ function(_vnecrosswindow_configure_vneevents_dep)
 endfunction()
 _vnecrosswindow_configure_vneevents_dep()
 
+#==============================================================================
+# Emscripten memory model
+#==============================================================================
+# vne::xwin declares "SHELL:-pthread" PUBLIC, so the final link uses --shared-memory and wasm-ld
+# rejects any object built without atomics/bulk-memory. Our internal deps are added as
+# subdirectories and do not know that, so give them the same flag. Without this the library links
+# but this repo's own examples and tests fail with "--shared-memory is disallowed by <dep>.o".
+function(_vnecrosswindow_align_wasm_memory_model)
+    if(NOT (EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten"))
+        return()
+    endif()
+    foreach(_vx_dep_target ${ARGN})
+        if(TARGET ${_vx_dep_target})
+            # vnecommon is header-only, and an INTERFACE target accepts only INTERFACE scope.
+            get_target_property(_vx_dep_kind ${_vx_dep_target} TYPE)
+            if(_vx_dep_kind STREQUAL "INTERFACE_LIBRARY")
+                target_compile_options(${_vx_dep_target} INTERFACE "SHELL:-pthread")
+                target_link_options(${_vx_dep_target} INTERFACE "SHELL:-pthread")
+            else()
+                target_compile_options(${_vx_dep_target} PUBLIC "SHELL:-pthread")
+                target_link_options(${_vx_dep_target} PUBLIC "SHELL:-pthread")
+            endif()
+        endif()
+    endforeach()
+endfunction()
+
+_vnecrosswindow_align_wasm_memory_model(vnecommon vnelogging vneevents)
+
 # Include dirs and config
 set(VNE_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(VNE_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
@@ -259,7 +287,7 @@ if(ENABLE_ASAN)
         add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
         add_link_options(-fsanitize=address,undefined)
     else()
-        message(WARNING "ENABLE_ASAN is only supported with GCC/Clang on Linux/macOS — ignoring.")
+        message(WARNING "ENABLE_ASAN is only supported with GCC/Clang on Linux/macOS - ignoring.")
     endif()
 endif()
 
@@ -363,7 +391,7 @@ endif()
 #==============================================================================
 # Installation
 # Use COMPONENT vnexwin so that `cmake --install . --component vnexwin`
-# installs only this library — not the internal deps (vnecommon, vnelogging)
+# installs only this library - not the internal deps (vnecommon, vnelogging)
 # which register their own install() rules via add_subdirectory.
 #==============================================================================
 include(GNUInstallDirs)
@@ -390,3 +418,7 @@ install(EXPORT VneXWinTargets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VneCrossWindow
     COMPONENT vnexwin
 )
+
+# GoogleTest is configured after the deps above, so its targets are aligned here rather than
+# with the rest. Without this the library and examples link but the test binary does not.
+_vnecrosswindow_align_wasm_memory_model(gtest gtest_main gmock gmock_main)

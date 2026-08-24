@@ -75,10 +75,16 @@ logs/
 # CMakeLists.txt.user
 CMakeLists.txt.user
 
-# AI tools
-.cursor/
+# AI tools (keep shared skill wiring tracked)
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/skills.mdc
+!.cursor/skills/
+!.cursor/skills/**
 .copilot/
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/skills/**
 .deepseek/
 .gemini/
 .google/

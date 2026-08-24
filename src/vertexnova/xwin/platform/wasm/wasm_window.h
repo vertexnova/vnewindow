@@ -33,7 +33,6 @@ class WasmWindow final : public IWindow {
     void prepareInitialize(bool is_primary) noexcept { is_primary_ = is_primary; }
 
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

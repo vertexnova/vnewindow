@@ -35,7 +35,6 @@ class UIKitWindow final : public IWindow {
 
     /** Adopts the scene/window size. descriptor.size is a hint and is overwritten. */
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

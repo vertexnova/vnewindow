@@ -41,10 +41,10 @@ class WaylandWindowManager final : public IWindowManager {
     void onRegistryGlobal(struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version);
     void onRegistryGlobalRemove(uint32_t name);
 
-    // Seat capability callbacks — called from wl_seat_listener
+    // Seat capability callbacks - called from wl_seat_listener
     void onSeatCapabilities(struct wl_seat* seat, uint32_t capabilities);
 
-    // Input event callbacks — called from wl_keyboard/pointer/touch listeners
+    // Input event callbacks - called from wl_keyboard/pointer/touch listeners
     void onKeyboardKeymap(uint32_t format, int32_t fd, uint32_t size);
     void onKey(uint32_t key, uint32_t state, uint32_t time);
     void onModifiers(uint32_t depressed, uint32_t latched, uint32_t locked, uint32_t group);

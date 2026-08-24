@@ -54,8 +54,8 @@ int main() {
     }
 
 #ifdef __EMSCRIPTEN__
-    // fps = 0  → driven by requestAnimationFrame (matches display refresh rate)
-    // simulate_infinite_loop = 1  → main() does not return; browser handles lifetime
+    // fps = 0  -> driven by requestAnimationFrame (matches display refresh rate)
+    // simulate_infinite_loop = 1  -> main() does not return; browser handles lifetime
     emscripten_set_main_loop(wasm_tick, 0, 1);
 #else
     // Fallback for non-Emscripten builds that link this file (shouldn't happen

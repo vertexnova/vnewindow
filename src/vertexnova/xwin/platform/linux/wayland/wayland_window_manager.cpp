@@ -229,7 +229,7 @@ const wl_touch_listener g_touch_listener = [] {
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// WaylandWindowManager — input dispatch helpers
+// WaylandWindowManager - input dispatch helpers
 // ---------------------------------------------------------------------------
 
 WaylandWindow* WaylandWindowManager::focusedWindow() const {

@@ -25,7 +25,7 @@ namespace vne::xwin {
  * Input delivery pattern
  * ----------------------
  * Android input is driven by the host app's JNI / GameActivity loop, NOT by
- * pollEvents() (which remains a no-op). The host should call injectTouchEvent()
+ * its own event loop. The host should call injectTouchEvent()
  * and injectKeyEvent() from its AInputQueue / GameActivity input callback after
  * forwarding each AInputEvent to xwin. This routes events through the standard
  * vne::events bridge (EventManager queue + Input state + optional callbacks).
@@ -36,7 +36,6 @@ class AndroidWindow final : public IWindow {
     ~AndroidWindow() override;
 
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

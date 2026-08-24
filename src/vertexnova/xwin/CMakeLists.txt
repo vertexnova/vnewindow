@@ -2,12 +2,22 @@
 # Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License")
 #
-# vne::xwin — native window surfaces (no GLFW)
+# Author:    Ajeet Singh Yadav
+# Created:   April 2026
+#
+# Autodoc:   yes
 #==============================================================================
 
-#------------------------------------------------------------------------------
+# vne::xwin - native window surfaces (no GLFW).
+# Sources compile per enabled backend; headers are always listed so IDEs show
+# the full public API and private backend layout (HEADER_FILE_ONLY).
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+#==============================================================================
 # Backend options (defaults: native desktop/mobile for current OS; Wayland opt-in)
-#------------------------------------------------------------------------------
+#==============================================================================
+
 option(VNE_XWIN_ENABLE_NULL "Build null/headless backend (tests)" ON)
 option(VNE_XWIN_ENABLE_WIN32 "Build Win32 backend" ON)
 option(VNE_XWIN_ENABLE_COCOA "Build macOS Cocoa backend" ON)
@@ -67,7 +77,7 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
         if(X11_FOUND)
             set(_vx_x11 1)
         else()
-            message(STATUS "vne::xwin: X11 not found — X11 backend disabled")
+            message(STATUS "vne::xwin: X11 not found - X11 backend disabled")
         endif()
     endif()
 
@@ -83,13 +93,17 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
             if(WAYLAND_CLIENT_FOUND)
                 set(_vx_wayland 1)
             else()
-                message(STATUS "vne::xwin: wayland-client not found — Wayland backend disabled")
+                message(STATUS "vne::xwin: wayland-client not found - Wayland backend disabled")
             endif()
         else()
-            message(STATUS "vne::xwin: wayland-protocols or wayland-scanner missing — Wayland backend disabled")
+            message(STATUS "vne::xwin: wayland-protocols or wayland-scanner missing - Wayland backend disabled")
         endif()
     endif()
 endif()
+
+#==============================================================================
+# Source and Headers
+#==============================================================================
 
 set(XWIN_SOURCES
     xwin_version.cpp
@@ -102,12 +116,55 @@ set(XWIN_SOURCES
     platform/null/null_window.cpp
     platform/null/null_window_manager.cpp
 )
+list(TRANSFORM XWIN_SOURCES PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+
+set(XWIN_PUBLIC_HEADERS
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/input_mapping.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/monitor_info.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/native_window_handle.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/time_step.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/window.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/window_descriptor.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/window_factory.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/window_manager.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/xwin_export.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/xwin_types.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/xwin_version.h
+)
+
+# Private headers are listed even when the matching backend is off so IDEs show
+# the full layout. They are HEADER_FILE_ONLY and do not compile.
+set(XWIN_PRIVATE_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/event_emitter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/android/android_window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/android/android_window_manager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_map_key.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_window_manager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/wayland/wayland_map_key.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/wayland/wayland_window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/wayland/wayland_window_manager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/x11/x11_map_key.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/x11/x11_window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/x11/x11_window_manager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/null/null_window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/null/null_window_manager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit/uikit_main_sync.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit/uikit_window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit/uikit_window_manager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm_map_key.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm_window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm_window_manager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/win32/win32_map_key.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/win32/win32_window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/win32/win32_window_manager.h
+)
 
 if(_vx_win32)
     list(APPEND XWIN_SOURCES
-        platform/win32/win32_window.cpp
-        platform/win32/win32_window_manager.cpp
-        platform/win32/win32_map_key.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/win32/win32_window.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/win32/win32_window_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/win32/win32_map_key.cpp
     )
 endif()
 
@@ -117,27 +174,27 @@ endif()
 
 if(_vx_cocoa)
     list(APPEND XWIN_SOURCES
-        platform/cocoa/cocoa_window.mm
-        platform/cocoa/cocoa_window_manager.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_window.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_window_manager.mm
     )
 endif()
 
 if(_vx_cocoa OR _vx_uikit)
-    list(APPEND XWIN_SOURCES platform/cocoa/cocoa_map_key.mm)
+    list(APPEND XWIN_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_map_key.mm)
 endif()
 
 if(_vx_uikit)
     list(APPEND XWIN_SOURCES
-        platform/uikit/uikit_window.mm
-        platform/uikit/uikit_window_manager.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit/uikit_window.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit/uikit_window_manager.mm
     )
 endif()
 
 if(_vx_x11)
     list(APPEND XWIN_SOURCES
-        platform/linux/x11/x11_window.cpp
-        platform/linux/x11/x11_window_manager.cpp
-        platform/linux/x11/x11_map_key.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/x11/x11_window.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/x11/x11_window_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/x11/x11_map_key.cpp
     )
 endif()
 
@@ -157,9 +214,9 @@ if(_vx_wayland)
         "${_wl_gen}/xdg-shell-protocol.c"
     )
     list(APPEND XWIN_SOURCES
-        platform/linux/wayland/wayland_window.cpp
-        platform/linux/wayland/wayland_window_manager.cpp
-        platform/linux/wayland/wayland_map_key.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/wayland/wayland_window.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/wayland/wayland_window_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/wayland/wayland_map_key.cpp
         "${_wl_gen}/xdg-shell-protocol.c"
     )
     set_source_files_properties("${_wl_gen}/xdg-shell-protocol.c" PROPERTIES LANGUAGE C)
@@ -167,26 +224,32 @@ endif()
 
 if(_vx_wasm)
     list(APPEND XWIN_SOURCES
-        platform/wasm/wasm_window.cpp
-        platform/wasm/wasm_map_key.cpp
-        platform/wasm/wasm_window_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm_window.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm_map_key.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm_window_manager.cpp
     )
 endif()
 
 if(_vx_android)
     list(APPEND XWIN_SOURCES
-        platform/android/android_window.cpp
-        platform/android/android_window_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/android/android_window.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/android/android_window_manager.cpp
     )
 endif()
 
+#==============================================================================
+# Library
+#==============================================================================
+
 if(VNE_XWIN_LIB_TYPE STREQUAL "static")
-    add_library(vnexwin STATIC ${XWIN_SOURCES})
+    add_library(vnexwin STATIC ${XWIN_SOURCES} ${XWIN_PUBLIC_HEADERS} ${XWIN_PRIVATE_HEADERS})
 else()
-    add_library(vnexwin SHARED ${XWIN_SOURCES})
+    add_library(vnexwin SHARED ${XWIN_SOURCES} ${XWIN_PUBLIC_HEADERS} ${XWIN_PRIVATE_HEADERS})
 endif()
 
 add_library(vne::xwin ALIAS vnexwin)
+
+set_source_files_properties(${XWIN_PUBLIC_HEADERS} ${XWIN_PRIVATE_HEADERS} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 # Shared library ABI aligned with vneio (export/import macros, visibility, MSVC STL in exported types).
 get_target_property(_vnexwin_lib_type vnexwin TYPE)
@@ -208,22 +271,24 @@ endif()
 set_target_properties(vnexwin PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
+    EXPORT_NAME xwin
+    OUTPUT_NAME "vnexwin"
 )
 
 if(_vx_cocoa)
     set_source_files_properties(
-        platform/cocoa/cocoa_window.mm
-        platform/cocoa/cocoa_map_key.mm
-        platform/cocoa/cocoa_window_manager.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_window.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_map_key.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_window_manager.mm
         PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
     )
 endif()
 
 if(_vx_uikit)
     set_source_files_properties(
-        platform/cocoa/cocoa_map_key.mm
-        platform/uikit/uikit_window.mm
-        platform/uikit/uikit_window_manager.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/cocoa/cocoa_map_key.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit/uikit_window.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/uikit/uikit_window_manager.mm
         PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
     )
 endif()
@@ -233,16 +298,20 @@ if(_vx_wayland)
     # wayland-scanner emits C-style casts in generated headers; -Werror -Wold-style-cast otherwise breaks CI.
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|AppleClang")
         set_source_files_properties(
-            platform/linux/wayland/wayland_window.cpp
-            platform/linux/wayland/wayland_window_manager.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/wayland/wayland_window.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/platform/linux/wayland/wayland_window_manager.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-old-style-cast"
         )
     endif()
 endif()
 
+#==============================================================================
+# Includes
+#==============================================================================
+
 target_include_directories(vnexwin
     PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${VNE_INCLUDE_DIR}>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -253,7 +322,18 @@ if(_vx_wayland)
 endif()
 
 target_compile_features(vnexwin PUBLIC cxx_std_20)
-target_link_libraries(vnexwin PUBLIC vne::common vne::logging PRIVATE vne::xwin::BuildSettings)
+
+#==============================================================================
+# Dependencies
+#==============================================================================
+
+target_link_libraries(vnexwin
+    PUBLIC
+        vne::common
+        vne::logging
+    PRIVATE
+        vne::xwin::BuildSettings
+)
 if(TARGET vne::events)
     target_link_libraries(vnexwin PUBLIC vne::events)
 endif()
@@ -288,7 +368,6 @@ endif()
 if(_vx_wayland)
     target_link_libraries(vnexwin PRIVATE ${WAYLAND_CLIENT_LIBRARIES})
     target_include_directories(vnexwin PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
-    # xkbcommon is needed for Wayland key symbol mapping
     pkg_check_modules(XKBCOMMON QUIET xkbcommon)
     if(XKBCOMMON_FOUND)
         target_link_libraries(vnexwin PRIVATE ${XKBCOMMON_LIBRARIES})
@@ -300,11 +379,21 @@ if(_vx_wasm)
     if(TARGET emhtml5)
         target_link_libraries(vnexwin PUBLIC emhtml5)
     endif()
+    # Emscripten links the whole program with one memory model. A consumer that builds with
+    # -pthread gets --shared-memory, and wasm-ld then rejects every object compiled without
+    # atomics/bulk-memory. PUBLIC so anything linking vne::xwin agrees on the model rather than
+    # failing at link with "--shared-memory is disallowed by <our>.o".
+    target_compile_options(vnexwin PUBLIC "SHELL:-pthread")
+    target_link_options(vnexwin PUBLIC "SHELL:-pthread")
 endif()
 
 if(_vx_android)
     target_link_libraries(vnexwin PRIVATE android log)
 endif()
+
+#==============================================================================
+# Compile Definitions
+#==============================================================================
 
 target_compile_definitions(vnexwin
     PRIVATE
@@ -318,4 +407,13 @@ target_compile_definitions(vnexwin
         VNE_XWIN_HAS_ANDROID=${_vx_android}
 )
 
-set_target_properties(vnexwin PROPERTIES EXPORT_NAME xwin OUTPUT_NAME "vnexwin")
+#==============================================================================
+# IDE / Source Groups
+#==============================================================================
+
+source_group(TREE "${VNE_INCLUDE_DIR}/vertexnova/xwin" PREFIX "Header Files"
+    FILES ${XWIN_PUBLIC_HEADERS})
+set(_xwin_grouped_sources ${XWIN_SOURCES})
+list(FILTER _xwin_grouped_sources EXCLUDE REGEX "xdg-shell-protocol\\.c$")
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "Source Files"
+    FILES ${_xwin_grouped_sources} ${XWIN_PRIVATE_HEADERS})

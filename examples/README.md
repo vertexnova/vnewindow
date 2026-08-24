@@ -67,16 +67,16 @@ Executables land in `build/<lib_type>/bin/examples/`.
 
 <!-- markdownlint-enable MD060 -->
 
-### Manual test checklist — `example_03_multi_window`
+### Manual test checklist - `example_03_multi_window`
 
 Run on macOS, Win32, or Linux (desktop backends with multi-window support):
 
 1. Build and run: `./build/shared/bin/examples/example_03_multi_window` (macOS `.app` path may differ).
-2. Press `N` twice — three windows should appear (main + two children).
-3. Click in each window — mouse events should show the matching `[win=<id> title="..."]`.
-4. Press `F` — focus should cycle; `[WINDOW] FOCUS` events should match the focused window.
-5. Press `C` while a child is focused — only that child closes; the app keeps running.
-6. Close the main window or press `ESC` — all windows close and the app exits cleanly.
+2. Press `N` twice - three windows should appear (main + two children).
+3. Click in each window - mouse events should show the matching `[win=<id> title="..."]`.
+4. Press `F` - focus should cycle; `[WINDOW] FOCUS` events should match the focused window.
+5. Press `C` while a child is focused - only that child closes; the app keeps running.
+6. Close the main window or press `ESC` - all windows close and the app exits cleanly.
 
 On CI (null backend), the runner performs a smoke cycle and exits without opening windows.
 

@@ -1,7 +1,4 @@
 #pragma once
-/*
- * Main-thread-only AppKit usage; caller should drive NSApplication for full event delivery.
- */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -13,7 +10,10 @@
  * ----------------------------------------------------------------------
  */
 
+/** @file cocoa_window.h Cocoa IWindow. Main-thread-only AppKit; caller should drive NSApplication. */
+
 #include "vertexnova/xwin/window.h"
+
 #include "event_emitter.h"
 
 #include <vertexnova/events/types.h>
@@ -32,7 +32,6 @@ class CocoaWindow final : public IWindow {
     void setEventOwner(CocoaWindowManager* owner);
 
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

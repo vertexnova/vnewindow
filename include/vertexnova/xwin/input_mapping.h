@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------------
  */
 
-/** @file input_mapping.h Native input tokens ↔ vne::events types, with optional per-window overrides.
+/** @file input_mapping.h Native input tokens <-> vne::events types, with optional per-window overrides.
  *
  * Built-in tables cover Win32, Cocoa, X11, and Wayland. UIKit exposes the same Cocoa-style defaults for
  * eIosUikitWindow when you map native tokens yourself; VneXWinUIView delivers finger
@@ -41,7 +41,7 @@ inline constexpr std::uint32_t kWin32WParamShift = 32U;
  * X11/Wayland keysym, etc.). Android has no default tables; UIKit can use these hooks for custom
  * native translation (the stock view path only emits touch events).
  *
- * Native payload packing is API-specific (see packWin32NativeKey, packCocoaNativeKey, …).
+ * Native payload packing is API-specific (see packWin32NativeKey, packCocoaNativeKey, ...).
  */
 struct WindowInputMapping {
     std::function<vne::events::KeyCode(WindowAPI api, uint64_t native_key_packed)> native_key_to_events;
@@ -59,7 +59,7 @@ struct WindowInputMapping {
 // Native token packing (inline; documented per backend)
 // -----------------------------------------------------------------------------
 
-/** @brief Win32 WM_KEY* token: low 16 = VK; bits 16–23 = scan; bit 24 = extended (from lParam). */
+/** @brief Win32 WM_KEY* token: low 16 = VK; bits 16-23 = scan; bit 24 = extended (from lParam). */
 [[nodiscard]] inline uint64_t packWin32NativeKey(std::uintptr_t vk, std::uintptr_t l_param) noexcept {
     const auto scan =
         (static_cast<std::uint32_t>(l_param) >> kWin32ScanShift) & static_cast<std::uint32_t>(kWin32ScanMask);
@@ -103,7 +103,7 @@ inline void unpackWin32Mouse(uint64_t packed, unsigned int* msg_out, std::uintpt
     return static_cast<uint64_t>(keysym);
 }
 
-/** @brief Cocoa/UIKit NSEvent.buttonNumber (0–7 align with vne::events::MouseButton indices). */
+/** @brief Cocoa/UIKit NSEvent.buttonNumber (0-7 align with vne::events::MouseButton indices). */
 [[nodiscard]] inline uint64_t packCocoaNativeMouse(std::uint16_t button_number) noexcept {
     return static_cast<uint64_t>(button_number);
 }

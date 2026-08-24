@@ -464,11 +464,6 @@ EM_BOOL WasmWindow::FullscreenChangeCallback(int /*event_type*/, const Emscripte
 // IWindow interface
 // ---------------------------------------------------------------------------
 
-void WasmWindow::pollEvents() {
-    // Input is driven by Emscripten's JS event loop via the callbacks registered
-    // in initialize(). Nothing to poll manually.
-}
-
 void WasmWindow::swapBuffers() {}
 
 void WasmWindow::setTitle(const std::string& title) {

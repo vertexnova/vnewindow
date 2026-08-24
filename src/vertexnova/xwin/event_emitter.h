@@ -74,7 +74,7 @@ class VNE_XWIN_API EventEmitter {
      * mean picking an arbitrary window just to announce that the application backgrounded.
      *
      * Unlike every other method here it consults no descriptor, so `enable_events` does not gate
-     * it — that flag opts a *window* out of its own events, and this is not a window's event.
+     * it - that flag opts a *window* out of its own events, and this is not a window's event.
      * Window managers call this from IWindowManager::notifyApplicationLifecycle.
      */
     static void applicationLifecycle(ApplicationLifecycle transition);

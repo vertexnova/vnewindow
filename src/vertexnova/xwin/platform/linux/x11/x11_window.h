@@ -32,7 +32,14 @@ class X11Window final : public IWindow {
     void setDisplay(Display* display, int screen, ::Window root, void* xcb_connection);
 
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
+    /**
+     * @brief Drains this window's share of the native queue.
+     *
+     * Not part of IWindow: only the backends whose manager pumps per-window need it, and
+     * exposing it publicly invited callers to drain a shared queue once per window.
+     * Called by X11WindowManager::processEvents().
+     */
+    void pollEvents();
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

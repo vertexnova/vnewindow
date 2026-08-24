@@ -27,7 +27,6 @@ class ManagedWindow final : public IWindow {
         , window_(std::move(window)) {}
 
     void initialize(const WindowDescriptor& descriptor) override { window_->initialize(descriptor); }
-    void pollEvents() override { window_->pollEvents(); }
     void swapBuffers() override { window_->swapBuffers(); }
     void setTitle(const std::string& title) override { window_->setTitle(title); }
     void setWindowMode(WindowMode mode) override { window_->setWindowMode(mode); }

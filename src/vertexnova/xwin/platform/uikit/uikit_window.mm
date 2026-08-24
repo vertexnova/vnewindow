@@ -84,7 +84,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// VneXWinUIView — UIView subclass that routes multi-touch / pointer / scroll
+// VneXWinUIView - UIView subclass that routes multi-touch / pointer / scroll
 //
 // Pointer input (hover, secondary/middle button, scroll wheel) only exists when the
 // OS delivers indirect pointer events. Info.plist must set
@@ -614,10 +614,6 @@ void UIKitWindow::handleWindowDpiChanged(float scale) {
 
 void UIKitWindow::handleWindowSafeAreaChanged(float top, float left, float bottom, float right) {
     events_.windowSafeAreaChanged(top, left, bottom, right);
-}
-
-void UIKitWindow::pollEvents() {
-    // Touch events are delivered by UIKit on the main run loop via VneXWinUIView.
 }
 
 void UIKitWindow::swapBuffers() {}

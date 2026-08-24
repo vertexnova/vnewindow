@@ -9,15 +9,15 @@
  * ----------------------------------------------------------------------
  */
 
-#import "scene_delegate.h"
-
-#import <QuartzCore/QuartzCore.h>
-
 #include "common/example_runner.h"
 #include "vertexnova/xwin/native_window_handle.h"
 
 #include "vertexnova/logging/logging.h"
+
 #include <memory>
+
+#import "scene_delegate.h"
+#import <QuartzCore/QuartzCore.h>
 
 // Factory declared in each example's example.cpp
 std::unique_ptr<vne::xwin::examples::ExampleBase> createExample();

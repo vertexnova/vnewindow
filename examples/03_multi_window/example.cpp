@@ -10,17 +10,17 @@
  */
 
 /**
- * 03_multi_window — multi-window management and event routing demo.
+ * 03_multi_window - multi-window management and event routing demo.
  *
  * Opens a primary window plus optional child windows. Every event is logged with
  * the window id and title, resolved via IWindowManager::findWindow().
  *
  * Controls:
- *   N — open a child window
- *   F — focus next window
- *   P — set focused window as primary
- *   C — close focused window
- *   ESC — quit (handled by ExampleRunner)
+ *   N - open a child window
+ *   F - focus next window
+ *   P - set focused window as primary
+ *   C - close focused window
+ *   ESC - quit (handled by ExampleRunner)
  */
 
 #include "common/example_base.h"
@@ -220,7 +220,7 @@ class MultiWindowExample final : public vne::xwin::examples::ExampleBase {
             return;
         }
         const auto windows = mgr_->getWindows();
-        VNE_LOG_INFO << "--- " << phase << " — windows: " << windows.size() << " ---";
+        VNE_LOG_INFO << "--- " << phase << " - windows: " << windows.size() << " ---";
         const auto primary = mgr_->getPrimaryWindow();
         const auto focused = mgr_->getFocusedWindow();
         for (const auto& w : windows) {
@@ -256,7 +256,7 @@ class MultiWindowExample final : public vne::xwin::examples::ExampleBase {
         auto child = mgr_->openWindow(desc);
         if (!child) {
             VNE_LOG_WARN << "openWindow(\"" << title
-                         << "\") failed — multi-window may be unsupported on this platform.";
+                         << "\") failed - multi-window may be unsupported on this platform.";
             return;
         }
 
@@ -282,7 +282,7 @@ class MultiWindowExample final : public vne::xwin::examples::ExampleBase {
         }
         const auto windows = mgr_->getWindows();
         if (windows.size() <= 1U) {
-            VNE_LOG_INFO << "Only one window open — nothing to focus.";
+            VNE_LOG_INFO << "Only one window open - nothing to focus.";
             return;
         }
 
@@ -338,7 +338,7 @@ class MultiWindowExample final : public vne::xwin::examples::ExampleBase {
             return;
         }
         if (main_ && focused->getId() == main_->getId()) {
-            VNE_LOG_INFO << "Closing primary window — app will exit.";
+            VNE_LOG_INFO << "Closing primary window - app will exit.";
         }
 
         const auto id = focused->getId();

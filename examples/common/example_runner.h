@@ -15,7 +15,7 @@
  *
  * Platform-agnostic runtime that drives an ExampleBase lifecycle.
  * Platform entry points (desktop main.cpp, iOS AppDelegate) call these
- * methods — they never need to know which backend is active.
+ * methods - they never need to know which backend is active.
  */
 
 #include "common/example_base.h"
@@ -50,7 +50,7 @@ class ExampleRunner {
     }
 
     /**
-     * Execute one frame: processEvents → onFrame(dt) → return running state.
+     * Execute one frame: processEvents -> onFrame(dt) -> return running state.
      * Returns false when the runner should stop (window closed / ESC / onFrame
      * returned false / null-backend smoke cycle finished).
      */

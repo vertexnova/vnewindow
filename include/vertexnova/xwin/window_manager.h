@@ -57,7 +57,7 @@ class IWindowManager {
     /**
      * @brief Whether this backend can host more than one window at a time.
      *
-     * False on platforms where the concept does not apply — UIKit drives one scene, Android one
+     * False on platforms where the concept does not apply - UIKit drives one scene, Android one
      * native surface, and the web only when a host shell provides extra canvases. Ask before
      * offering multi-window UI rather than discovering it from a null openWindow().
      */
@@ -83,10 +83,10 @@ class IWindowManager {
      * no window id.
      *
      * Static because the transition belongs to the process, not to any window or manager: it
-     * carries no window id and fires once however many windows exist. No backend overrides it —
-     * a backend needing to react should subscribe to the events like any other consumer.
+     * carries no window id and fires once however many windows exist. No backend overrides it;
+     * a backend that needs to react should subscribe like any other consumer.
      *
-     * On eLowMemory, release what you can — mobile systems terminate apps that ignore it.
+     * On eLowMemory, release what you can - mobile systems terminate apps that ignore it.
      */
     static VNE_XWIN_API void notifyApplicationLifecycle(ApplicationLifecycle transition);
     [[nodiscard]] virtual bool shouldClose() const noexcept = 0;

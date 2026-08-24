@@ -34,6 +34,7 @@ Thank you for your interest in contributing. This document explains how to build
   ```
   Optional wrapper: `./scripts/format.sh` (check: `./scripts/format.sh -check`). CI checks `src/`, `include/`, and `tests/` when present (see [.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - **Style and naming** are defined in [CODING_GUIDELINES.md](CODING_GUIDELINES.md). Formatting is enforced by [.clang-format](.clang-format) and static analysis by [.clang-tidy](.clang-tidy). Please follow these so reviews can focus on design and logic.
+- **Task playbooks** for agents and reviewers live in [skills/](skills/README.md) (coding style, headers, build/verify, tests, platform backends, ASCII authoring).
 
 ## Pull requests
 

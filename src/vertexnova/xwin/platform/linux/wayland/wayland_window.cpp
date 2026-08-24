@@ -189,13 +189,6 @@ void WaylandWindow::initialize(const WindowDescriptor& descriptor) {
     open_ = true;
 }
 
-void WaylandWindow::pollEvents() {
-    if (owner_ && owner_->nativeDisplay()) {
-        // Read from the Wayland socket and dispatch; dispatch_pending alone only drains the local queue.
-        wl_display_dispatch(owner_->nativeDisplay());
-    }
-}
-
 void WaylandWindow::swapBuffers() {}
 
 void WaylandWindow::setTitle(const std::string& title) {

@@ -8,8 +8,6 @@
  * Input mirror. Before this refactor neither event path had any test coverage at all.
  */
 
-#include <gtest/gtest.h>
-
 #include "vertexnova/xwin/event_emitter.h"
 #include "vertexnova/xwin/window.h"
 
@@ -18,6 +16,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <gtest/gtest.h>
 
 namespace vne::xwin {
 namespace {
@@ -33,7 +33,6 @@ namespace ev = vne::events;
 class StubWindow final : public IWindow {
    public:
     void initialize(const WindowDescriptor&) override {}
-    void pollEvents() override {}
     void swapBuffers() override {}
     void setTitle(const std::string&) override {}
     void setWindowMode(WindowMode) override {}
@@ -149,7 +148,7 @@ TEST_F(EventEmitterTest, StampsTheOwningWindowIdOnEveryEvent) {
 }
 
 // ---------------------------------------------------------------------------
-// Descriptor gating — the only place enable_events / enable_input are consulted
+// Descriptor gating - the only place enable_events / enable_input are consulted
 // ---------------------------------------------------------------------------
 
 TEST_F(EventEmitterTest, EnableEventsFalseSuppressesEventsButKeepsInputMirror) {

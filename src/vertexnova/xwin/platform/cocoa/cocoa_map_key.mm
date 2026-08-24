@@ -1,8 +1,3 @@
-/*
- * NSEvent virtual key code (CGKeyCode) → vne::events::KeyCode.
- * Scan codes are independent of keyboard layout (US ANSI positions).
- * Reference: IOKit/hidsystem/ev_keymap.h and Carbon HIToolbox/Events.h
- */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -11,6 +6,9 @@
  * Created:   April 2026
  *
  * Autodoc:   yes
+ * NSEvent virtual key code (CGKeyCode) -> vne::events::KeyCode.
+ * Scan codes are independent of keyboard layout (US ANSI positions).
+ * Reference: IOKit/hidsystem/ev_keymap.h and Carbon HIToolbox/Events.h
  * ----------------------------------------------------------------------
  */
 
@@ -199,7 +197,7 @@ uint8_t mapCocoaModifiers(unsigned long flags) {
     if ((flags & (1UL << 19)) != 0UL) {
         mods |= static_cast<uint8_t>(ModifierKey::eModAlt);
     }
-    // NSEventModifierFlagCommand = 1 << 20 — round-trip with mapEventsModifiersToCocoaFlags
+    // NSEventModifierFlagCommand = 1 << 20 - round-trip with mapEventsModifiersToCocoaFlags
     // which folds eModMeta, eModCmd, and eModSuper into this single Cocoa flag.
     if ((flags & (1UL << 20)) != 0UL) {
         mods |= static_cast<uint8_t>(ModifierKey::eModCmd);

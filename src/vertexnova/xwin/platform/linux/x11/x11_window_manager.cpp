@@ -191,8 +191,9 @@ void X11WindowManager::focusWindow(std::shared_ptr<IWindow> window) {
 
 void X11WindowManager::processEvents() {
     for (auto& w : windows_) {
-        if (w) {
-            w->pollEvents();
+        auto* x11 = dynamic_cast<X11Window*>(w.get());
+        if (x11) {
+            x11->pollEvents();
         }
     }
 }

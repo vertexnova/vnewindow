@@ -10,7 +10,7 @@
  */
 
 /**
- * 01_hello_xwin — Minimal vne::xwin example.
+ * 01_hello_xwin - Minimal vne::xwin example.
  *
  * Opens a native window for the current platform (Cocoa on macOS, UIKit on
  * iOS, X11/Wayland on Linux, Win32 on Windows) and logs build / version info.

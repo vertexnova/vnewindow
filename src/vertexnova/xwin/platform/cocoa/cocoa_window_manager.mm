@@ -13,11 +13,11 @@
 
 #include "cocoa_window.h"
 
-#import <Cocoa/Cocoa.h>
-
 #include <algorithm>
 #include <chrono>
 #include <thread>
+
+#import <Cocoa/Cocoa.h>
 
 namespace vne::xwin {
 
