@@ -13,17 +13,15 @@
 
 namespace vne::xwin {
 
-void NullWindow::initialize(const WindowDescriptor& descriptor) {
-    descriptor_ = descriptor;
-    open_ = true;
-}
-
-void NullWindow::pollEvents() {}
-
 void NullWindow::swapBuffers() {}
 
 void NullWindow::setTitle(const std::string& title) {
     descriptor_.title = title;
+}
+
+void NullWindow::initialize(const WindowDescriptor& descriptor) {
+    descriptor_ = descriptor;
+    open_ = true;
 }
 
 void NullWindow::setWindowMode(WindowMode mode) {

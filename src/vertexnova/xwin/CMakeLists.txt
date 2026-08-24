@@ -300,6 +300,12 @@ if(_vx_wasm)
     if(TARGET emhtml5)
         target_link_libraries(vnexwin PUBLIC emhtml5)
     endif()
+    # Emscripten links the whole program with one memory model. A consumer that builds with
+    # -pthread gets --shared-memory, and wasm-ld then rejects every object compiled without
+    # atomics/bulk-memory. PUBLIC so anything linking vne::xwin agrees on the model rather than
+    # failing at link with "--shared-memory is disallowed by <our>.o".
+    target_compile_options(vnexwin PUBLIC "SHELL:-pthread")
+    target_link_options(vnexwin PUBLIC "SHELL:-pthread")
 endif()
 
 if(_vx_android)

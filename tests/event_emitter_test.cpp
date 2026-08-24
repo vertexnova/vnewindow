@@ -33,7 +33,6 @@ namespace ev = vne::events;
 class StubWindow final : public IWindow {
    public:
     void initialize(const WindowDescriptor&) override {}
-    void pollEvents() override {}
     void swapBuffers() override {}
     void setTitle(const std::string&) override {}
     void setWindowMode(WindowMode) override {}

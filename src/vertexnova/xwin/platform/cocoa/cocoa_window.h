@@ -32,7 +32,6 @@ class CocoaWindow final : public IWindow {
     void setEventOwner(CocoaWindowManager* owner);
 
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

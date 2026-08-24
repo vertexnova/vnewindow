@@ -32,7 +32,6 @@ class WaylandWindow final : public IWindow {
     [[nodiscard]] const WindowDescriptor& descriptor() const noexcept { return desc_; }
 
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

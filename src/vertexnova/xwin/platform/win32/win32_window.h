@@ -30,7 +30,14 @@ class Win32Window final : public IWindow {
     ~Win32Window() override;
 
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
+    /**
+     * @brief Drains this window's share of the native queue.
+     *
+     * Not part of IWindow: only the backends whose manager pumps per-window need it, and
+     * exposing it publicly invited callers to drain a shared queue once per window.
+     * Called by Win32WindowManager::processEvents().
+     */
+    void pollEvents();
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

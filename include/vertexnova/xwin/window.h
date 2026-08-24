@@ -28,7 +28,7 @@ namespace vne::xwin {
 /**
  * @brief Platform window abstraction; rendering presents externally — swapBuffers may be a no-op when GL is external.
  *
- * @warning Most implementations are main-thread-only (especially AppKit/UIKit). Call initialize, pollEvents,
+ * @warning Most implementations are main-thread-only (especially AppKit/UIKit). Call initialize,
  *          and accessors from the thread that owns the native event loop unless documented otherwise.
  */
 class IWindow {
@@ -42,7 +42,6 @@ class IWindow {
      *          on the same instance unless a concrete backend explicitly documents reinitialization support.
      */
     virtual void initialize(const WindowDescriptor& descriptor) = 0;
-    virtual void pollEvents() = 0;
     /** @brief No-op unless a platform GL context is owned by this window. */
     virtual void swapBuffers() = 0;
 

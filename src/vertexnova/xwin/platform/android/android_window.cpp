@@ -19,18 +19,16 @@ AndroidWindow::AndroidWindow() = default;
 
 AndroidWindow::~AndroidWindow() = default;
 
-void AndroidWindow::initialize(const WindowDescriptor& descriptor) {
-    desc_ = descriptor;
-    native_ = descriptor.platform_data;
-    open_ = native_ != nullptr;
-}
-
-void AndroidWindow::pollEvents() {}
-
 void AndroidWindow::swapBuffers() {}
 
 void AndroidWindow::setTitle(const std::string& title) {
     desc_.title = title;
+}
+
+void AndroidWindow::initialize(const WindowDescriptor& descriptor) {
+    desc_ = descriptor;
+    native_ = descriptor.platform_data;
+    open_ = native_ != nullptr;
 }
 
 void AndroidWindow::setWindowMode(WindowMode mode) {

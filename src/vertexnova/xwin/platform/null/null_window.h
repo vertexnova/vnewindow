@@ -20,7 +20,6 @@ class NullWindow final : public IWindow {
     ~NullWindow() override = default;
 
     void initialize(const WindowDescriptor& descriptor) override;
-    void pollEvents() override;
     void swapBuffers() override;
     void setTitle(const std::string& title) override;
     void setWindowMode(WindowMode mode) override;

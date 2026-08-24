@@ -57,7 +57,7 @@ bool try_desktop_smoke(WindowAPI api) {
         return false;
     }
 
-    w->pollEvents();
+    mgr->processEvents();
     w->resize(64, 48);
     const auto handle = w->getNativeHandle();
     EXPECT_EQ(handle.api, api);

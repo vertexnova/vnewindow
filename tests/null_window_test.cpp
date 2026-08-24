@@ -67,7 +67,6 @@ TEST_F(NullWindowTest, CreatePollResizeClose) {
     ASSERT_NE(mgr, nullptr);
     auto w = mgr->openWindow("life", 128, 96);
     ASSERT_NE(w, nullptr);
-    w->pollEvents();
     w->swapBuffers();
     w->resize(200, 100);
     EXPECT_EQ(w->getWidth(), 200);

@@ -542,19 +542,6 @@ void CocoaWindow::initialize(const WindowDescriptor& descriptor) {
     open_ = true;
 }
 
-void CocoaWindow::pollEvents() {
-    for (;;) {
-        NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny
-                                         untilDate:[NSDate distantPast]
-                                            inMode:NSDefaultRunLoopMode
-                                           dequeue:YES];
-        if (!ev) {
-            break;
-        }
-        [NSApp sendEvent:ev];
-    }
-}
-
 void CocoaWindow::swapBuffers() {}
 
 // ---- Event dispatch helpers (called from ObjC) ----

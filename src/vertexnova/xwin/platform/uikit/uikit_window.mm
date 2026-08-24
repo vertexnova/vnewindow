@@ -616,10 +616,6 @@ void UIKitWindow::handleWindowSafeAreaChanged(float top, float left, float botto
     events_.windowSafeAreaChanged(top, left, bottom, right);
 }
 
-void UIKitWindow::pollEvents() {
-    // Touch events are delivered by UIKit on the main run loop via VneXWinUIView.
-}
-
 void UIKitWindow::swapBuffers() {}
 
 void UIKitWindow::setTitle(const std::string& title) {
