@@ -17,36 +17,40 @@ VneCrossWindow (`vne::xwin`) provides cross-platform **native window surfaces** 
 
 ## Architecture
 
-The window system follows a layered architecture with clear separation of concerns:
+Same stacked-band layout as vnerhi / vnegfx: one concern per band, orange for this library, no arrows on the stack. Narrative and color table: [architecture/README.md](architecture/README.md).
 
-```
-Window System (vne::xwin)
-├── WindowFactory              # Selects backend and constructs IWindowManager
-├── IWindowManager             # Owns windows; pumps OS events; lifecycle notify
-├── IWindow                    # One native surface; WindowId; NativeWindowHandle
-├── WindowDescriptor           # Creation-time settings (size, flags, enable_events/input)
-├── NativeWindowHandle         # Per-API handles for RHI / swapchain wiring
-├── Supporting types
-│   ├── WindowAPI / modes / limits / ApplicationLifecycle
-│   ├── MonitorInfo
-│   ├── WindowInputMapping     # Native key/mouse ↔ vne::events codes
-│   └── TimeStep               # Frame pacing helper for poll loops
-└── Platform backends (implementation)
-    ├── Null, Win32, Cocoa, X11, Wayland, UIKit, Android, WASM
-```
+<p align="center">
+  <img src="diagrams/architecture.svg" alt="vnewindow layered architecture" width="100%"/>
+</p>
 
-![Architecture](diagrams/architecture.svg)
+**Figure 2: Layered architecture**
 
-**Figure 2: Class Diagram**
+| Band | Role |
+|------|------|
+| Consumers | App / examples; vnerhi / vnegfx consume `NativeWindowHandle` |
+| Entry | `WindowFactory`, `WindowAPI` |
+| Host | `IWindowManager` |
+| Surfaces | `IWindow`, `WindowDescriptor`, `NativeWindowHandle` |
+| Support | `EventEmitter`, `WindowInputMapping`, `TimeStep` / `MonitorInfo` |
+| Events | `EventManager`, `Input` (vneevents) |
+| Backends | Null, Win32, Cocoa, X11, Wayland, UIKit, Android, WASM |
+| Native APIs | OS / host windowing |
 
-| Element | Description |
-|---------|-------------|
+<p align="center">
+  <img src="diagrams/class_diagram.svg" alt="vnewindow class diagram" width="100%"/>
+</p>
+
+**Figure 3: Class diagram**
+
+| Type | Role |
+|------|------|
 | WindowFactory | Static entry: `createWindowManager()`, version/build/error helpers |
 | IWindowManager | `openWindow`, `processEvents`, primary/focused, `findWindow(WindowId)` |
 | IWindow | Surface API; `getId()`, `getNativeHandle()`, geometry/mode |
 | WindowDescriptor | Title, size, decoration, `enable_events` / `enable_input`, `platform_data` |
 | NativeWindowHandle | HWND / NSView / UIView / X11 / Wayland / ANativeWindow / `canvas_id` |
-| Backends | Concrete managers/windows selected at compile/link time |
+| EventEmitter | Internal: OS tokens to `vne::events` |
+| Backends | Concrete managers/windows; Null shown as the headless implementation |
 
 ### Key Design Principles
 
@@ -92,7 +96,7 @@ Platform window abstraction for one surface.
 
 **Key Features:**
 
-- **Lifecycle** — `initialize` (managers call this; `IWindow::create` already initializes), `pollEvents`, `close`, `isOpen`
+- **Lifecycle** — `initialize` (managers call this; `IWindow::create` already initializes), `close`, `isOpen`. OS pumping is `IWindowManager::processEvents()`, not a public `IWindow` method.
 - **Presentation** — `swapBuffers` may be a no-op when context ownership is external
 - **Geometry / mode** — title, resize, position, fullscreen/mode, minimize/maximize/restore
 - **WindowId** — `getId()`; never reused; stamped on emitted events
@@ -110,7 +114,7 @@ Creation-time configuration passed to `openWindow`.
 - `graphics_backend` — hint only; presentation remains external
 - `platform_data` / `platform_data_size` — UIKit scene, Android `ANativeWindow`, and similar host pointers
 - `enable_events` / `enable_input` — gate EventManager queue vs Input polling mirrors
-- Optional `input_mapping` for custom native ↔ events maps
+- Optional `input_mapping` for custom native to events maps
 
 ### NativeWindowHandle - RHI Wiring
 
@@ -166,7 +170,7 @@ Per-API fields for swapchain / surface creation:
 | Field | Default / notes |
 |-------|-----------------|
 | `title` | `"VneXWin"` |
-| `size` | 800×600 |
+| `size` | 800x600 |
 | `enable_events` | `true` — emit into EventManager |
 | `enable_input` | `true` — mirror into Input polling state |
 | `platform_data` | Host-provided scene/surface pointer when required |
@@ -180,7 +184,7 @@ Best-effort and backend-specific. Common strings include `resize`, `dpi`, `fulls
 
 ![Event Loop](diagrams/event_loop.svg)
 
-**Figure 3: Per-frame Event Loop**
+**Figure 4: Per-frame Event Loop**
 
 | Step | Call | Responsibility |
 |------|------|----------------|
@@ -189,7 +193,7 @@ Best-effort and backend-specific. Common strings include `resize`, `dpi`, `fulls
 | 3 | Application frame / simulate | `onFrame`, game logic, etc. |
 | 4 | `Input::nextFrame()` | Advance polling edge detection |
 
-xwin does **not** call steps 2 or 4. Forgetting them is the usual cause of “events never fire” or stuck keys.
+xwin does **not** call steps 2 or 4. Forgetting them is the usual cause of "events never fire" or stuck keys.
 
 `IWindowManager::notifyApplicationLifecycle` emits process-scoped pause/resume/low-memory events (no window id). Hosts (iOS scene delegate, Android activity, browser visibility) inject these.
 

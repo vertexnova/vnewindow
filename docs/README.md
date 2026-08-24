@@ -5,6 +5,7 @@ Documentation for the VertexNova windowing library (`vne::xwin`).
 ## Architecture
 
 - [Window System](vertexnova/xwin/xwin.md) — Design, components, platforms, and usage
+- [Architecture](vertexnova/xwin/architecture/README.md) — Layered stack (vnerhi colors) and class diagram
 
 ## Testing
 
