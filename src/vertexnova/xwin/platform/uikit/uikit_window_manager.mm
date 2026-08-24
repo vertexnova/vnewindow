@@ -14,11 +14,11 @@
 #include "uikit_main_sync.h"
 #include "uikit_window.h"
 
-#import <UIKit/UIKit.h>
-
 #include <algorithm>
 #include <chrono>
 #include <thread>
+
+#import <UIKit/UIKit.h>
 
 namespace vne::xwin {
 

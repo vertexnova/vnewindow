@@ -10,13 +10,13 @@
  */
 
 /**
- * 04_window_state — Drive every window-state setter and watch what it emits.
+ * 04_window_state - Drive every window-state setter and watch what it emits.
  *
  * Each key issues one IWindow call; every vne::events event that results is logged with the id
  * of the window that produced it. That pairing is the point: it shows, per backend, which state
  * transitions actually surface as events and which are silently applied.
  *
- * Coverage differs by platform and that is expected — mobile and web have no concept of a moved
+ * Coverage differs by platform and that is expected - mobile and web have no concept of a moved
  * or maximized window, so those keys are no-ops there.
  */
 

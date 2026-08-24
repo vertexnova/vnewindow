@@ -10,12 +10,12 @@
  * ----------------------------------------------------------------------
  */
 
+#include "vertexnova/xwin/window_factory.h"
+#include "vertexnova/xwin/xwin_types.h"
+
 #include <memory>
 
 #include <gtest/gtest.h>
-
-#include "vertexnova/xwin/window_factory.h"
-#include "vertexnova/xwin/xwin_types.h"
 
 using vne::xwin::WindowAPI;
 using vne::xwin::WindowFactory;

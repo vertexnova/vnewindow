@@ -287,7 +287,7 @@ if(ENABLE_ASAN)
         add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
         add_link_options(-fsanitize=address,undefined)
     else()
-        message(WARNING "ENABLE_ASAN is only supported with GCC/Clang on Linux/macOS — ignoring.")
+        message(WARNING "ENABLE_ASAN is only supported with GCC/Clang on Linux/macOS - ignoring.")
     endif()
 endif()
 
@@ -391,7 +391,7 @@ endif()
 #==============================================================================
 # Installation
 # Use COMPONENT vnexwin so that `cmake --install . --component vnexwin`
-# installs only this library — not the internal deps (vnecommon, vnelogging)
+# installs only this library - not the internal deps (vnecommon, vnelogging)
 # which register their own install() rules via add_subdirectory.
 #==============================================================================
 include(GNUInstallDirs)

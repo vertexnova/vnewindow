@@ -10,7 +10,7 @@
  */
 
 /**
- * 02_xwin_events — vne::xwin + vne::events integration example.
+ * 02_xwin_events - vne::xwin + vne::events integration example.
  *
  * Logs keyboard, mouse, touch, window-state and application-lifecycle events.
  *
@@ -169,7 +169,7 @@ std::string formatPoint(double x, double y) {
 class XwinEventsExample final : public vne::xwin::examples::ExampleBase {
    public:
     vne::xwin::examples::ExampleConfig configure() override {
-        return {"02 XWin Events — Comprehensive Input", 1000, 700};
+        return {"02 XWin Events - Comprehensive Input", 1000, 700};
     }
 
     void onInit(vne::xwin::IWindow& /*window*/, vne::xwin::IWindowManager& mgr) override {

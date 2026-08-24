@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License")
 #
-# vne::xwin — native window surfaces (no GLFW)
+# vne::xwin - native window surfaces (no GLFW)
 #==============================================================================
 
 #------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
         if(X11_FOUND)
             set(_vx_x11 1)
         else()
-            message(STATUS "vne::xwin: X11 not found — X11 backend disabled")
+            message(STATUS "vne::xwin: X11 not found - X11 backend disabled")
         endif()
     endif()
 
@@ -83,10 +83,10 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
             if(WAYLAND_CLIENT_FOUND)
                 set(_vx_wayland 1)
             else()
-                message(STATUS "vne::xwin: wayland-client not found — Wayland backend disabled")
+                message(STATUS "vne::xwin: wayland-client not found - Wayland backend disabled")
             endif()
         else()
-            message(STATUS "vne::xwin: wayland-protocols or wayland-scanner missing — Wayland backend disabled")
+            message(STATUS "vne::xwin: wayland-protocols or wayland-scanner missing - Wayland backend disabled")
         endif()
     endif()
 endif()

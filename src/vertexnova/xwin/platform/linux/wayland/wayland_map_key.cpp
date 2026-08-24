@@ -1,7 +1,3 @@
-/*
- * XKB keysym → vne::events::KeyCode.
- * XKB_KEY_* constants are numerically identical to X11 XK_* constants.
- */
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -10,6 +6,8 @@
  * Created:   April 2026
  *
  * Autodoc:   yes
+ * XKB keysym -> vne::events::KeyCode.
+ * XKB_KEY_* constants are numerically identical to X11 XK_* constants.
  * ----------------------------------------------------------------------
  */
 

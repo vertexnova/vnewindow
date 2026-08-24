@@ -549,7 +549,7 @@ void X11Window::setCursor(WindowCursor cursor) {
     switch (cursor) {
         case WindowCursor::eHidden:
         case WindowCursor::eDisabled: {
-            // Create an invisible cursor using a 1×1 blank pixmap
+            // Create an invisible cursor using a 1x1 blank pixmap
             if (blank_cursor_ == None) {
                 static const char kBlank = 0;
                 Pixmap pix = XCreateBitmapFromData(display_, window_, &kBlank, 1, 1);

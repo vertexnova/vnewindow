@@ -26,7 +26,7 @@
 namespace vne::xwin {
 
 /**
- * @brief Platform window abstraction; rendering presents externally — swapBuffers may be a no-op when GL is external.
+ * @brief Platform window abstraction; rendering presents externally - swapBuffers may be a no-op when GL is external.
  *
  * @warning Most implementations are main-thread-only (especially AppKit/UIKit). Call initialize,
  *          and accessors from the thread that owns the native event loop unless documented otherwise.

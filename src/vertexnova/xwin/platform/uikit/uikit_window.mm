@@ -84,7 +84,7 @@ UIWindowScene* vneXWinFindWindowScene(UIWindow* window, void* platform_data) {
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// VneXWinUIView — UIView subclass that routes multi-touch / pointer / scroll
+// VneXWinUIView - UIView subclass that routes multi-touch / pointer / scroll
 //
 // Pointer input (hover, secondary/middle button, scroll wheel) only exists when the
 // OS delivers indirect pointer events. Info.plist must set

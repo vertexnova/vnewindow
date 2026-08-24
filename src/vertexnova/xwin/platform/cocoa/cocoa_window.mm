@@ -26,7 +26,7 @@
 @class VneXWinWindowDelegate;
 
 // ---------------------------------------------------------------------------
-// VneXWinView — NSView subclass that routes keyboard + mouse to the bridge
+// VneXWinView - NSView subclass that routes keyboard + mouse to the bridge
 // ---------------------------------------------------------------------------
 @interface VneXWinView : NSView <NSTextInputClient> {
     vne::xwin::CocoaWindow* xwin_;
@@ -336,7 +336,7 @@
 @end
 
 // ---------------------------------------------------------------------------
-// VneXWinWindow — NSWindow that can still take key focus without a title bar.
+// VneXWinWindow - NSWindow that can still take key focus without a title bar.
 // AppKit refuses key status to NSWindowStyleMaskBorderless windows by default, which would make
 // borderless mode a dead end: no keyboard events, and no way to press the key that leaves it.
 // ---------------------------------------------------------------------------
@@ -353,7 +353,7 @@
 @end
 
 // ---------------------------------------------------------------------------
-// VneXWinWindowDelegate — NSWindowDelegate for window-level events
+// VneXWinWindowDelegate - NSWindowDelegate for window-level events
 // ---------------------------------------------------------------------------
 @interface VneXWinWindowDelegate : NSObject <NSWindowDelegate> {
     vne::xwin::CocoaWindow* xwin_;

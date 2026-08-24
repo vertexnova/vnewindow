@@ -75,7 +75,7 @@ class ExampleRunner::RunnerListener : public vne::events::EventListener {
         if (event.type() == vne::events::EventType::eKeyPressed) {
             const auto* ke = dynamic_cast<const vne::events::KeyPressedEvent*>(&event);
             if (ke && ke->keyCode() == vne::events::KeyCode::eEscape) {
-                VNE_LOG_INFO << "[ExampleRunner] ESC pressed — closing.";
+                VNE_LOG_INFO << "[ExampleRunner] ESC pressed - closing.";
                 runner_->onCloseRequest();
             }
         }
@@ -155,7 +155,7 @@ bool ExampleRunner::initialize() {
 
     // Null backend: run one clean smoke cycle then stop
     if (window_->getWindowAPI() == WindowAPI::eNullWindow) {
-        VNE_LOG_INFO << "[ExampleRunner] Null backend — smoke cycle, then exit.";
+        VNE_LOG_INFO << "[ExampleRunner] Null backend - smoke cycle, then exit.";
         manager_->removeWindow(window_);
         window_.reset();
         is_running_ = false;

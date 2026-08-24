@@ -11,7 +11,7 @@ endif()
 include(${PROJECT_SOURCE_DIR}/cmake/VneAddExample.cmake)
 
 #------------------------------------------------------------------------------
-# vne_example_common — shared runner runtime compiled once, linked by all examples
+# vne_example_common - shared runner runtime compiled once, linked by all examples
 #------------------------------------------------------------------------------
 add_library(vne_example_common STATIC
     common/example_runner.cpp

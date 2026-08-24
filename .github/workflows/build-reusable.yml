@@ -5,7 +5,7 @@
 # Author:    Ajeet Singh Yadav
 # Created:   March 2026
 #
-# Description: Reusable workflow for VneCrossWindow — configure, build, test,
+# Description: Reusable workflow for VneCrossWindow - configure, build, test,
 # optional coverage. Build tree matches vneio: build/<shared|static>/<Release|Debug>/...
 # Called only by ci.yml.
 #
@@ -227,7 +227,7 @@ jobs:
           GCNO_COUNT=$(find "$BUILD_DIR" -name "*.gcno" | wc -l)
           echo "Total .gcno files: $GCNO_COUNT"
           if [[ "$GCNO_COUNT" -eq 0 ]]; then
-              echo "::error::No .gcno files found — check ENABLE_COVERAGE."
+              echo "::error::No .gcno files found - check ENABLE_COVERAGE."
               exit 1
           fi
 

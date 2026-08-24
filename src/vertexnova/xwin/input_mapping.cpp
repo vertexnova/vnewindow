@@ -41,7 +41,7 @@ namespace {
 [[maybe_unused]] constexpr std::uint64_t kLow32Mask = 0xFFFFFFFFu;
 [[maybe_unused]] constexpr std::uint8_t kMouseButtonMask = 7U;
 
-/* Native → MouseButton for X11/Wayland: unmapped values use vne::events::MouseButton::eUnknown (input_mapping.h;
+/* Native -> MouseButton for X11/Wayland: unmapped values use vne::events::MouseButton::eUnknown (input_mapping.h;
  * TODO(vneevents): replace with MouseButton::eUnknown). */
 
 #if VNE_XWIN_HAS_X11

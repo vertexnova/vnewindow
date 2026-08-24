@@ -49,7 +49,7 @@ struct WindowDescriptor {
     bool enable_events = true;
     bool enable_input = true;
 
-    /** Optional per-window native ↔ vne::events mapping; shared ownership keeps storage valid after copies of
+    /** Optional per-window native <-> vne::events mapping; shared ownership keeps storage valid after copies of
      *  this descriptor (e.g. into backend state). Android touch-first builds often omit this. */
     std::shared_ptr<WindowInputMapping> input_mapping;
 

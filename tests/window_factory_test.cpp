@@ -10,15 +10,16 @@
  * ----------------------------------------------------------------------
  */
 
-#include <cstdlib>
-#include <gtest/gtest.h>
-
 #include "vertexnova/xwin/window_factory.h"
 #include "vertexnova/xwin/xwin_types.h"
+
+#include <cstdlib>
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
+
+#include <gtest/gtest.h>
 
 using vne::xwin::WindowAPI;
 using vne::xwin::WindowFactory;

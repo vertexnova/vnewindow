@@ -94,14 +94,14 @@ def run_clang_format(files: list, style_file: Path, dry_run: bool = False) -> bo
                 text=True,
                 check=True,
             )
-            print("  ✓ Formatted successfully")
+            print("  [pass] Formatted successfully")
         except subprocess.CalledProcessError as e:
-            print(f"  ✗ Error formatting {file_path}: {e}")
+            print(f"  [fail] Error formatting {file_path}: {e}")
             if e.stderr:
                 print(f"    stderr: {e.stderr}")
             return False
         except FileNotFoundError:
-            print("  ✗ clang-format not found. Please install clang-format.")
+            print("  [fail] clang-format not found. Please install clang-format.")
             return False
 
     return True
@@ -181,7 +181,7 @@ def main():
                 if p.is_dir():
                     source_files.extend(find_source_files(p))
             source_files = sorted(set(source_files))
-            print(f"Target: CI dirs — {len(source_files)} files")
+            print(f"Target: CI dirs - {len(source_files)} files")
         else:
             target_folder = (project_root / folder_arg).resolve()
             if not target_folder.is_dir():
@@ -207,9 +207,9 @@ def main():
     success = run_clang_format(source_files, style_file, args.dry_run)
 
     if success:
-        print("\n✓ Formatting completed successfully!")
+        print("\n[pass] Formatting completed successfully!")
     else:
-        print("\n✗ Formatting failed!")
+        print("\n[fail] Formatting failed!")
         sys.exit(1)
 
 

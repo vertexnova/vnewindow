@@ -66,9 +66,8 @@ assets that deliberately exercise Unicode, third-party code under `deps/`, and
 binary or generated files. Keep exceptions out of hand-authored source, comments,
 and messages.
 
-This repo currently has existing em-dash comments in several files. Do not expand
-that set. New and edited text must be ASCII. When you already touch a file that
-has a banned glyph in nearby comments, replace those glyphs in the same edit.
+Do not introduce new exceptions. When you already touch a file that has a banned
+glyph in nearby comments, replace those glyphs in the same edit.
 
 ## 5. Commits and PRs
 
