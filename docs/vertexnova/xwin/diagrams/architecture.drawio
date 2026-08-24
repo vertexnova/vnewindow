@@ -1,0 +1,63 @@
+<mxfile host="65bd71144e">
+    <diagram name="Architecture" id="architecture">
+        <mxGraphModel dx="450" dy="539" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="factory" value="&lt;font color=&quot;#0066cc&quot;&gt;WindowFactory&lt;br&gt;createWindowManager()&lt;br&gt;getVersion / getLastError&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;strokeWidth=2;fontStyle=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="40" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="mgr" value="&lt;font color=&quot;#994c00&quot;&gt;IWindowManager&lt;br&gt;openWindow / processEvents&lt;br&gt;findWindow / supportsMultipleWindows&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;strokeWidth=2;fontStyle=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="200" width="300" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="win" value="&lt;font color=&quot;#99004d&quot;&gt;IWindow&lt;br&gt;getId / getNativeHandle&lt;br&gt;resize / close / pollEvents&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#6a1b9a;strokeWidth=2;fontStyle=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="380" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="desc" value="&lt;font color=&quot;#00994d&quot;&gt;WindowDescriptor&lt;br&gt;size / enable_events&lt;br&gt;enable_input / platform_data&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="380" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="handle" value="&lt;font color=&quot;#990099&quot;&gt;NativeWindowHandle&lt;br&gt;hwnd / ns_view / ui_view&lt;br&gt;x11 / wayland / canvas_id&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#ad1457;strokeWidth=2;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="550" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="backends" value="&lt;font color=&quot;#004c99&quot;&gt;Platform backends (impl)&lt;br&gt;Null | Win32 | Cocoa | X11 | Wayland | UIKit | Android | WASM&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eceff1;strokeColor=#455a64;strokeWidth=2;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="500" width="420" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#1565c0;" parent="1" source="factory" target="mgr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1l" value="constructs" style="edgeLabel;html=1;fontSize=10;backgroundColor=#ffffff;" parent="e1" connectable="0" vertex="1">
+                    <mxGeometry x="-0.2" relative="1" as="geometry">
+                        <mxPoint x="-20" y="-12" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e2" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#e65100;" parent="1" source="mgr" target="win" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2l" value="owns N" style="edgeLabel;html=1;fontSize=10;backgroundColor=#ffffff;" parent="e2" connectable="0" vertex="1">
+                    <mxGeometry x="-0.2" relative="1" as="geometry">
+                        <mxPoint x="-22" y="-16" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e3" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#2e7d32;" parent="1" source="mgr" target="desc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3l" value="openWindow(desc)" style="edgeLabel;html=1;fontSize=10;backgroundColor=#ffffff;" parent="e3" connectable="0" vertex="1">
+                    <mxGeometry x="-0.1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e4" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#ad1457;" parent="1" source="win" target="handle" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" style="endArrow=blockThin;endFill=1;dashed=1;html=1;strokeWidth=1;strokeColor=#455a64;" parent="1" source="mgr" target="backends" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5l" value="implemented by" style="edgeLabel;html=1;fontSize=10;backgroundColor=#ffffff;" parent="e5" connectable="0" vertex="1">
+                    <mxGeometry x="-0.2" relative="1" as="geometry">
+                        <mxPoint x="-39" y="-18" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
