@@ -96,12 +96,25 @@ Apply this section when the PR changes files under `tests/` or `*_test.cpp`.
 - If mocking: keep mocks minimal and verify behavior, not implementation details.
 - Ensure tests run fast and don't require special hardware unless explicitly marked.
 
-## This repository (VneTemplate)
+## This repository (VneCrossWindow / vnewindow)
+
+### Task playbooks (skills)
+
+Task playbooks live in `skills/`, one `SKILL.md` per skill. Consult the matching
+one before build, test, header, platform, or style work: `vne-coding-style`,
+`plain-ascii-authoring`, `vne-header-hygiene`, `vne-build-verify`,
+`vne-testing`, `vne-xwin-platforms`. Index: `skills/README.md`. This is not
+vnegfx: there is no shader pipeline skill.
 
 ### Project layout
 
-- Library: **src/vertexnova/xwin/** — Public API: **include/vertexnova/xwin/** — Tests: **tests/** — Examples: **examples/**
-- Dependencies: **deps/internal/** (e.g. vnecommon, vnelogging), **deps/external/** (e.g. googletest). No top-level `external/` or `libs/`.
+- Library: **src/vertexnova/xwin/** - Public API: **include/vertexnova/xwin/** - Tests: **tests/** - Examples: **examples/**
+- Platform backends: **src/vertexnova/xwin/platform/** (null, win32, cocoa, x11, wayland, uikit, android, wasm).
+- Dependencies: **deps/internal/** (vnecommon, vnelogging, vneevents), **deps/external/** (e.g. googletest). No top-level `external/` or `libs/`.
+
+### CMake options
+
+- `VNE_XWIN_*`: `VNE_XWIN_CI`, `VNE_XWIN_DEV`, `VNE_XWIN_LIB_TYPE`, `VNE_XWIN_TESTS`, `VNE_XWIN_EXAMPLES`.
 
 ### Formatting and static analysis
 
