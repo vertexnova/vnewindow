@@ -16,6 +16,7 @@
 #include "event_emitter.h"
 
 #include <algorithm>
+#include <cmath>
 #include <unordered_map>
 
 #ifdef __EMSCRIPTEN__
@@ -299,8 +300,12 @@ void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_
     desc_.size.height = height;
     applied_dpr_ = dpr;
 
-    const int backing_w = static_cast<int>(static_cast<float>(width) * dpr);
-    const int backing_h = static_cast<int>(static_cast<float>(height) * dpr);
+    // Round, do not truncate: the page shell and queryWasmCanvasFramebufferExtent() both round
+    // css * dpr. At a fractional ratio (1.25/1.5, or any browser zoom level) truncating here lands
+    // one pixel below what they compute, and the disagreement shows up as the canvas and the
+    // swapchain trading reconfigures every frame.
+    const int backing_w = static_cast<int>(std::lround(static_cast<double>(width) * static_cast<double>(dpr)));
+    const int backing_h = static_cast<int>(std::lround(static_cast<double>(height) * static_cast<double>(dpr)));
 
     // CSS size is owned by the shell (.fills / flex); only set the framebuffer.
     if (!uses_vne_shell_) {
