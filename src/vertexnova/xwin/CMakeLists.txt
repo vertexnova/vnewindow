@@ -113,6 +113,7 @@ set(XWIN_SOURCES
     time_step.cpp
     event_emitter.cpp
     input_mapping.cpp
+    wasm_canvas_transfer.cpp
     platform/null/null_window.cpp
     platform/null/null_window_manager.cpp
 )
@@ -123,6 +124,7 @@ set(XWIN_PUBLIC_HEADERS
     ${VNE_INCLUDE_DIR}/vertexnova/xwin/monitor_info.h
     ${VNE_INCLUDE_DIR}/vertexnova/xwin/native_window_handle.h
     ${VNE_INCLUDE_DIR}/vertexnova/xwin/time_step.h
+    ${VNE_INCLUDE_DIR}/vertexnova/xwin/wasm_canvas_transfer.h
     ${VNE_INCLUDE_DIR}/vertexnova/xwin/window.h
     ${VNE_INCLUDE_DIR}/vertexnova/xwin/window_descriptor.h
     ${VNE_INCLUDE_DIR}/vertexnova/xwin/window_factory.h
