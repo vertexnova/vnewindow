@@ -25,8 +25,8 @@ std::atomic<bool> g_canvas_control_transferred{false};
 }  // namespace
 
 void markCanvasControlTransferred() noexcept {
-    g_canvas_control_transferred.store(true, std::memory_order_release);
 #if defined(__EMSCRIPTEN__)
+    g_canvas_control_transferred.store(true, std::memory_order_release);
     // Mirror to the main thread's Module so the HTML shell sees the same fact. The shell reads
     // this before touching canvas.width / canvas.height.
     //
