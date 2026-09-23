@@ -3,6 +3,9 @@
 Cross-platform example programs for `vne::xwin`. Each example is a single
 `example.cpp` file that works unchanged on every supported platform.
 
+For architecture, the event loop contract, and platform notes, see
+[docs/vertexnova/xwin/xwin.md](../docs/vertexnova/xwin/xwin.md).
+
 ## How it works
 
 `vne_add_example()` (defined in `cmake/VneAddExample.cmake`) injects the
