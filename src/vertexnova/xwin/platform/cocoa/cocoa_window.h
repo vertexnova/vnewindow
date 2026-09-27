@@ -64,6 +64,8 @@ class CocoaWindow final : public IWindow {
     void handleTextInput(const char* utf8_text);
     void handleWindowClose();
     void handleWindowResize(uint32_t w, uint32_t h);
+    /// Inside AppKit's live-resize tracking loop: run WindowDescriptor::on_live_resize, if set.
+    void handleLiveResizeTick();
     void handleWindowFocus(bool focused);
     void handleWindowMinimize();
     void handleWindowRestore();
