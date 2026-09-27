@@ -27,6 +27,11 @@ namespace {
 
 constexpr wchar_t kClassName[] = L"VneXWinWnd";
 
+/// Timer that drives on_live_resize while the user holds a resize/move drag still.
+constexpr UINT_PTR kLiveResizeTimerId = 0x564E45;  // "VNE"
+/// ~60 Hz. The system clamps anything below USER_TIMER_MINIMUM.
+constexpr UINT kLiveResizeTimerMs = 16;
+
 std::wstring Utf8ToWide(const std::string& utf8) {
     if (utf8.empty()) {
         return std::wstring();
@@ -126,6 +131,12 @@ LRESULT CALLBACK Win32Window::staticWndProc(HWND hwnd, UINT msg, WPARAM wParam, 
     return out;
 }
 
+void Win32Window::handleLiveResizeTick() {
+    if (desc_.on_live_resize) {
+        desc_.on_live_resize();
+    }
+}
+
 LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
         case WM_CLOSE:
@@ -147,8 +158,31 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             desc_.size.width = static_cast<uint32_t>(LOWORD(lParam));
             desc_.size.height = static_cast<uint32_t>(HIWORD(lParam));
             events_.windowResize(desc_.size.width, desc_.size.height);
+            // During a drag the app's message pump is parked inside DefWindowProc's modal loop.
+            // Tell the host now, from inside that loop, instead of when the mouse is released.
+            if (in_size_move_) {
+                handleLiveResizeTick();
+            }
             return 0;
         }
+        case WM_ENTERSIZEMOVE:
+            in_size_move_ = true;
+            // Keep ticking while the mouse is held still mid-drag, when no WM_SIZE arrives. The
+            // modal loop still dispatches WM_TIMER.
+            ::SetTimer(hwnd, kLiveResizeTimerId, kLiveResizeTimerMs, nullptr);
+            return 0;
+        case WM_EXITSIZEMOVE:
+            ::KillTimer(hwnd, kLiveResizeTimerId);
+            in_size_move_ = false;
+            return 0;
+        case WM_TIMER:
+            if (wParam == kLiveResizeTimerId) {
+                if (in_size_move_) {
+                    handleLiveResizeTick();
+                }
+                return 0;
+            }
+            return DefWindowProcW(hwnd, msg, wParam, lParam);
         case WM_MOVE: {
             // TODO(xwin): Investigate windowMove vs getPosition()/setPosition() origin consistency.
             // WM_MOVE lParam is the client-area origin; getPosition() returns GetWindowRect frame

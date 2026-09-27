@@ -71,6 +71,8 @@ class Win32Window final : public IWindow {
 
    private:
     static LRESULT CALLBACK staticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    /// Inside the size/move modal loop: run WindowDescriptor::on_live_resize, if set.
+    void handleLiveResizeTick();
     void createWindow(const WindowDescriptor& descriptor);
     void destroyWindow();
 
@@ -81,6 +83,8 @@ class Win32Window final : public IWindow {
     bool open_ = false;
     /** Tracks WM_SIZE minimize state, so the next non-minimized WM_SIZE can emit a restore. */
     bool minimized_ = false;
+    /** True between WM_ENTERSIZEMOVE and WM_EXITSIZEMOVE: DefWindowProc's modal loop is running. */
+    bool in_size_move_ = false;
     bool fullscreen_ = false;
     WindowMode mode_ = WindowMode::eWindowed;
     WindowMode windowed_mode_before_fullscreen_ = WindowMode::eWindowed;

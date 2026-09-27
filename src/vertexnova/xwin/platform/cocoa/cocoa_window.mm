@@ -357,6 +357,8 @@
 // ---------------------------------------------------------------------------
 @interface VneXWinWindowDelegate : NSObject <NSWindowDelegate> {
     vne::xwin::CocoaWindow* xwin_;
+    /// Fires at display rate while a live resize is in progress (see windowWillStartLiveResize).
+    NSTimer* live_resize_timer_;
 }
 - (instancetype)initWithXwin:(vne::xwin::CocoaWindow*)xwin;
 @end
@@ -386,6 +388,39 @@
     NSWindow* win = notification.object;
     const NSRect r = [win.contentView frame];
     xwin_->handleWindowResize(static_cast<uint32_t>(r.size.width), static_cast<uint32_t>(r.size.height));
+    // During a drag the app's event pump is parked inside AppKit's tracking loop. Tell the host
+    // now, from inside that loop, instead of when the mouse is released.
+    if (win.inLiveResize) {
+        xwin_->handleLiveResizeTick();
+    }
+}
+
+- (void)windowWillStartLiveResize:(NSNotification*)notification {
+    (void)notification;
+    [live_resize_timer_ invalidate];
+    // Keep ticking while the mouse is held still mid-drag, when no resize notifications arrive.
+    // Common modes include NSEventTrackingRunLoopMode, the mode the tracking loop runs in.
+    __weak VneXWinWindowDelegate* weak_self = self;
+    live_resize_timer_ = [NSTimer timerWithTimeInterval:1.0 / 60.0
+                                                repeats:YES
+                                                  block:^(NSTimer* timer) {
+                                                    (void)timer;
+                                                    VneXWinWindowDelegate* strong_self = weak_self;
+                                                    if (strong_self != nil && strong_self->xwin_ != nullptr) {
+                                                        strong_self->xwin_->handleLiveResizeTick();
+                                                    }
+                                                  }];
+    [[NSRunLoop mainRunLoop] addTimer:live_resize_timer_ forMode:NSRunLoopCommonModes];
+}
+
+- (void)windowDidEndLiveResize:(NSNotification*)notification {
+    (void)notification;
+    [live_resize_timer_ invalidate];
+    live_resize_timer_ = nil;
+}
+
+- (void)dealloc {
+    [live_resize_timer_ invalidate];
 }
 
 - (void)windowDidBecomeKey:(NSNotification*)notification {
@@ -578,6 +613,12 @@ void CocoaWindow::handleWindowResize(uint32_t w, uint32_t h) {
     events_.windowResize(w, h);
 }
 
+void CocoaWindow::handleLiveResizeTick() {
+    if (desc_.on_live_resize) {
+        desc_.on_live_resize();
+    }
+}
+
 void CocoaWindow::handleWindowFocus(bool focused) {
     events_.windowFocus(focused);
 }
@@ -619,10 +660,29 @@ void CocoaWindow::setFullscreenState(bool fs) {
 
 void CocoaWindow::setTitle(const std::string& title) {
     desc_.title = title;
-    if (ns_window_) {
-        NSWindow* win = (__bridge NSWindow*)ns_window_;
-        [win setTitle:[NSString stringWithUTF8String:title.c_str()]];
+    if (!ns_window_) {
+        return;
     }
+
+    // AppKit raises "NSWindow geometry should only be modified on the main thread" off-main, and
+    // callers legitimately reach here from a render thread -- sample layers set the window title
+    // in onAttach(), which runs wherever the render loop puts it. Owning the affinity here is the
+    // same choice metal_layer_utils makes for CAMetalLayer: the UI object knows it is a UI
+    // object, so no caller has to.
+    //
+    // Async, not sync: this is fire-and-forget cosmetics, and a sync hop from a render thread
+    // would stall it behind whatever the main thread is doing (and deadlock if the main thread is
+    // itself waiting on the render thread).
+    NSWindow* win = (__bridge NSWindow*)ns_window_;
+    NSString* ns_title = [NSString stringWithUTF8String:title.c_str()];
+    if ([NSThread isMainThread]) {
+        [win setTitle:ns_title];
+        return;
+    }
+    // ARC: the block captures both strongly, so they outlive this scope on their own.
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [win setTitle:ns_title];
+    });
 }
 
 void CocoaWindow::setWindowMode(WindowMode mode) {
