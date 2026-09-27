@@ -15,6 +15,7 @@
 #include "vertexnova/xwin/input_mapping.h"
 #include "vertexnova/xwin/xwin_types.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
@@ -52,6 +53,22 @@ struct WindowDescriptor {
     /** Optional per-window native <-> vne::events mapping; shared ownership keeps storage valid after copies of
      *  this descriptor (e.g. into backend state). Android touch-first builds often omit this. */
     std::shared_ptr<WindowInputMapping> input_mapping;
+
+    /**
+     * Called on the window-owning thread from inside the OS's modal live-resize loop: after
+     * each size change while the user drags an edge, and at display rate while they hold still.
+     *
+     * That is the thread that drives the platform window (AppKit/Win32 message affinity), which
+     * is often but not necessarily the process main thread -- only hosts that create and pump the
+     * window there get main-thread callbacks.
+     *
+     * The application's own event pump does not run during that loop (AppKit's tracking loop,
+     * Win32's size/move loop), so without this hook nothing can react until the mouse is released
+     * and the frame then snaps to the new size. Hosts use it to publish the new size -- and, when
+     * rendering on that same owning thread, to draw a frame. Must not pump events. Optional;
+     * macOS and Win32 call it, other platforms have no modal resize loop.
+     */
+    std::function<void()> on_live_resize;
 
     WindowDescriptor() = default;
 

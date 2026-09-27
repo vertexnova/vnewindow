@@ -51,11 +51,15 @@ EM_JS(void, vne_xwin_shell_close_window, (int id), {
     }
 });
 
-EM_JS(void, vne_xwin_shell_focus_window, (int id), {
+EM_JS(void, vne_xwin_shell_focus_window_impl, (int id), {
     if (typeof window.VneShell !== 'undefined') {
         window.VneShell.focusWindow(id);
     }
 });
+
+extern "C" void vne_xwin_shell_focus_window(int id) {
+    vne_xwin_shell_focus_window_impl(id);
+}
 
 EM_JS(void, vne_xwin_shell_set_title, (int id, const char* title), {
     if (typeof window.VneShell !== 'undefined') {
@@ -293,9 +297,14 @@ void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_
     const float dpr = static_cast<float>(emscripten_get_device_pixel_ratio());
     const bool size_unchanged = width == desc_.size.width && height == desc_.size.height && dpr == applied_dpr_;
 
+    // After OffscreenCanvas transfer the HTML canvas is a placeholder: shell setSize /
+    // emscripten_set_canvas_element_size re-enter until the JS stack overflows (Safari).
+    // Layout stays on #canvas-wrap; drawing-buffer size is owned by GPUCanvasContext.configure.
+    const bool transferred = vne::xwin::canvasControlTransferred();
+
     // Explicit resize must reach the shell even when the panel already matches; shell layout
     // callbacks already carry the laid-out content box and must not re-request it.
-    if (uses_vne_shell_ && !from_shell_layout) {
+    if (!transferred && uses_vne_shell_ && !from_shell_layout) {
         vne_xwin_shell_set_size(static_cast<int>(id_), static_cast<int>(width), static_cast<int>(height));
     }
 
@@ -311,9 +320,6 @@ void WasmWindow::applyViewportSize(const uint32_t css_width, const uint32_t css_
     // css * dpr. At a fractional ratio (1.25/1.5, or any browser zoom level) truncating here lands
     // one pixel below what they compute, and the disagreement shows up as the canvas and the
     // swapchain trading reconfigures every frame.
-    // After OffscreenCanvas transfer, layout lives on #canvas-wrap and drawable size is owned by
-    // GPUCanvasContext.configure -- do not poke CSS or canvas.width/height (Safari stack overflow).
-    const bool transferred = vne::xwin::canvasControlTransferred();
     if (!transferred) {
         const int backing_w = static_cast<int>(std::lround(static_cast<double>(width) * static_cast<double>(dpr)));
         const int backing_h = static_cast<int>(std::lround(static_cast<double>(height) * static_cast<double>(dpr)));
