@@ -361,6 +361,8 @@
     NSTimer* live_resize_timer_;
 }
 - (instancetype)initWithXwin:(vne::xwin::CocoaWindow*)xwin;
+/// Stops the live-resize timer and drops the CocoaWindow* so ticks cannot outlive destroyNative().
+- (void)detachFromWindow;
 @end
 
 @implementation VneXWinWindowDelegate
@@ -371,6 +373,12 @@
         xwin_ = xwin;
     }
     return self;
+}
+
+- (void)detachFromWindow {
+    [live_resize_timer_ invalidate];
+    live_resize_timer_ = nil;
+    xwin_ = nullptr;
 }
 
 - (BOOL)windowShouldClose:(NSWindow*)sender {
@@ -420,7 +428,7 @@
 }
 
 - (void)dealloc {
-    [live_resize_timer_ invalidate];
+    [self detachFromWindow];
 }
 
 - (void)windowDidBecomeKey:(NSNotification*)notification {
@@ -511,11 +519,17 @@ void CocoaWindow::setEventOwner(CocoaWindowManager* owner) {
 }
 
 void CocoaWindow::destroyNative() {
+    // Drop the CocoaWindow* and invalidate the timer before releasing either native object so a
+    // queued NSTimer tick cannot call handleLiveResizeTick() on a destroyed this.
+    if (ns_delegate_) {
+        VneXWinWindowDelegate* delegate = (__bridge_transfer VneXWinWindowDelegate*)ns_delegate_;
+        ns_delegate_ = nullptr;
+        [delegate detachFromWindow];
+    }
     if (ns_window_) {
         NSWindow* win = (__bridge_transfer NSWindow*)ns_window_;
         ns_window_ = nullptr;
         ns_view_ = nullptr;
-        ns_delegate_ = nullptr;
         [win setDelegate:nil];
         [win close];
     }
@@ -673,15 +687,21 @@ void CocoaWindow::setTitle(const std::string& title) {
     // Async, not sync: this is fire-and-forget cosmetics, and a sync hop from a render thread
     // would stall it behind whatever the main thread is doing (and deadlock if the main thread is
     // itself waiting on the render thread).
+    //
+    // Queued blocks apply desc_.title at run time (and bail if a newer setTitle already won), so
+    // an older async update cannot overwrite a later title.
     NSWindow* win = (__bridge NSWindow*)ns_window_;
-    NSString* ns_title = [NSString stringWithUTF8String:title.c_str()];
     if ([NSThread isMainThread]) {
-        [win setTitle:ns_title];
+        [win setTitle:[NSString stringWithUTF8String:desc_.title.c_str()]];
         return;
     }
-    // ARC: the block captures both strongly, so they outlive this scope on their own.
+    const std::string expected = title;
     dispatch_async(dispatch_get_main_queue(), ^{
-      [win setTitle:ns_title];
+      if (!ns_window_ || desc_.title != expected) {
+          return;
+      }
+      NSWindow* w = (__bridge NSWindow*)ns_window_;
+      [w setTitle:[NSString stringWithUTF8String:desc_.title.c_str()]];
     });
 }
 

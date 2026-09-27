@@ -83,7 +83,7 @@ class Win32Window final : public IWindow {
     bool open_ = false;
     /** Tracks WM_SIZE minimize state, so the next non-minimized WM_SIZE can emit a restore. */
     bool minimized_ = false;
-    /** True between WM_ENTERSIZEMOVE and WM_EXITSIZEMOVE: DefWindowProc's modal loop is running. */
+    /** True between WM_ENTERSIZEMOVE and WM_EXITSIZEMOVE (resize or title-bar move). */
     bool in_size_move_ = false;
     bool fullscreen_ = false;
     WindowMode mode_ = WindowMode::eWindowed;

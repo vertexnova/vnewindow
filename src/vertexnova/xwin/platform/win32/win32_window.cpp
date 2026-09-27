@@ -160,16 +160,16 @@ LRESULT Win32Window::handleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             events_.windowResize(desc_.size.width, desc_.size.height);
             // During a drag the app's message pump is parked inside DefWindowProc's modal loop.
             // Tell the host now, from inside that loop, instead of when the mouse is released.
+            // WM_ENTERSIZEMOVE also covers title-bar moves: only arm the hold-still timer once a
+            // WM_SIZE proves this modal loop is a resize.
             if (in_size_move_) {
+                ::SetTimer(hwnd, kLiveResizeTimerId, kLiveResizeTimerMs, nullptr);
                 handleLiveResizeTick();
             }
             return 0;
         }
         case WM_ENTERSIZEMOVE:
             in_size_move_ = true;
-            // Keep ticking while the mouse is held still mid-drag, when no WM_SIZE arrives. The
-            // modal loop still dispatches WM_TIMER.
-            ::SetTimer(hwnd, kLiveResizeTimerId, kLiveResizeTimerMs, nullptr);
             return 0;
         case WM_EXITSIZEMOVE:
             ::KillTimer(hwnd, kLiveResizeTimerId);
