@@ -1,15 +1,16 @@
 #==============================================================================
-# Doxyfile Configuration for VneTemplate
+# Doxyfile Configuration for VneCrossWindow (vne::xwin)
 #==============================================================================
 
 PROJECT_NAME           = "@CMAKE_PROJECT_NAME@"
 PROJECT_NUMBER         = @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@
-PROJECT_BRIEF          = "Minimal VertexNova C++ template"
+PROJECT_BRIEF          = "Native window surfaces for the VertexNova ecosystem (vne::xwin)"
 PROJECT_LOGO           =
 
 INPUT                  = @PROJECT_SOURCE_DIR@/include \
                          @PROJECT_SOURCE_DIR@/src \
                          @PROJECT_SOURCE_DIR@/docs/ \
+                         @PROJECT_SOURCE_DIR@/docs/vertexnova/xwin/ \
                          @PROJECT_SOURCE_DIR@/README.md
 
 OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/docs

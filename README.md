@@ -107,8 +107,10 @@ Or:
 
 ## Documentation
 
-- **Extra docs:** `docs/` (legacy template diagrams may still live under `docs/vertexnova/template/`).
-- **API docs:** Configure with Doxygen enabled and build the doc target:
+- **Architecture:** [Window System](docs/vertexnova/xwin/xwin.md) — design, components, platforms, event loop, and usage
+- **Testing:** [docs/TESTING.md](docs/TESTING.md)
+- **API docs hub:** [docs/README.md](docs/README.md)
+- **Generate Doxygen:** Configure with Doxygen enabled and build the doc target:
 
   ```bash
   cmake -B build/shared -DENABLE_DOXYGEN=ON

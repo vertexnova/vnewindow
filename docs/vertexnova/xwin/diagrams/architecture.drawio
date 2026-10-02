@@ -1,0 +1,139 @@
+<mxfile host="65bd71144e">
+    <diagram id="vnexwin-arch" name="vnewindow Architecture">
+        <mxGraphModel dx="1177" dy="1074" grid="1" gridSize="10" guides="1" tooltips="1" connect="0" arrows="0" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="b0-band" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#90caf9;strokeWidth=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="40" width="1032" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b0-label" value="Consumers&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;call the API&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565c0;strokeColor=#1565c0;fontColor=#ffffff;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="40" width="168" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b0-c0" value="Application / examples&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;ExampleBase · ExampleRunner&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1565c0;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#0d47a1;" parent="1" vertex="1">
+                    <mxGeometry x="216" y="62" width="416" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b0-c1" value="vnerhi / vnegfx&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;NativeWindowHandle -&gt; ISurface&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1565c0;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#0d47a1;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="62" width="416" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b1-band" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;strokeWidth=2;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="144" width="1032" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b1-label" value="Entry&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;pick a backend&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e65100;strokeColor=#e65100;fontColor=#ffffff;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="144" width="168" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b1-c0" value="WindowFactory&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;createWindowManager / getVersion / getLastError&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e65100;strokeWidth=3;fontStyle=1;fontSize=12;fontColor=#bf360c;" parent="1" vertex="1">
+                    <mxGeometry x="216" y="166" width="416" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b1-c1" value="WindowAPI&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;eNullWindow ... eWasmWindow&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e65100;strokeWidth=3;fontStyle=1;fontSize=12;fontColor=#bf360c;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="166" width="416" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b2-band" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f7fa;strokeColor=#80deea;strokeWidth=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="248" width="1032" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b2-label" value="Host&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;owns windows&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#00838f;strokeColor=#00838f;fontColor=#ffffff;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="248" width="168" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b2-c0" value="IWindowManager&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;openWindow / processEvents / findWindow&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#00838f;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#006064;" parent="1" vertex="1">
+                    <mxGeometry x="216" y="270" width="416" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b2-c1" value="lifecycle&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;supportsMultipleWindows / notifyApplicationLifecycle&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#00838f;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#006064;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="270" width="416" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3-band" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#a5d6a7;strokeWidth=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="352" width="1032" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3-label" value="Surfaces&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;one OS window&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2e7d32;strokeColor=#2e7d32;fontColor=#ffffff;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="352" width="168" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3-c0" value="IWindow&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;getId / getNativeHandle / resize / close&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1b5e20;" parent="1" vertex="1">
+                    <mxGeometry x="216" y="374" width="274" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3-c1" value="WindowDescriptor&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;size / enable_events / platform_data&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1b5e20;" parent="1" vertex="1">
+                    <mxGeometry x="498" y="374" width="275" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3-c2" value="NativeWindowHandle&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;hwnd / ns_view / x11 / wl / canvas_id&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1b5e20;" parent="1" vertex="1">
+                    <mxGeometry x="781" y="374" width="275" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b4-band" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#9fa8da;strokeWidth=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="456" width="1032" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b4-label" value="Support&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;helpers&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3949ab;strokeColor=#3949ab;fontColor=#ffffff;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="456" width="168" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b4-c0" value="EventEmitter&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;OS token -&gt; vne::events (internal)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3949ab;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1a237e;" parent="1" vertex="1">
+                    <mxGeometry x="216" y="478" width="274" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b4-c1" value="WindowInputMapping&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;native key/mouse -&gt; KeyCode&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3949ab;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1a237e;" parent="1" vertex="1">
+                    <mxGeometry x="498" y="478" width="275" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b4-c2" value="TimeStep / MonitorInfo&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;pacing / display metadata&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3949ab;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1a237e;" parent="1" vertex="1">
+                    <mxGeometry x="781" y="478" width="275" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b5-band" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#ce93d8;strokeWidth=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="560" width="1032" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b5-label" value="Events&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;vneevents&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#6a1b9a;strokeColor=#6a1b9a;fontColor=#ffffff;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="560" width="168" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b5-c0" value="EventManager&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;queue; app calls processEvents()&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6a1b9a;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#4a148c;" parent="1" vertex="1">
+                    <mxGeometry x="216" y="582" width="416" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b5-c1" value="Input&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;polling; app calls nextFrame()&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6a1b9a;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#4a148c;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="582" width="416" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-band" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;strokeWidth=2;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="664" width="1032" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-label" value="Backends&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;same API&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e65100;strokeColor=#e65100;fontColor=#ffffff;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="664" width="168" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-c0" value="Null&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;headless / tests&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#546e7a;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#37474f;" parent="1" vertex="1">
+                    <mxGeometry x="216" y="686" width="96" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-c1" value="Win32" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1565c0;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#0d47a1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="686" width="96" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-c2" value="Cocoa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#00897b;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#00695c;" parent="1" vertex="1">
+                    <mxGeometry x="424" y="686" width="96" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-c3" value="X11" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1b5e20;" parent="1" vertex="1">
+                    <mxGeometry x="528" y="686" width="96" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-c4" value="Wayland" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1b5e20;" parent="1" vertex="1">
+                    <mxGeometry x="632" y="686" width="96" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-c5" value="UIKit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#00897b;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#00695c;" parent="1" vertex="1">
+                    <mxGeometry x="736" y="686" width="96" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-c6" value="Android" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1b5e20;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="686" width="100" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6-c7" value="WASM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1565c0;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#0d47a1;" parent="1" vertex="1">
+                    <mxGeometry x="948" y="686" width="108" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b7-band" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#ce93d8;strokeWidth=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="768" width="1032" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b7-label" value="Native APIs&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;OS / host&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#6a1b9a;strokeColor=#6a1b9a;fontColor=#ffffff;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="24" y="768" width="168" height="96" as="geometry"/>
+                </mxCell>
+                <mxCell id="b7-c0" value="Win32 HWND" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1565c0;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#0d47a1;" parent="1" vertex="1">
+                    <mxGeometry x="216" y="790" width="161" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b7-c1" value="AppKit / UIKit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#00897b;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#00695c;" parent="1" vertex="1">
+                    <mxGeometry x="385" y="790" width="161" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b7-c2" value="X11 / Wayland" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1b5e20;" parent="1" vertex="1">
+                    <mxGeometry x="554" y="790" width="162" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b7-c3" value="ANativeWindow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1b5e20;" parent="1" vertex="1">
+                    <mxGeometry x="724" y="790" width="162" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="b7-c4" value="DOM canvas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1565c0;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#0d47a1;" parent="1" vertex="1">
+                    <mxGeometry x="894" y="790" width="162" height="52" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
