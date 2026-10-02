@@ -4,7 +4,7 @@
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="cf" value="&lt;div style=&quot;text-align:center&quot;&gt;&amp;#171;utility&amp;#187;&lt;br/&gt;&lt;b&gt;WindowFactory&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;i&gt;&amp;#8212;&lt;/i&gt;&lt;br/&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;u&gt;+ createWindowManager() : unique_ptr&amp;lt;IWindowManager&amp;gt;&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ createWindowManager(api: WindowAPI)&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ getBestWindowAPIForPlatform() : WindowAPI&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ isWindowAPISupported(api) : bool&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ getBuildInfo() : string&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ getLastError() : string&lt;/u&gt;&lt;br/&gt;" style="html=1;whiteSpace=wrap;rounded=0;align=left;verticalAlign=top;spacingLeft=6;spacingRight=6;spacingTop=4;fontSize=11;fillColor=#ffe0b2;strokeColor=#e65100;fontColor=#bf360c" parent="1" vertex="1">
+                <mxCell id="cf" value="&lt;div style=&quot;text-align:center&quot;&gt;&amp;#171;utility&amp;#187;&lt;br/&gt;&lt;b&gt;WindowFactory&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;i&gt;&amp;#8212;&lt;/i&gt;&lt;br/&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;u&gt;+ createWindowManager() : shared_ptr&amp;lt;IWindowManager&amp;gt;&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ createWindowManager(api: WindowAPI)&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ getBestWindowAPIForPlatform() : WindowAPI&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ isWindowAPISupported(api) : bool&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ getBuildInfo() : string&lt;/u&gt;&lt;br/&gt;&lt;u&gt;+ getLastError() : string&lt;/u&gt;&lt;br/&gt;" style="html=1;whiteSpace=wrap;rounded=0;align=left;verticalAlign=top;spacingLeft=6;spacingRight=6;spacingTop=4;fontSize=11;fillColor=#ffe0b2;strokeColor=#e65100;fontColor=#bf360c" parent="1" vertex="1">
                     <mxGeometry x="9" y="31" width="270" height="180" as="geometry"/>
                 </mxCell>
                 <mxCell id="imgr" value="&lt;div style=&quot;text-align:center&quot;&gt;&amp;#171;interface&amp;#187;&lt;br/&gt;&lt;b&gt;IWindowManager&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;i&gt;&amp;#8212;&lt;/i&gt;&lt;br/&gt;&lt;hr size=&quot;1&quot;/&gt;+ initialize() : bool&lt;br/&gt;+ shutdown()&lt;br/&gt;+ openWindow(d: WindowDescriptor) : shared_ptr&amp;lt;IWindow&amp;gt;&lt;br/&gt;+ removeWindow(w: shared_ptr&amp;lt;IWindow&amp;gt;)&lt;br/&gt;+ destroyAllWindows()&lt;br/&gt;+ processEvents()&lt;br/&gt;+ getWindows() : vector&amp;lt;shared_ptr&amp;lt;IWindow&amp;gt;&amp;gt;&lt;br/&gt;+ findWindow(id: WindowId) : shared_ptr&amp;lt;IWindow&amp;gt;&lt;br/&gt;+ supportsMultipleWindows() : bool&lt;br/&gt;+ getMonitorCount() : uint32_t&lt;br/&gt;&lt;u&gt;+ notifyApplicationLifecycle(t: ApplicationLifecycle)&lt;/u&gt;&lt;br/&gt;" style="html=1;whiteSpace=wrap;rounded=0;align=left;verticalAlign=top;spacingLeft=6;spacingRight=6;spacingTop=4;fontSize=11;fillColor=#e1f5fe;strokeColor=#0277bd;fontColor=#01579b" parent="1" vertex="1">
@@ -58,7 +58,7 @@
                 <mxCell id="r3" value="" style="endArrow=block;endFill=0;endSize=12;dashed=1;html=1;strokeColor=#0277bd;strokeWidth=1.5;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="mw" target="iwin" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="a1" value="windows" style="endArrow=diamondThin;endFill=0;endSize=14;html=1;strokeColor=#00838f;strokeWidth=1.5;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;" parent="1" source="imgr" target="iwin" edge="1">
+                <mxCell id="a1" value="windows" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;strokeColor=#00838f;strokeWidth=1.5;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;" parent="1" source="imgr" target="iwin" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="a1m" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#37474f;labelBackgroundColor=#ffffff;" parent="a1" vertex="1" connectable="0">
@@ -66,7 +66,7 @@
                         <mxPoint y="-14" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="c1" value="desc_" style="endArrow=diamondThin;endFill=1;endSize=14;html=1;strokeColor=#33691e;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="cwin" target="cls_desc" edge="1">
+                <mxCell id="c1" value="desc_" style="startArrow=diamondThin;startFill=1;startSize=14;endArrow=none;html=1;strokeColor=#33691e;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="cwin" target="cls_desc" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="c1m" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#37474f;labelBackgroundColor=#ffffff;" parent="c1" vertex="1" connectable="0">
@@ -74,7 +74,7 @@
                         <mxPoint y="-14" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="c2" value="events_" style="endArrow=diamondThin;endFill=1;endSize=14;html=1;strokeColor=#33691e;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" parent="1" source="cwin" target="cls_emit" edge="1">
+                <mxCell id="c2" value="events_" style="startArrow=diamondThin;startFill=1;startSize=14;endArrow=none;html=1;strokeColor=#33691e;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" parent="1" source="cwin" target="cls_emit" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="c2m" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#37474f;labelBackgroundColor=#ffffff;" parent="c2" vertex="1" connectable="0">
@@ -82,7 +82,7 @@
                         <mxPoint y="-14" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="g1" value="input_mapping" style="endArrow=diamondThin;endFill=0;endSize=14;html=1;strokeColor=#00838f;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="cls_desc" target="cls_inputmap" edge="1">
+                <mxCell id="g1" value="input_mapping" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;strokeColor=#00838f;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="cls_desc" target="cls_inputmap" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="g1m" value="0..1" style="edgeLabel;html=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#37474f;labelBackgroundColor=#ffffff;" parent="g1" vertex="1" connectable="0">
@@ -117,7 +117,7 @@
                         <mxPoint x="265" y="220" as="sourcePoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="d6" value="manager_" style="endArrow=diamondThin;endFill=0;endSize=14;html=1;strokeColor=#00838f;strokeWidth=1.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" parent="1" source="mw" target="imgr" edge="1">
+                <mxCell id="d6" value="manager_" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;strokeColor=#00838f;strokeWidth=1.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" parent="1" source="mw" target="imgr" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="d6m" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#37474f;labelBackgroundColor=#ffffff;" parent="d6" vertex="1" connectable="0">

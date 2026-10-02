@@ -12,6 +12,7 @@ If [draw.io Desktop](https://github.com/jgraph/drawio-desktop/releases) is insta
 drawio -x -f svg -o context.svg context.drawio
 drawio -x -f svg -o architecture.svg architecture.drawio
 drawio -x -f svg -o class_diagram.svg class_diagram.drawio
+drawio -x -f svg -o backend_classes.svg backend_classes.drawio
 drawio -x -f svg -o event_loop.svg event_loop.drawio
 ```
 
